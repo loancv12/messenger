@@ -1,0 +1,103 @@
+{
+  "sidebarComp": {
+    "profileMenu": {
+      "profile": "Hồ sơ",
+      "settings": "Cài đặt",
+      "signOut": "Đăng xuất"
+    },
+    "navButtons": {
+      "menu": "Danh mục",
+      "users": "Người dùng",
+      "callOtherPeople": "Gọi người khác"
+    },
+    "navSetting": {
+      "settings": "Cài đặt"
+    }
+  },
+  "messageOptions": {
+    "reply": "Trả lời",
+    "reactToMessage": "Phản hồi tin nhắn",
+    "forwardMessage": "Chuyển tiếp tin nhắn",
+    "starMessage": "Đánh dấu tin nhắn",
+    "report": "Báo cáo",
+    "deleteMessage": "Xóa tin nhắn"
+  },
+  "settings": {
+    "settings": "Cài đặt",
+
+    "settingTheme": {
+      "direction": "Hướng",
+      "presets": "Cài đặt trước",
+      "language": "Ngôn ngữ",
+      "fullscreen": "Toàn màn hình",
+      "exitFullscreen": "Thoat màn hình"
+    },
+    "settingKeyBoard": {
+      "markAsUnread": "Đánh dấu là chưa đọc",
+      "mute": "Tắt tiếng",
+      "archiveChat": "Lưu trữ cuộc trò chuyện",
+      "deleteChat": "Xóa cuộc trò chuyện",
+      "pinChat": "Ghim cuộc trò chuyện",
+      "search": "Tìm kiếm",
+      "searchChat": "Tìm kiếm trong cuộc trò chuyện",
+      "nextChat": "Cuộc trò chuyện tiếp theo",
+      "nextStep": "Bước tiếp theo",
+      "previousStep": "Bước trước",
+      "newGroup": "Nhóm mới",
+      "profileAndAbout": "Hồ sơ & Về",
+      "increaseSpeedOfVoiceMessage": "Tăng tốc độ tin nhắn thoại",
+      "decreaseSpeedOfVoiceMessage": "Giảm tốc độ tin nhắn thoại",
+      "settings": "Cài đặt",
+      "emojiPanel": "Bảng biểu tượng cảm xúc",
+      "stickerPanel": "Bảng nhãn dán"
+    },
+
+    "settingOpts": {
+      "notifications": "Thông báo",
+      "privacy": "Quyền riêng tư",
+      "security": "Bảo mật",
+      "theme": "Giao diện",
+      "chatWallpaper": "Hình nền chat",
+      "requestAccountInfo": "Yêu cầu thông tin tài khoản",
+      "keyboardShortcuts": "Phím tắt",
+      "help": "Trợ giúp"
+    }
+  },
+
+  "contactSidebar": {
+    "phone": "Điện thoại",
+    "video": "Video",
+    "about": "Thông tin thêm",
+    "imaginationIsOnlyLimit": "Imagination is only limit",
+    "mediaLinkDocs": "Media, Link & Docs",
+    "starredMessages": "Starred Messages",
+    "muteNotification": "Mute notification",
+    "groupInCommon": "group in common",
+    "block": "Block",
+    "delete": "Delete"
+  },
+
+  "conversation": {
+    "startChat": "Chọn một cuộc hội thoại hoặc bắt đầu một cuộc nói chuyện mới"
+  },
+  "directCvs": {
+    "chats": "Cuộc hội thoại",
+    "archive": "Bộ sưu tập",
+    "allChats": "Tất cả cuộc hội thoại",
+    "search": "Tìm kiếm",
+    "explore": "Khám phá",
+    "friends": "Bạn bè",
+    "requests": "Yêu cầu"
+  },
+
+  "groupCvs": {
+    "groups": "Nhóm",
+    "createNewGroup": "Tạo nhóm",
+    "allGroup": "Tất cả các nhóm",
+    "sender": "Người gửi",
+    "groupName": "Tên nhóm",
+    "name": "Tên",
+    "members": "Thành viên",
+    "notHaveJoinGroupReq": "Bạn không có lời mời gọi vào nhóm nào"
+  }
+}

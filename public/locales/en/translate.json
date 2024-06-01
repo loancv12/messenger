@@ -1,0 +1,106 @@
+{
+  "sidebarComp": {
+    "profileMenu": {
+      "profile": "Profile",
+      "settings": "Settings",
+      "signOut": "Sign out"
+    },
+
+    "navButtons": {
+      "menu": "Menu",
+      "users": "Users",
+      "callOtherPeople": "Call other people"
+    },
+
+    "navSetting": {
+      "settings": "Settings"
+    }
+  },
+
+  "messageOptions": {
+    "reply": "Reply",
+    "reactToMessage": "React to message",
+    "forwardMessage": "Forward message",
+    "starMessage": "Start message",
+    "report": "Report",
+    "deleteMessage": "Delete Message"
+  },
+
+  "settings": {
+    "settings": "Settings",
+
+    "settingOpts": {
+      "notifications": "Notifications",
+      "privacy": "Privacy",
+      "security": "Security",
+      "theme": "Theme",
+      "chatWallpaper": "Chat Wallpaper",
+      "requestAccountInfo": "Request Account Info",
+      "keyboardShortcuts": "Keyboard Shortcuts",
+      "help": "Help"
+    },
+
+    "settingTheme": {
+      "direction": "Direction",
+      "presets": "Presets",
+      "language": "Language",
+      "fullscreen": "FullScreen",
+      "exitFullscreen": "Exit Fullscreen"
+    },
+    "settingKeyBoard": {
+      "markAsUnread": "Mark as unread",
+      "mute": "Mute",
+      "archiveChat": "Archive Chat",
+      "deleteChat": "Delete Chat",
+      "pinChat": "Pin Chat",
+      "search": "Search",
+      "searchChat": "Search Chat",
+      "nextChat": "Next Chat",
+      "nextStep": "Next Step",
+      "previousStep": "Previous Step",
+      "newGroup": "New Group",
+      "profileAndAbout": "Profile & About",
+      "increaseSpeedOfVoiceMessage": "Increase speed of voice message",
+      "decreaseSpeedOfVoiceMessage": "Decrease speed of voice message",
+      "settings": "Settings",
+      "emojiPanel": "Emoji Panel",
+      "stickerPanel": "Sticker Panel"
+    }
+  },
+
+  "contactSidebar": {
+    "phone": "Phone",
+    "video": "Video",
+    "about": "About",
+    "imaginationIsOnlyLimit": "Imagination is only limit",
+    "mediaLinkDocs": "Media, Link & Docs",
+    "starredMessages": "Starred Messages",
+    "muteNotification": "Mute notification",
+    "groupInCommon": "Group in common",
+    "block": "Block",
+    "delete": "Delete"
+  },
+  "directCvs": {
+    "chats": "Chats",
+    "archive": "Archive",
+    "allChats": "All chats",
+    "search": "Search",
+    "explore": "Explore",
+    "friends": "Friends",
+    "requests": "Requests"
+  },
+
+  "conversation": {
+    "startChat": "Select a conversation or start new one"
+  },
+  "groupCvs": {
+    "groups": "Groups",
+    "createNewGroup": "Create new group",
+    "allGroup": "All group",
+    "sender": "Sender",
+    "groupName": "Group Name",
+    "name": "Name",
+    "members": "Members",
+    "notHaveJoinGroupReq": "You don't have any join group invitation"
+  }
+}

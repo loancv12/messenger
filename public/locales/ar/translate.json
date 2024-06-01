@@ -1,0 +1,99 @@
+{
+  "sidebarComp": {
+    "profileMenu": {
+      "profile": "الملفات الشخصية",
+      "settings": "الإعدادات",
+      "signOut": "تسجيل الخروج"
+    },
+    "navButtons": {
+      "menu": "القائمة",
+      "users": "المستخدمون",
+      "callOtherPeople": "اتصل بأشخاص آخرين"
+    },
+    "navSetting": {
+      "settings": "الإعدادات"
+    }
+  },
+
+  "messageOptions": {
+    "reply": "رد",
+    "reactToMessage": "رد على الرسالة",
+    "forwardMessage": "إعادة توجيه الرسالة",
+    "starMessage": "رسالة مميزة",
+    "report": "تقرير",
+    "deleteMessage": "حذف الرسالة"
+  },
+
+  "settings": {
+    "settings": "الإعدادات",
+    "settingTheme": {
+      "direction": "الاتجاه",
+      "presets": "الإعدادات المسبقة",
+      "language": "اللغة",
+      "fullScreen": "ملء الشاشة"
+    },
+
+    "settingKeyBoard": {
+      "markAsUnread": "سجّل كغير مقروء",
+      "mute": "كتم",
+      "archiveChat": "أرشفة الدردشة",
+      "deleteChat": "حذف الدردشة",
+      "pinChat": "تثبيت الدردشة",
+      "search": "بحث",
+      "searchChat": "بحث في الدردشة",
+      "nextChat": "الدردشة التالية",
+      "nextStep": "الخطوة التالية",
+      "previousStep": "الخطوة السابقة",
+      "newGroup": "مجموعة جديدة",
+      "profileAndAbout": "الملف الشخصي وحول",
+      "increaseSpeedOfVoiceMessage": "زيادة سرعة الرسائل الصوتية",
+      "decreaseSpeedOfVoiceMessage": "تقليل سرعة الرسائل الصوتية",
+      "settings": "الإعدادات",
+      "emojiPanel": "لوحة الرموز التعبيرية",
+      "stickerPanel": "لوحة الملصقات"
+    },
+
+    "settingOpts": {
+      "notifications": "الإشعارات",
+      "privacy": "الخصوصية",
+      "security": "الأمان",
+      "theme": "الثيم",
+      "chatWallpaper": "خلفية الدردشة",
+      "requestAccountInfo": "طلب معلومات الحساب",
+      "keyboardShortcuts": "اختصارات لوحة المفاتيح",
+      "help": "مساعدة"
+    }
+  },
+
+  "contactSidebar": {
+    "phone": "الهاتف",
+    "video": "فيديو",
+    "about": "حول",
+    "imaginationIsOnlyLimit": "الخيال هو الحد الوحيد",
+    "mediaLinkDocs": "وسائط، روابط ومستندات",
+    "starredMessages": "الرسائل المميزة",
+    "muteNotification": "كتم الإشعارات",
+    "groupInCommon": "مجموعة مشتركة",
+    "block": "حظر",
+    "delete": "حذف"
+  },
+  "directCvs": {
+    "chats": "الدردشات",
+    "archive": "الأرشيف",
+    "allChats": "جميع الدردشات",
+    "search": "بحث",
+    "explore": "استكشاف",
+    "friends": "الأصدقاء",
+    "requests": "الطلبات"
+  },
+  "groupCvs": {
+    "groups": "المجموعات",
+    "createNewGroup": "إنشاء مجموعة جديدة",
+    "allGroup": "جميع المجموعات",
+    "sender": "المرسل",
+    "groupName": "اسم المجموعة",
+    "name": "الاسم",
+    "members": "الأعضاء",
+    "notHaveJoinGroupReq": "ليس لديك أي دعوة للانضمام إلى مجموعة"
+  }
+}
