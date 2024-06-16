@@ -2,8 +2,6 @@ import { useState } from "react";
 // @mui
 import { alpha } from "@mui/material/styles";
 import { Button } from "@mui/material";
-//
-import Iconify from "../../Iconify";
 import toCamelCase from "../../../utils/toCamelCase";
 import useLocales from "../../../hooks/useLocales";
 import { ArrowsIn, CornersOut } from "phosphor-react";

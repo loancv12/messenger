@@ -7,11 +7,8 @@ import {
   styled,
 } from "@mui/material";
 import React from "react";
-import { AnimatePresence, m } from "framer-motion";
 import cssStyles from "../../utils/cssStyles";
 import { NAVBAR } from "../../config";
-import Iconify from "../Iconify";
-import Scrollbar from "../Scrollbar";
 import useSettings from "../../hooks/useSettings";
 import SettingDirection from "./parts/SettingDirection";
 import SettingColorPresets from "./parts/SettingColorPresets";
@@ -20,31 +17,7 @@ import SettingLanguage from "./parts/SettingLanguage";
 import toCamelCase from "../../utils/toCamelCase";
 import useLocales from "../../hooks/useLocales";
 import SettingMode from "./parts/SettingMode";
-
-const RootStyle = styled(m.div)(({ theme }) => ({
-  ...cssStyles(theme).bgBlur({
-    color: theme.palette.background.paper,
-    opacity: 0.92,
-  }),
-  top: 0,
-  right: 0,
-  bottom: 0,
-  display: "flex",
-  position: "fixed",
-  overflow: "hidden",
-  width: NAVBAR.BASE_WIDTH,
-  flexDirection: "column",
-  margin: theme.spacing(2),
-  paddingBottom: theme.spacing(3),
-  zIndex: theme.zIndex.drawer + 3,
-  borderRadius: Number(theme.shape.borderRadius) * 1.5,
-  boxShadow: `-24px 12px 32px -4px ${alpha(
-    theme.palette.mode === "light"
-      ? theme.palette.grey[500]
-      : theme.palette.common.black,
-    0.16
-  )}`,
-}));
+import { ArrowClockwise } from "phosphor-react";
 
 const AdjustTheme = () => {
   const { onResetSetting } = useSettings();
@@ -52,7 +25,6 @@ const AdjustTheme = () => {
   const { translate } = useLocales();
   return (
     <Stack sx={{ width: "100%" }}>
-      {/* <RootStyle> */}
       <Stack
         direction="row"
         alignItems="center"
@@ -63,7 +35,7 @@ const AdjustTheme = () => {
         <Stack direction="row" alignItems="center" spacing={2}>
           <Typography variant="body2">Reset</Typography>
           <IconButton onClick={onResetSetting}>
-            <Iconify icon={"ic:round-refresh"} width={20} height={20} />
+            <ArrowClockwise size={32} />
           </IconButton>
         </Stack>
         <SettingMode />

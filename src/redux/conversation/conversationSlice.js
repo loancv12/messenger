@@ -192,8 +192,10 @@ export const handleJoinGroupReq = (data) => {
 export const handleAcceptJoinGroup = (data) => {
   return (dispatch, getState) => {
     console.log("join_group_request", data);
+    const { message, status } = data;
     if (data?.status === "error") {
-      dispatch(showSnackbar({ severity: "error", message: data.message }));
+      dispatch(showSnackbar({ severity: "error", message }));
+    } else {
     }
   };
 };
@@ -203,9 +205,9 @@ export const handleNewMember = (data) => {
   const userId = localStorage.getItem("userId");
 
   return (dispatch, getState) => {
-    const { message, updatedGroupCvs } = data;
-    dispatch(showSnackbar({ severity: "success", message: message }));
-    if (updatedGroupCvs.adminId.toString() === userId) {
+    const { message, updatedGroupCvs, newMemberId } = data;
+    dispatch(showSnackbar({ severity: "success", message }));
+    if (userId !== newMemberId) {
       dispatch(
         updateConversation({
           type: chatTypes.GROUP_CHAT,

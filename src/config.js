@@ -57,11 +57,13 @@ export const allLangs = [
   },
 ];
 
-export const allowFiles = ["msDoc", "msEx", "img"];
+// export const allowFiles = ["msDoc", "msEx", "img"];
+export const allowFiles = ["image", "word", "excel", "pdf"];
 export const maxSize = 1024; // 1e6 (1 MB-1024kB)
 
 export const defaultLang = allLangs[0]; // English
 
+export const maxNumberOfFiles = 10;
 export const msgsLimit = 20;
 
 // DEFAULT ROOT PATH

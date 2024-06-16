@@ -2,25 +2,7 @@ import i18n from "i18next";
 import { initReactI18next } from "react-i18next";
 import { allLangs, defaultLang } from "./config";
 import Backend from "i18next-http-backend";
-// import translateEn from "../public/locales/en/translate.json";
-// import translateVn from "../public/locales/vn/translate.json";
-// import translateCn from "../public/locales/cn/translate.json";
-// import translateAr from "../public/locales/ar/translate.json";
 
-// const resources = {
-//   en: {
-//     translation: translateEn,
-//   },
-//   cn: {
-//     translation: translateCn,
-//   },
-//   vn: {
-//     translation: translateCn,
-//   },
-//   ar: {
-//     translation: translateAr,
-//   },
-// };
 const langStorage = localStorage.getItem("i18nextLng");
 
 const currentLang =

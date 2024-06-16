@@ -64,7 +64,6 @@ const Group = () => {
   };
 
   useEffect(() => {
-    dispatch(selectTypeOfCvs({ chatType: chatTypes.GROUP_CHAT }));
     dispatch(fetchConversations({ type: chatTypes.GROUP_CHAT }));
   }, []);
   return (

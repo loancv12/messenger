@@ -11,6 +11,7 @@ import {
   useTheme,
 } from "@mui/material";
 import React, { useEffect, useState } from "react";
+import { getFileFormat } from "../../utils/getFileFormat";
 
 const PreviewFiles = ({ variant, files, handleDelete }) => {
   const theme = useTheme();
@@ -21,7 +22,7 @@ const PreviewFiles = ({ variant, files, handleDelete }) => {
     let imgUrls = [];
     if (files?.length) {
       const formatFiles = Array.from(files).reduce((formatFiles, file) => {
-        if (file.type.startsWith("image")) {
+        if (getFileFormat(file.name) === "image") {
           const imgUrl = URL.createObjectURL(file);
           imgUrls.push(imgUrl);
           formatFiles.push({
@@ -60,6 +61,7 @@ const PreviewFiles = ({ variant, files, handleDelete }) => {
             : theme.palette.background.default,
         position: "absolute",
         left: "56px",
+        right: 0,
         top: 0,
         zIndex: 2,
         transform: "translateY(calc(-100% - 16px))",

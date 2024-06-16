@@ -1,6 +1,6 @@
-import { Paper, styled } from "@mui/material";
+import { Box, Paper, styled } from "@mui/material";
 
-const GridItem = styled(Paper)(({ theme }) => ({
+const GridItem = styled(Box)(({ theme }) => ({
   backgroundColor: theme.palette.mode === "dark" ? "#1A2027" : "#fff",
   ...theme.typography.body2,
   padding: theme.spacing(1),

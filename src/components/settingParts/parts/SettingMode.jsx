@@ -10,8 +10,6 @@ import {
 } from "@mui/material";
 // hooks
 import useSettings from "../../../hooks/useSettings";
-//
-import Iconify from "../../Iconify";
 import BoxMask from "./BoxMask";
 import { Moon, Sun } from "phosphor-react";
 

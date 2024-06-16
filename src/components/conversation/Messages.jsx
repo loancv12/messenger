@@ -28,6 +28,7 @@ import { selectChatType } from "../../redux/app/appSlice";
 import { selectCurrCvsId } from "../../redux/conversation/conversationSlice";
 
 function Messages({ menu }) {
+  console.log("messges comp");
   const [isLoading, setIsLoading] = useState(false);
   const isVeryBottomRef = useRef(true);
   const pageRef = useRef({
@@ -162,26 +163,36 @@ function Messages({ menu }) {
   }, []);
 
   useEffect(() => {
-    console.log("change currentCvsId", currentCvsId);
+    console.log("change currentCvsId", currentCvsId, chatType);
+    let timeOutId;
     if (currentCvsId) {
-      dispatch(
-        fetchMessages({
-          type: chatType,
-          conversationId: currentCvsId,
-          page: 1,
-          // onApiStart
-          onSuccess: (res) => {
-            const numberOfPages = res?.headers?.["x-pagination"];
-            pageRef.current.numberOfPages = Number(numberOfPages);
-            dispatch(
-              setCurrentMsgs({ type: chatType, messages: res.data.data })
-            );
-          },
-        })
-      );
+      // setTimeout to prevent get wrong cvs type msgs,
+      // because useEffect of DirectPage or GroupPage(Which selectTypeOfCvs ) run after this useEffect run,
+      // so when this useEffect run, currentCvsId is old, msg is not correct cvs type,
+      // after selectTypeOfCvs, currentCvsId change, api run with correct path with correct cvs type msg
+      timeOutId = setTimeout(function () {
+        dispatch(
+          fetchMessages({
+            type: chatType,
+            conversationId: currentCvsId,
+            page: 1,
+            // onApiStart
+            onSuccess: (res) => {
+              const numberOfPages = res?.headers?.["x-pagination"];
+              pageRef.current.numberOfPages = Number(numberOfPages);
+              dispatch(
+                setCurrentMsgs({ type: chatType, messages: res.data.data })
+              );
+            },
+          })
+        );
+      }, 10);
     }
     resetRefWhenChangeCvs();
     scrollToBottom(outerScrollBox.current);
+    return () => {
+      clearTimeout(timeOutId);
+    };
   }, [currentCvsId]);
 
   useEffect(() => {

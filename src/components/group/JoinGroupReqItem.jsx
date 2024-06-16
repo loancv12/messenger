@@ -13,7 +13,7 @@ import {
 import { useState } from "react";
 import GridItem from "../GridItem";
 
-const JoinGroupReqItem = ({ id, sender, group, handleAccept }) => {
+const JoinGroupReqItem = ({ sender, group, handleAccept }) => {
   const theme = useTheme();
   return (
     <>
@@ -31,7 +31,7 @@ const JoinGroupReqItem = ({ id, sender, group, handleAccept }) => {
         <GridItem>
           <Button
             onClick={() => {
-              handleAccept(id);
+              handleAccept(group.id);
             }}
           >
             Join

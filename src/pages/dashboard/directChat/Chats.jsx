@@ -36,13 +36,8 @@ import {
 import toCamelCase from "../../../utils/toCamelCase";
 import useLocales from "../../../hooks/useLocales";
 import { fetchConversations } from "../../../redux/conversation/conversationApi";
-const mode = import.meta.env.MODE;
 
 const Chats = () => {
-  console.log("mode", mode);
-  console.log(import.meta.env.VITE_TEST);
-  console.log(import.meta.env.VITE_SOME_KEY); // "123"
-  console.log(import.meta.env.DB_PASSWORD); // undefined
   const [openDialog, setOpenDialog] = useState(false);
   const friendReqNotice = useSelector((state) =>
     selectNotice(state, noticeTypes.FRIEND_REQ)
@@ -67,7 +62,6 @@ const Chats = () => {
   };
 
   useEffect(() => {
-    dispatch(selectTypeOfCvs({ chatType: chatTypes.DIRECT_CHAT }));
     dispatch(fetchConversations({ type: chatTypes.DIRECT_CHAT }));
   }, []);
   return (

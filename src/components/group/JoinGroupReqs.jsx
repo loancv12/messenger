@@ -20,9 +20,9 @@ const JoinGroupReqs = ({ open, handleClose }) => {
     dispatch(fetchJoinGroupReqs());
   }, []);
 
-  const handleAccept = (_id) => {
-    console.log("emit accept_join_group", _id);
-    socket.emit("accept_join_group", { joinGroupRequestId: _id });
+  const handleAccept = (id) => {
+    console.log("emit accept_join_group", id);
+    socket.emit("accept_join_group", { groupId: id });
     handleClose();
   };
 

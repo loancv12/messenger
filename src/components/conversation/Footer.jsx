@@ -51,6 +51,7 @@ import { SocketContext } from "../../contexts/SocketProvider";
 
 function Footer() {
   const theme = useTheme();
+
   const [openActions, setOpenActions] = useState(false);
   const [openPicker, setOpenPicker] = useState(false);
   const [files, setFiles] = useState([]);
@@ -110,8 +111,8 @@ function Footer() {
   };
 
   const onSuccess = (res) => {
+    console.log(res);
     setFiles([]);
-
     setVariant("determinate");
   };
   const onFailure = (err) => {

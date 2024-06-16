@@ -39,9 +39,9 @@ const CreateGroupForm = ({ handleClose }) => {
 
   const onSubmit = async (data) => {
     console.log("create a new group", data);
-    // socket.emit("create_group_conversation", { ...data, adminId: userId });
-    // reset();
-    // handleClose();
+    socket.emit("create_group_conversation", { ...data, adminId: userId });
+    reset();
+    handleClose();
   };
 
   return (

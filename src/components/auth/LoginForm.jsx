@@ -97,7 +97,12 @@ const LoginForm = () => {
           }}
         />
       </Stack>
-      <Stack alignItems={"flex-end"} sx={{ my: 2 }}>
+      <Stack
+        direction="row"
+        alignItems={"flex-end"}
+        justifyContent={"space-between"}
+        sx={{ my: 2 }}
+      >
         <label htmlFor="persist">
           <input
             type="checkbox"

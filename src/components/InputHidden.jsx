@@ -10,6 +10,9 @@ import { Image } from "phosphor-react";
 import React, { useEffect, useState } from "react";
 import { useDispatch } from "react-redux";
 import { showSnackbar } from "../redux/app/appSlice";
+import { getFileFormat } from "../utils/getFileFormat";
+import { maxNumberOfFiles } from "../config";
+
 const VisuallyHiddenInput = styled("input")(({ theme }) => ({
   "& .MuiInputBase-input, fieldset": {
     clip: "rect(0 0 0 0)",
@@ -35,37 +38,16 @@ const VisuallyHiddenInput = styled("input")(({ theme }) => ({
   },
 }));
 
-const fileExt = {
-  img: "^image/.*$",
-  video: "video/*",
-  msDoc:
-    "^application/(msword|vnd.openxmlformats-officedocument.wordprocessingml.document)$",
-  txt: "text/*",
-  msEx: "application/(vnd.ms-excel|vnd.openxmlformats-officedocument.spreadsheetml.sheet)$",
-};
-
-function makeRegex(type) {
-  const regex = new RegExp(`${fileExt[type]}`);
-  return regex;
-}
-
-function validFileType(file, type) {
-  return file.type.match(makeRegex(type));
-}
-
-// classify files to format : { [type]:[File]}
 function classifyFile(files, allowFiles, maxSize) {
-  let result = [];
-  result = Array.from(files).filter((file) => {
-    return allowFiles.find((type) => {
-      console.log("file size", file.size);
-      const isValidType = validFileType(file, type);
-      1049221 / 102;
-      const isValidSize = Math.round(file.size / 1024) < maxSize;
-      return isValidSize && isValidType;
-    });
+  return Array.from(files).filter((file, i) => {
+    const fileFormat = getFileFormat(file.name);
+    const isValidFormat = allowFiles.includes(fileFormat);
+    const isValidSize = Math.round(file.size / 1024) <= maxSize;
+    // Forgive this stupid naming, couldn't find a better name
+    const isSingleFileAllowed = i <= maxNumberOfFiles;
+
+    return isValidSize && isValidFormat && isSingleFileAllowed;
   });
-  return result;
 }
 
 function InputHidden({ setFiles, name, icon, allowFiles, maxSize }) {
@@ -79,7 +61,7 @@ function InputHidden({ setFiles, name, icon, allowFiles, maxSize }) {
         showSnackbar({
           severity: "error",
           message:
-            "Files size must smaller than 1MB and only allowed file type: MS docs, MS excel, image",
+            "Files size must smaller than 1MB and only allowed file type: MS docs, MS excel, image. Max number of files can upload is 10",
         })
       );
     }

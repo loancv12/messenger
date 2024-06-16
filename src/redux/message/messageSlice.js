@@ -196,7 +196,6 @@ export function deleteMessage({ msg, socket }) {
 }
 
 export function handleDeleteMsgRet(data) {
-  console.log("run callback for deleteMsg");
   return (dispatch, getState) => {
     console.log("deleteMsg", data);
     if (data?.status === "error") {
@@ -214,16 +213,20 @@ export function handleDeleteMsgRet(data) {
           },
         })
       );
+
       const currentMsgs = getState().message[type].currentMsgs;
       const isLatestMsg = currentMsgs.length
         ? currentMsgs[currentMsgs.length - 1].id === msgId
         : false;
+      console.log("isLatestMsg", isLatestMsg);
       if (isLatestMsg) {
-        updateConversation({
-          type,
-          conversationId: getState().conversation[type].currentCvsId,
-          updatedContent: { msg: "Message is deleted" },
-        });
+        dispatch(
+          updateConversation({
+            type,
+            conversationId: getState().conversation[type].currentCvsId,
+            updatedContent: { msg: "Message is deleted" },
+          })
+        );
       }
     }
   };

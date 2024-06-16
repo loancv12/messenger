@@ -137,7 +137,7 @@ const SocketProvider = ({ children }) => {
         dispatch(startChat(data));
       });
 
-      socket.on("create_group_result", (data) => {
+      socket.on("create_group_ret", (data) => {
         dispatch(handleCreateGroupRet(data));
       });
 
@@ -145,7 +145,7 @@ const SocketProvider = ({ children }) => {
         dispatch(handleJoinGroupReq(data));
       });
 
-      socket.on("join_group_result", (data) => {
+      socket.on("join_group_ret", (data) => {
         dispatch(handleAcceptJoinGroup(data));
       });
 
@@ -159,7 +159,7 @@ const SocketProvider = ({ children }) => {
         dispatch(handleNewMessages(data));
       });
 
-      socket.on("delete_message_result", (data) => {
+      socket.on("delete_message_ret", (data) => {
         dispatch(handleDeleteMsgRet(data));
       });
     } else {
@@ -179,12 +179,12 @@ const SocketProvider = ({ children }) => {
       socket.off("withdraw_friend_req_ret");
       socket.off("send_req_ret");
       socket.off("start_chat");
-      socket.off("create_group_result");
+      socket.off("create_group_ret");
       socket.off("join_group_request");
-      socket.off("join_group_result");
+      socket.off("join_group_ret");
       socket.off("new_member");
       socket.off("new_messages");
-      socket.off("delete_message_result");
+      socket.off("delete_message_ret");
       socket.disconnect();
     };
   }, [isLoggedIn, socket]);
