@@ -26,10 +26,45 @@ import { fetchMessages } from "../../redux/message/messageApi";
 
 import { selectChatType } from "../../redux/app/appSlice";
 import { selectCurrCvsId } from "../../redux/conversation/conversationSlice";
+import useAuth from "../../hooks/useAuth";
+import { fDateFromNow } from "../../utils/formatTime";
+
+function transformMessages(rawMsg, userId) {
+  let timeOfStartMsg = "",
+    isMyReply = null,
+    isSelfReply = null;
+  if (rawMsg?.isStartMsg) {
+    timeOfStartMsg = fDateFromNow(rawMsg.createdAt);
+  }
+
+  const incoming = userId === rawMsg.from ? false : true;
+
+  if (rawMsg?.isReply) {
+    isMyReply = userId === rawMsg.from;
+    isSelfReply = userId !== rawMsg.replyMsg?.from ? true : false;
+  }
+
+  const solveMsg = {
+    ...rawMsg,
+    timeOfStartMsg,
+    incoming,
+    replyMsg: {
+      ...rawMsg.replyMsg,
+      isMyReply,
+      isSelfReply,
+    },
+  };
+
+  return solveMsg;
+}
 
 function Messages({ menu }) {
   console.log("messges comp");
+  const { userId } = useAuth();
   const [isLoading, setIsLoading] = useState(false);
+  const [isGetNextLoading, setIsGetNextLoading] = useState(false);
+  const [isLastPage, setIsLastPage] = useState(false);
+
   const isVeryBottomRef = useRef(true);
   const pageRef = useRef({
     page: 1,
@@ -76,11 +111,18 @@ function Messages({ menu }) {
 
     dispatch(
       fetchMessages({
-        type: chatType,
-        conversationId: currentCvsId,
-        page: pageRef.current.page,
-        onApiStart: () => setIsLoading(true),
-        onApiEnd: () => setIsLoading(false),
+        data: {
+          type: chatType,
+          conversationId: currentCvsId,
+          page: pageRef.current.page,
+        },
+        onApiStart: () => setIsGetNextLoading(true),
+        onApiEnd: () => {
+          if (pageRef.current.page === pageRef.current.numberOfPages) {
+            setIsLastPage(true);
+          }
+          setIsGetNextLoading(false);
+        },
         onSuccess: (res) => {
           const numberOfPages = res?.headers?.["x-pagination"];
           pageRef.current.numberOfPages = Number(numberOfPages);
@@ -94,6 +136,8 @@ function Messages({ menu }) {
 
   const resetRefWhenChangeCvs = () => {
     pageRef.current.page = 1;
+    pageRef.current.numberOfPages = 1;
+
     intersectRef.current.previousY = Number.MAX_SAFE_INTEGER;
     intersectRef.current.previousRatio = Number.MAX_SAFE_INTEGER;
     prevPosRef.current = 0;
@@ -163,6 +207,10 @@ function Messages({ menu }) {
   }, []);
 
   useEffect(() => {
+    console.log("isLastPage", isLastPage);
+  }, [pageRef.current.page]);
+
+  useEffect(() => {
     console.log("change currentCvsId", currentCvsId, chatType);
     let timeOutId;
     if (currentCvsId) {
@@ -173,13 +221,18 @@ function Messages({ menu }) {
       timeOutId = setTimeout(function () {
         dispatch(
           fetchMessages({
-            type: chatType,
-            conversationId: currentCvsId,
-            page: 1,
+            data: {
+              type: chatType,
+              conversationId: currentCvsId,
+              page: 1,
+            },
             // onApiStart
+            onApiStart: () => setIsLoading(true),
+            onApiEnd: () => setIsLoading(false),
             onSuccess: (res) => {
               const numberOfPages = res?.headers?.["x-pagination"];
               pageRef.current.numberOfPages = Number(numberOfPages);
+
               dispatch(
                 setCurrentMsgs({ type: chatType, messages: res.data.data })
               );
@@ -208,14 +261,15 @@ function Messages({ menu }) {
     // only scroll to old pos when comp rerender( page!==1) and have msg added
     // when after comp mounted, we scroll up a bit, not make page change, add msg still remain
     // pos, so we no need to scroll to old pos
+    // 32px for 32 height of loading box
     if (pageRef.current.page !== 1 && !isMsgAddedRet) {
-      scrollToOldPos(outerScrollBox.current, prevPos);
+      scrollToOldPos(outerScrollBox.current, prevPos - 32);
     }
   }, [currentMsgs]);
 
   const msgs = currentMsgs?.map((el, i) => {
     const props = {
-      el,
+      el: transformMessages(el, userId),
       key: i,
       menu,
     };
@@ -250,6 +304,23 @@ function Messages({ menu }) {
         msOverflowStyle: "none",
       }}
     >
+      {isLoading ? (
+        <Box
+          sx={{
+            position: "absolute",
+            left: 0,
+            top: 0,
+            right: 0,
+            bottom: 0,
+            zIndex: 9999,
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "center",
+          }}
+        >
+          <CircularProgress />
+        </Box>
+      ) : null}
       <Stack
         p={3}
         direction={"column"}
@@ -260,8 +331,6 @@ function Messages({ menu }) {
           "& *": {
             overflowAnchor: "none",
           },
-          // css to make 24px height of loading box as the padding-top.
-          paddingTop: 0,
           // second div is the first msg div
           "& > div:nth-of-type(2)": {
             marginTop: "0 !important",
@@ -273,8 +342,8 @@ function Messages({ menu }) {
           sx={{
             // pageRef.current.page < pageRef.current.numberOfPages
             display: "block",
-            height: "24px",
-            opacity: isLoading ? 1 : 0,
+            height: isLastPage ? 0 : "32px",
+            opacity: isGetNextLoading ? 1 : 0,
             width: "100%",
             textAlign: "center",
             marginTop: "0 !important",

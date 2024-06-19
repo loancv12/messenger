@@ -207,6 +207,7 @@ export const handleNewMember = (data) => {
   return (dispatch, getState) => {
     const { message, updatedGroupCvs, newMemberId } = data;
     dispatch(showSnackbar({ severity: "success", message }));
+
     if (userId !== newMemberId) {
       dispatch(
         updateConversation({

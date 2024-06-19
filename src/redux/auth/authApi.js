@@ -1,5 +1,4 @@
-import { jwtDecode } from "jwt-decode";
-import { logIn, logout, updateEmail } from "../auth/authSlice";
+import { logout, setCredentials, updateEmail } from "../auth/authSlice";
 import { dispatch, persistor } from "../store";
 import { apiAction } from "../mdw/apiMdw";
 import { showSnackbar } from "../app/appSlice";
@@ -12,16 +11,26 @@ export const logInUser = (formValues) =>
     onSuccess: (res) => {
       const { data: token, message } = res.data;
       dispatch(
-        logIn({
-          isLoggedIn: true,
+        setCredentials({
           token,
         })
       );
-      const decoded = jwtDecode(token);
-      localStorage.setItem("userId", decoded.userId);
+      console.log("token at login", res);
     },
   });
 
+export const refresh = () =>
+  apiAction({
+    url: "/auth/refresh",
+    onSuccess: (res) => {
+      const { data: token, message } = res.data;
+      dispatch(
+        setCredentials({
+          token,
+        })
+      );
+    },
+  });
 export const logOutUser = (formValues) =>
   apiAction({
     url: "/auth/logout",
@@ -57,8 +66,7 @@ export const resetPwd = (formValues) =>
       console.log("res in forgor pwd", res);
       const { data: token } = res.data;
       dispatch(
-        logIn({
-          isLoggedIn: true,
+        setCredentials({
           token,
         })
       );
@@ -82,15 +90,11 @@ export const verifyEmail = (formValues) =>
       console.log("verifyEmail", res);
       const { data: token, message } = res.data;
       dispatch(
-        logIn({
-          isLoggedIn: true,
+        setCredentials({
           token,
         })
       );
       dispatch(updateEmail({ email: "" }));
-      const decoded = jwtDecode(token);
-      console.log(decoded);
-      localStorage.setItem("userId", decoded.userId);
       dispatch(showSnackbar({ severity: "success", message: message }));
     },
   });

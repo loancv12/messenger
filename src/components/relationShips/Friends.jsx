@@ -5,11 +5,13 @@ import { FriendElement } from "../relationShipElement";
 import { Box, Typography } from "@mui/material";
 import { selectFriends } from "../../redux/relationShip/relationShipSlice";
 import { SocketContext } from "../../contexts/SocketProvider";
+import useAuth from "../../hooks/useAuth";
 
 const Friends = ({ handleClose }) => {
   const dispatch = useDispatch();
   const socket = useContext(SocketContext);
-  const userId = localStorage.getItem("userId");
+  const { userId } = useAuth();
+
   const friends = useSelector(selectFriends);
 
   const handleStartCvs = (id) => {

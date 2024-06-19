@@ -27,28 +27,22 @@ import { SocketContext } from "../../contexts/SocketProvider";
 // msg types component
 const DocMsg = memo(({ el, menu }) => {
   const theme = useTheme();
-  let time = "";
-  if (el?.isStartMsg) {
-    time = fDateFromNow(el.createdAt);
-  }
-  const userId = localStorage.getItem("userId");
-  const incoming = userId === el.from.toString() ? false : true;
   return (
     <Box>
-      {el?.isStartMsg ? <Timeline time={time} /> : null}
+      {el?.isStartMsg ? <Timeline time={el?.timeOfStartMsg} /> : null}
       <Stack
         data-ref={el.id}
         direction="row"
-        justifyContent={incoming ? "start" : "end"}
+        justifyContent={el.incoming ? "start" : "end"}
         sx={{ position: "relative" }}
       >
-        {el?.isReply ? <ReplyMsg el={el} /> : null}
+        {el?.isReply ? <ReplyMsg replyMsg={el.replyMsg} /> : null}
         {el?.isDeleted ? (
           <DeletedMsg el={el} />
         ) : (
           <Box
             sx={{
-              backgroundColor: incoming
+              backgroundColor: el.incoming
                 ? theme.palette.background.default
                 : theme.palette.primary.main,
               borderRadius: 1.5,
@@ -84,28 +78,23 @@ const DocMsg = memo(({ el, menu }) => {
 
 const LinkMsg = memo(({ el, menu }) => {
   const theme = useTheme();
-  let time = "";
-  if (el?.isStartMsg) {
-    time = fDateFromNow(el.createdAt);
-  }
-  const userId = localStorage.getItem("userId");
-  const incoming = userId === el.from.toString() ? false : true;
+
   return (
     <Box>
-      {el?.isStartMsg ? <Timeline time={time} /> : null}
+      {el?.isStartMsg ? <Timeline time={el?.timeOfStartMsg} /> : null}
       <Stack
         data-ref={el.id}
         direction="row"
-        justifyContent={incoming ? "start" : "end"}
+        justifyContent={el.incoming ? "start" : "end"}
         sx={{ position: "relative" }}
       >
-        {el?.isReply ? <ReplyMsg el={el} /> : null}
+        {el?.isReply ? <ReplyMsg replyMsg={el.replyMsg} /> : null}
         {el?.isDeleted ? (
           <DeletedMsg el={el} />
         ) : (
           <Box
             sx={{
-              backgroundColor: incoming
+              backgroundColor: el.incoming
                 ? theme.palette.background.default
                 : theme.palette.primary.main,
               borderRadius: 1.5,
@@ -132,7 +121,7 @@ const LinkMsg = memo(({ el, menu }) => {
               <Typography
                 variant="body2"
                 to="//https://www.youtobe.com"
-                color={incoming ? theme.palette.text : "#fff"}
+                color={el.incoming ? theme.palette.text : "#fff"}
                 component={Link}
               >
                 {el.text}
@@ -148,28 +137,23 @@ const LinkMsg = memo(({ el, menu }) => {
 
 const MediaMsg = memo(({ el, menu }) => {
   const theme = useTheme();
-  let time = "";
-  if (el?.isStartMsg) {
-    time = fDateFromNow(el.createdAt);
-  }
-  const userId = localStorage.getItem("userId");
-  const incoming = userId === el.from.toString() ? false : true;
+
   return (
     <Box>
-      {el?.isStartMsg ? <Timeline time={time} /> : null}
+      {el?.isStartMsg ? <Timeline time={el?.timeOfStartMsg} /> : null}
       <Stack
         data-ref={el.id}
         direction="row"
-        justifyContent={incoming ? "start" : "end"}
+        justifyContent={el.incoming ? "start" : "end"}
         sx={{ position: "relative" }}
       >
-        {el?.isReply ? <ReplyMsg el={el} /> : null}
+        {el?.isReply ? <ReplyMsg replyMsg={el.replyMsg} /> : null}
         {el?.isDeleted ? (
           <DeletedMsg el={el} />
         ) : (
           <Box
             sx={{
-              backgroundColor: incoming
+              backgroundColor: el.incoming
                 ? theme.palette.background.default
                 : theme.palette.primary.main,
               borderRadius: 1.5,
@@ -203,28 +187,23 @@ const MediaMsg = memo(({ el, menu }) => {
 
 const TextMsg = memo(({ el, menu }) => {
   const theme = useTheme();
-  let time = "";
-  if (el?.isStartMsg) {
-    time = fDateFromNow(el.createdAt);
-  }
-  const userId = localStorage.getItem("userId");
-  const incoming = userId === el.from ? false : true;
+
   return (
     <Box>
-      {el?.isStartMsg ? <Timeline time={time} /> : null}
+      {el?.isStartMsg ? <Timeline time={el?.timeOfStartMsg} /> : null}
       <Stack
         data-ref={el.id}
         direction="row"
-        justifyContent={incoming ? "start" : "end"}
+        justifyContent={el.incoming ? "start" : "end"}
         sx={{ position: "relative" }}
       >
-        {el?.isReply ? <ReplyMsg el={el} /> : null}
+        {el?.isReply ? <ReplyMsg replyMsg={el.replyMsg} /> : null}
         {el?.isDeleted ? (
           <DeletedMsg el={el} />
         ) : (
           <Box
             sx={{
-              backgroundColor: incoming
+              backgroundColor: el.incoming
                 ? theme.palette.background.default
                 : theme.palette.primary.main,
               borderRadius: 1.5,
@@ -236,7 +215,7 @@ const TextMsg = memo(({ el, menu }) => {
           >
             <Typography
               variant="body2"
-              color={incoming ? theme.palette.text : "#fff"}
+              color={el.incoming ? theme.palette.text : "#fff"}
             >
               {el.text}
             </Typography>
@@ -268,7 +247,7 @@ const Timeline = memo(({ time }) => {
   );
 });
 
-const ReplyMsg = memo(({ el }) => {
+const ReplyMsg = memo(({ replyMsg }) => {
   const theme = useTheme();
   const handleTrackMsg = () => {
     const targetEl = document.querySelector(`[data-ref="${replyMsg?.id}"]`);
@@ -278,10 +257,6 @@ const ReplyMsg = memo(({ el }) => {
       });
     }
   };
-  const { replyMsg, from } = el;
-  const userId = localStorage.getItem("userId");
-  const isMyReply = userId === el.from;
-  const isSelfReply = userId !== replyMsg?.from ? true : false;
 
   return (
     <Typography
@@ -293,7 +268,7 @@ const ReplyMsg = memo(({ el }) => {
           transform: "translateY(calc(-100% + 4px))",
           padding: "4px",
           fontSize: "0.7rem",
-          backgroundColor: isSelfReply
+          backgroundColor: replyMsg.isSelfReply
             ? theme.palette.background.default
             : theme.palette.primary.main,
           borderRadius: "4px",
@@ -306,14 +281,14 @@ const ReplyMsg = memo(({ el }) => {
           WebkitLineClamp: 1,
           WebkitBoxOrient: "vertical",
         },
-        isMyReply
+        replyMsg.isMyReply
           ? { right: "0" }
           : {
               left: "-10px",
             },
       ]}
       variant="body2"
-      color={isSelfReply ? theme.palette.text : "#fff"}
+      color={replyMsg.isSelfReply ? theme.palette.text : "#fff"}
     >
       {replyMsg?.text}
     </Typography>
@@ -322,14 +297,13 @@ const ReplyMsg = memo(({ el }) => {
 
 const DeletedMsg = memo(({ el }) => {
   const theme = useTheme();
-  const userId = localStorage.getItem("userId");
-  const incoming = userId === el.from ? false : true;
+
   return (
-    <Stack direction="row" justifyContent={incoming ? "start" : "end"}>
+    <Stack direction="row" justifyContent={el.incoming ? "start" : "end"}>
       <Box
         sx={{
           border: "1px solid",
-          borderColor: incoming ? theme.palette.background.default : "#fff",
+          borderColor: el.incoming ? theme.palette.background.default : "#fff",
           borderRadius: 1.5,
           width: "max-content",
         }}

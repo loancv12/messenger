@@ -1,22 +1,16 @@
 import { apiAction } from "../mdw/apiMdw";
 
 export const fetchMessages = ({
-  type,
-  conversationId,
-  page,
+  data,
   onApiStart,
   onApiEnd,
   onSuccess,
   label,
 }) =>
   apiAction({
-    url: `/message/get-messages/${type}`,
+    url: `/message/get-messages/${data.type}`,
     label,
-    data: {
-      type,
-      conversationId,
-      page,
-    },
+    data,
     onApiStart,
     onApiEnd,
     onSuccess,

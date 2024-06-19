@@ -6,10 +6,11 @@ import { fetchUsers } from "../../redux/relationShip/relationShipApi";
 import { Box, Typography } from "@mui/material";
 import { SocketContext } from "../../contexts/SocketProvider";
 import { selectUsers } from "../../redux/relationShip/relationShipSlice";
+import useAuth from "../../hooks/useAuth";
 
 const Users = () => {
   const dispatch = useDispatch();
-  const userId = localStorage.getItem("userId");
+  const { userId } = useAuth();
 
   const users = useSelector(selectUsers);
   const socket = useContext(SocketContext);

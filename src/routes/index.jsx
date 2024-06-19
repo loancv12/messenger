@@ -11,6 +11,7 @@ import CenterScreenLayout from "../layouts/main";
 import RequiredAuth from "../components/auth/RequiredAuth";
 import Home from "../pages/Home";
 import SocketProvider from "../contexts/SocketProvider";
+import PersistLogin from "../components/auth/PersistLogin";
 
 const Loadable = (Component) => (props) => {
   return (
@@ -50,24 +51,32 @@ export default function Router() {
     },
     {
       path: "/",
-      element: <RequiredAuth />,
+      element: <PersistLogin />,
       children: [
         {
-          element: (
-            <SocketProvider>
-              <DashboardLayout />
-            </SocketProvider>
-          ),
+          element: <RequiredAuth />,
           children: [
-            { element: <Navigate to={DEFAULT_PATH} replace />, index: true },
-            { path: "app", element: <DirectChatPage /> },
             {
-              path: "group",
-              element: <GroupPage />,
+              element: (
+                <SocketProvider>
+                  <DashboardLayout />
+                </SocketProvider>
+              ),
+              children: [
+                {
+                  element: <Navigate to={DEFAULT_PATH} replace />,
+                  index: true,
+                },
+                { path: "app", element: <DirectChatPage /> },
+                {
+                  path: "group",
+                  element: <GroupPage />,
+                },
+                { path: "settings", element: <Settings /> },
+                { path: "profile", element: <ProfilePage /> },
+                // { path: "*", element: <Navigate to="/404" replace /> },
+              ],
             },
-            { path: "settings", element: <Settings /> },
-            { path: "profile", element: <ProfilePage /> },
-            // { path: "*", element: <Navigate to="/404" replace /> },
           ],
         },
       ],

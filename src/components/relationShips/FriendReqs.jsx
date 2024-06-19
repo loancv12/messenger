@@ -6,10 +6,12 @@ import { FriendReqElement } from "../relationShipElement";
 import { Box, Typography } from "@mui/material";
 import { SocketContext } from "../../contexts/SocketProvider";
 import { selectFriendRequests } from "../../redux/relationShip/relationShipSlice";
+import useAuth from "../../hooks/useAuth";
 
 const FriendReqs = () => {
   const dispatch = useDispatch();
-  const userId = localStorage.getItem("userId");
+  const { userId } = useAuth();
+
   const friendRequests = useSelector(selectFriendRequests);
   const socket = useContext(SocketContext);
 

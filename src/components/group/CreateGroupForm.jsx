@@ -12,10 +12,11 @@ import useLocales from "../../hooks/useLocales";
 import { SocketContext } from "../../contexts/SocketProvider";
 import { selectFriends } from "../../redux/relationShip/relationShipSlice";
 import NewGroupSchema from "../../hookForm/schema/NewGroupSchema";
+import useAuth from "../../hooks/useAuth";
 
 const CreateGroupForm = ({ handleClose }) => {
   const friends = useSelector(selectFriends);
-  const userId = localStorage.getItem("userId");
+  const { userId } = useAuth();
 
   const socket = useContext(SocketContext);
 

@@ -8,11 +8,11 @@ const useAuth = () => {
 
   if (token) {
     const decoded = jwtDecode(token);
-    const { userId, email } = decoded;
+    const { userId } = decoded.userInfo;
 
-    return { userId, email, isLoggedIn: true };
+    return { userId };
   }
-  return { userId: "", email: "", isLoggedIn: false };
+  return { userId: "" };
 };
 
 export default useAuth;

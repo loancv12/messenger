@@ -48,9 +48,11 @@ import ChatInput from "./ChatInput";
 import { selectChatType } from "../../redux/app/appSlice";
 import { selectCurrCvs } from "../../redux/conversation/conversationSlice";
 import { SocketContext } from "../../contexts/SocketProvider";
+import useAuth from "../../hooks/useAuth";
 
 function Footer() {
   const theme = useTheme();
+  const { userId } = useAuth();
 
   const [openActions, setOpenActions] = useState(false);
   const [openPicker, setOpenPicker] = useState(false);
@@ -63,8 +65,6 @@ function Footer() {
   const currentCvs = useSelector((state) => selectCurrCvs(state, chatType));
   const replyMsg = useSelector(selectReplyMsg);
   const dispatch = useDispatch();
-
-  const userId = localStorage.getItem("userId");
 
   const socket = useContext(SocketContext);
 
