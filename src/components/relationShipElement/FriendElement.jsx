@@ -12,7 +12,6 @@ import { styled, useTheme } from "@mui/material/styles";
 // import { socket } from "../../socket";
 import StyledBadge from "../StyledBadge";
 import { Chat } from "phosphor-react";
-import { SocketContext } from "../../contexts/SocketProvider";
 
 const FriendElement = ({
   img,

@@ -1,4 +1,4 @@
-import { createContext, useEffect, useState } from "react";
+import { useEffect, useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import { showSnackbar } from "../redux/app/appSlice";
 import {
@@ -12,8 +12,6 @@ import {
   handleDeleteMsgRet,
   handleNewMessages,
 } from "../redux/message/messageSlice";
-import { BASE_URL } from "../config";
-import { io } from "socket.io-client";
 import {
   handleFriendReqAcceptedRet,
   handleFriendReqDeclineRet,
@@ -22,43 +20,62 @@ import {
   handleWithdrawFriendReqRet,
 } from "../redux/relationShip/relationShipSlice";
 import useAuth from "../hooks/useAuth";
+import instance from "../socket";
 
-export const SocketContext = createContext();
+const socket = instance.initSocket();
 
-const SocketProvider = ({ children }) => {
+const SocketWrapper = ({ children }) => {
   const dispatch = useDispatch();
   const { userId } = useAuth();
 
-  const host = BASE_URL;
-  const options = {
-    autoConnect: false,
-    query: `userId=${userId}`,
-    retries: 15,
-  };
-  const socket = io(host, options);
+  console.log("socket provider rerender", socket);
 
   useEffect(() => {
-    const onConnect = () => {
-      console.log("connect to server", socket.id);
-    };
-    const onDisconnect = (reason, details) => {
-      console.log("onDisconnect");
-      if (socket.active) {
-        // temporary disconnection, the socket will automatically try to reconnect
-      } else {
-        // the connection was forcefully closed by the server or the client itself
-        // in that case, `socket.connect()` must be manually called in order to reconnect
-        console.log(reason, socket);
-      }
-    };
+    if (!socket.connected) {
+      socket.auth = { userId };
+      socket.connect();
+    }
 
-    const onConnectError = (err) => {
-      // the reason of the error, for example "xhr poll error"
-      if (socket.active) {
-        // temporary failure, the socket will automatically try to reconnect
+    socket.on("ping", (value) => {
+      console.log("ping", value);
+    });
+
+    // upon connection or reconnection
+    socket.on("connect", () => {
+      if (socket.recovered) {
+        console.log("connect to server", socket.recovered);
+        // any event missed during the disconnection period will be received now
       } else {
-        // the connection was denied by the server
-        // in that case, `socket.connect()` must be manually called in order to reconnect
+        console.log(" new or unrecoverable session", socket.recovered);
+
+        // new or unrecoverable session
+      }
+
+      // setTimeout(() => {
+      //   // close the low-level connection and trigger a reconnection
+      //   socket.io.engine.close();
+      // }, 5000);
+    });
+
+    // temporary disconnection, the socket will automatically try to reconnect
+    // the connection was forcefully closed by the server or the client itself
+    // in that case, `socket.connect()` must be manually called in order to reconnect
+
+    socket.on("disconnect", (reason, details) => {
+      console.log("onDisconnect", reason, socket);
+      if (!socket.active) {
+        //
+      }
+    });
+
+    //     The connect_error event will be emitted upon connection failure:
+
+    // due to the low-level errors (when the server is down for example)
+    // due to middleware errors
+    // Please note that, in the function above, the low-level errors are not handled (the user could be notified of the connection failure, for example).
+    socket.on("connect_error", (err) => {
+      console.log("connect error", err);
+      if (!socket.active) {
         socket.connect();
       }
       dispatch(
@@ -67,10 +84,9 @@ const SocketProvider = ({ children }) => {
           message: err.message,
         })
       );
-      console.log(err.message);
-    };
+    });
 
-    const onError = (reason) => {
+    socket.on("error", (reason) => {
       console.log("error event", reason);
       dispatch(
         showSnackbar({
@@ -80,22 +96,17 @@ const SocketProvider = ({ children }) => {
       );
       console.log("active run scoone", socket.active);
       // socket.connect();
-    };
+    });
 
-    if (!socket.connected) {
-      socket.connect();
-    }
-
-    socket.on("connect", onConnect);
-    socket.on("disconnect", onDisconnect);
-
-    socket.on("connect_error", onConnectError);
-
-    socket.on("error", onError);
+    socket.on("user connected", (data) => {
+      console.log("this USER connected ", data.userId);
+    });
 
     // user online
     socket.on("online", (userId) => {
       console.log(userId, "Is Online!"); // update online status
+      console.log("connected");
+      console.log("socket.recovered");
     });
 
     // user offline
@@ -154,12 +165,16 @@ const SocketProvider = ({ children }) => {
       dispatch(handleDeleteMsgRet(data));
     });
 
+    socket.onAny((event, ...args) => {
+      console.log(event, args);
+    });
+
     return () => {
       console.log("socket off");
-      socket.off("connect", onConnect);
-      socket.off("disconnect", onDisconnect);
-      socket.off("connect_error", onConnectError);
-      socket.off("error", onError);
+      socket.off("connect");
+      socket.off("disconnect");
+      socket.off("connect_error");
+      socket.off("error");
       socket.off("online");
       socket.off("offline");
       socket.off("new_friend_req");
@@ -177,9 +192,7 @@ const SocketProvider = ({ children }) => {
       socket.disconnect();
     };
   }, []);
-  return (
-    <SocketContext.Provider value={socket}>{children}</SocketContext.Provider>
-  );
+  return <>{children}</>;
 };
 
-export default SocketProvider;
+export default SocketWrapper;

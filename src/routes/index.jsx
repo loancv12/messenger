@@ -12,6 +12,7 @@ import RequiredAuth from "../components/auth/RequiredAuth";
 import Home from "../pages/Home";
 import SocketProvider from "../contexts/SocketProvider";
 import PersistLogin from "../components/auth/PersistLogin";
+import SetupAxios from "../components/auth/SetupAxios";
 
 const Loadable = (Component) => (props) => {
   return (
@@ -59,7 +60,9 @@ export default function Router() {
             {
               element: (
                 <SocketProvider>
-                  <DashboardLayout />
+                  <SetupAxios>
+                    <DashboardLayout />
+                  </SetupAxios>
                 </SocketProvider>
               ),
               children: [

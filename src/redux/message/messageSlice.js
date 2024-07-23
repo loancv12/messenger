@@ -8,13 +8,16 @@ import { chatTypes, noticeTypes } from "../config";
 import { updateConversation } from "../conversation/conversationSlice";
 // import { socket } from "../../socket";
 import { showNotification } from "../../services/notification";
+import instance from "../../socket";
 
 const initialState = {
   [chatTypes.DIRECT_CHAT]: {
     currentMsgs: [],
+    numOfPage: 1,
   },
   [chatTypes.GROUP_CHAT]: {
     currentMsgs: [],
+    numOfPage: 1,
   },
   replyMsgId: "",
 };
@@ -29,6 +32,12 @@ const slice = createSlice({
       console.log("setCurrentMsgs", action.payload);
       const { type, messages } = action.payload;
       state[type].currentMsgs = messages;
+    },
+
+    setNumOfPage(state, action) {
+      console.log("setNumOfPage", action.payload);
+      const { type, numOfPage } = action.payload;
+      state[type].numOfPage = numOfPage;
     },
 
     concatMessages(state, action) {
@@ -69,6 +78,8 @@ const slice = createSlice({
   },
 });
 
+export const selectNumOfPage = (state, chatType) =>
+  state.message[chatType].numOfPage;
 export const selectAllMsgs = (state) =>
   state.message[chatTypes.DIRECT_CHAT].currentMsgs?.concat(
     state.message[chatTypes.GROUP_CHAT].currentMsgs
@@ -88,6 +99,7 @@ const { actions, reducer } = slice;
 // Extract and export each action creator by name
 export const {
   setCurrentMsgs,
+  setNumOfPage,
   concatMessages,
   addMessages,
   updateMessage,
@@ -183,11 +195,12 @@ export function reportMessage({ msg, socket }) {
   console.log("forwardMessage", msg);
 }
 
-export function deleteMessage({ msg, socket }) {
+export function deleteMessage({ msg }) {
   console.log("deleteMsg", msg);
   return (dispatch, getState) => {
+    const socket = instance.getSocket();
     const chatType = getState().app.chatType;
-    console.log("deleteMessage", socket.connected);
+
     socket.emit("delete_message", {
       type: chatType,
       msgId: msg.id,

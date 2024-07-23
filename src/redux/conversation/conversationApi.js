@@ -3,7 +3,7 @@ import {
   setJoinGroupReqs,
 } from "../conversation/conversationSlice";
 import { dispatch } from "../store";
-import { apiAction } from "../mdw/apiMdw";
+import { apiAction } from "../../utils/apiAction";
 
 export const fetchConversations = (data) =>
   apiAction({

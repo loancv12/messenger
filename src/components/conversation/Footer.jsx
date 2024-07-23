@@ -47,12 +47,62 @@ import { allowFiles, maxSize } from "../../config";
 import ChatInput from "./ChatInput";
 import { selectChatType } from "../../redux/app/appSlice";
 import { selectCurrCvs } from "../../redux/conversation/conversationSlice";
-import { SocketContext } from "../../contexts/SocketProvider";
 import useAuth from "../../hooks/useAuth";
+import useAxios from "../../hooks/useAxios";
+import AddSticker from "./AddSticker";
+import HandleCamera from "./HandleCamera";
+import instance from "../../socket";
+
+const Actions = [
+  {
+    color: "#4da5fe",
+    icon: InputHidden,
+    title: "Doc/Photo/Video",
+  },
+  {
+    color: "#1b8cfe",
+    icon: AddSticker,
+    y: 172,
+    title: "Stickers",
+  },
+  {
+    color: "#0172e4",
+    icon: HandleCamera,
+    y: 242,
+    title: "Image",
+  },
+];
+
+const makeFormData = ({
+  conversationId,
+  chatType,
+  isReply,
+  replyMsgId,
+  from,
+  to,
+  files,
+}) => {
+  let formData = new FormData();
+  formData.append("conversationId", conversationId);
+  formData.append("chatType", chatType);
+  formData.append("isReply", isReply);
+
+  formData.append("replyMsgId", replyMsgId);
+  formData.append("from", from);
+  if (chatType === chatTypes.DIRECT_CHAT) {
+    formData.append("to", to);
+  }
+  files.forEach((file) => {
+    formData.append("message-files", file);
+  });
+
+  return formData;
+};
 
 function Footer() {
   const theme = useTheme();
   const { userId } = useAuth();
+  const { callAction, isLoading, isError, error } = useAxios("Footer");
 
   const [openActions, setOpenActions] = useState(false);
   const [openPicker, setOpenPicker] = useState(false);
@@ -66,46 +116,16 @@ function Footer() {
   const replyMsg = useSelector(selectReplyMsg);
   const dispatch = useDispatch();
 
-  const socket = useContext(SocketContext);
+  const socket = instance.getSocket();
 
-  const Actions = [
-    {
-      color: "#4da5fe",
-      icon: (
-        <InputHidden
-          icon={<File size={24} />}
-          {...{ setFiles, name: "file", allowFiles, maxSize }}
-        />
-      ),
-      title: "Doc/Photo/Video",
-    },
-    {
-      color: "#1b8cfe",
-      icon: <Sticker size={24} />,
-      y: 172,
-      title: "Stickers",
-    },
-    {
-      color: "#0172e4",
-      icon: <Camera size={24} />,
-      y: 242,
-      title: "Image",
-    },
-
-    {
-      color: "#013f7f",
-      icon: <User size={24} />,
-      y: 312,
-      title: "Contact",
-    },
-  ];
+  console.log("socket at footer", socket);
 
   const handleSelectEmojis = (emojis) => {
-    textRef.current.value += emojis.native;
+    textRef.current.innerHTML += emojis.native;
+    // textRef.current.value += emojis.native;
   };
 
   const handleDelete = (item) => {
-    console.log("delete", item.file);
     const otherFiles = Array.from(files).filter((file) => file !== item.file);
     setFiles(otherFiles);
   };
@@ -121,10 +141,9 @@ function Footer() {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    const textMsg = textRef.current.value.trim();
+    const textMsg = textRef.current.textContent.trim();
 
     if (textMsg) {
-      console.log("socket", socket);
       socket.emit("text_message", {
         type: chatType,
         newMsg: {
@@ -145,24 +164,22 @@ function Footer() {
 
     // send by http
     if (files.length) {
-      let formData = new FormData();
-      formData.append("conversationId", currentCvs?.id);
-      formData.append("chatType", chatType);
-      formData.append("isReply", !!replyMsg);
-      // 'cause formDate append convert value to string, so we must hanlde it in there
-      // NOTE for BE
-      formData.append("replyMsgId", replyMsg?.id ? replyMsg?.id : "");
-      formData.append("from", userId);
-      if (chatType === chatTypes.DIRECT_CHAT) {
-        formData.append("to", currentCvs?.userId);
-      }
-      files.forEach((file) => {
-        formData.append("message-files", file);
+      const formData = makeFormData({
+        conversationId: currentCvs?.id,
+        chatType,
+        isReply: !!replyMsg,
+        // 'cause formDate append convert value to string, so we must hanlde it in there
+        // NOTE for BE
+        replyMsgId: replyMsg?.id ? replyMsg?.id : "",
+        from: userId,
+        to: currentCvs?.userId,
+        files,
       });
       setVariant("indeterminate");
-      dispatch(uploadFile(formData, onSuccess, onFailure));
+      await callAction(uploadFile(formData, onSuccess, onFailure));
     }
 
+    textRef.current.innerHTML = "";
     textRef.current.focus();
   };
 
@@ -214,6 +231,7 @@ function Footer() {
             ]}
           >
             {Actions.map((el, i) => {
+              const Comp = el.icon;
               return (
                 <Tooltip key={i} title={el.title} placement="right">
                   <Fab
@@ -227,7 +245,9 @@ function Footer() {
                       backgroundColor: el.color,
                     }}
                   >
-                    {el.icon}
+                    <Comp
+                      {...{ setFiles, name: "file", allowFiles, maxSize }}
+                    />
                   </Fab>
                 </Tooltip>
               );

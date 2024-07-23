@@ -21,7 +21,6 @@ function Conversation({ handleBack }) {
   const dispatch = useDispatch();
   const chatType = useSelector(selectChatType);
   const currentCvs = useSelector((state) => selectCurrCvs(state, chatType));
-
   const { translate } = useLocales();
 
   const theme = useTheme();

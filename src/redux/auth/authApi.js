@@ -1,6 +1,6 @@
 import { logout, setCredentials, updateEmail } from "../auth/authSlice";
 import { dispatch, persistor } from "../store";
-import { apiAction } from "../mdw/apiMdw";
+import { apiAction } from "../../utils/apiAction";
 import { showSnackbar } from "../app/appSlice";
 
 export const logInUser = (formValues) =>
@@ -15,7 +15,6 @@ export const logInUser = (formValues) =>
           token,
         })
       );
-      console.log("token at login", res);
     },
   });
 
@@ -31,17 +30,16 @@ export const refresh = () =>
       );
     },
   });
-export const logOutUser = (formValues) =>
+export const logOutUser = () =>
   apiAction({
     url: "/auth/logout",
     method: "POST",
-    data: { ...formValues },
+    data: [],
     onSuccess: (res) => {
       dispatch(logout());
       window.localStorage.removeItem("userId");
       persistor.purge().then(() => {
         dispatch({ type: "reset" });
-
         console.log("Persisted state has been cleared.");
       });
     },

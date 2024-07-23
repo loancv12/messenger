@@ -3,7 +3,6 @@ import { createSelector, createSlice } from "@reduxjs/toolkit";
 import { faker } from "@faker-js/faker";
 import { showSnackbar, updateNotice } from "../app/appSlice";
 import { chatTypes, noticeTypes } from "../config";
-import { apiAction } from "../mdw/apiMdw";
 
 const initialState = {
   [chatTypes.DIRECT_CHAT]: {

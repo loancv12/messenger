@@ -6,7 +6,7 @@ import {
   TextField,
   styled,
 } from "@mui/material";
-import { Image } from "phosphor-react";
+import { Image, File } from "phosphor-react";
 import React, { useEffect, useState } from "react";
 import { useDispatch } from "react-redux";
 import { showSnackbar } from "../redux/app/appSlice";
@@ -50,7 +50,7 @@ function classifyFile(files, allowFiles, maxSize) {
   });
 }
 
-function InputHidden({ setFiles, name, icon, allowFiles, maxSize }) {
+function InputHidden({ setFiles, name, allowFiles, maxSize }) {
   const dispatch = useDispatch();
   const handleChange = (e) => {
     const { files } = e.target;
@@ -89,7 +89,7 @@ function InputHidden({ setFiles, name, icon, allowFiles, maxSize }) {
         variant="contained"
         component="label"
       >
-        {icon}
+        <File size={24} />
         <VisuallyHiddenInput
           type="file"
           name={name}

@@ -16,20 +16,22 @@ const ChatElement = memo(
     const chatType = useSelector(selectChatType);
     const dispatch = useDispatch();
 
+    const handleClick = async () => {
+      dispatch(updateShowCvsComp({ open: true }));
+
+      dispatch(setCurrentCvs({ type: chatType, conversationId: id }));
+      dispatch(
+        updateConversation({
+          type: chatType,
+          conversationId: id,
+          updatedContent: { unread: 0 },
+        })
+      );
+    };
+
     return (
       <Box
-        onClick={() => {
-          dispatch(updateShowCvsComp({ open: true }));
-
-          dispatch(setCurrentCvs({ type: chatType, conversationId: id }));
-          dispatch(
-            updateConversation({
-              type: chatType,
-              conversationId: id,
-              updatedContent: { unread: 0 },
-            })
-          );
-        }}
+        onClick={handleClick}
         sx={{
           width: "100%",
           borderRadius: 1,

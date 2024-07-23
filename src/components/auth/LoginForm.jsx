@@ -19,11 +19,15 @@ import { logInUser } from "../../redux/auth/authApi";
 import { useDispatch } from "react-redux";
 import transform from "../../utils/transform";
 import usePersist from "../../hooks/usePersist";
+import useAxios from "../../hooks/useAxios";
+import useAxiosNoJWT from "../../hooks/useAxiosNoJWT";
 
 const LoginForm = () => {
   const [showPwd, setShowPwd] = useState(false);
   const dispatch = useDispatch();
   const [persist, setPersist] = usePersist();
+
+  const { callAction, isLoading, isError, error } = useAxiosNoJWT();
 
   const handleToggle = () => {
     setPersist((prev) => !prev);
@@ -63,7 +67,7 @@ const LoginForm = () => {
         },
       };
       const transformData = transform(data, tranformerMap);
-      dispatch(logInUser(transformData));
+      await callAction(logInUser(transformData));
     } catch (error) {
       console.log(error);
       reset();

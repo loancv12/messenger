@@ -8,16 +8,27 @@ import GridItem from "../GridItem";
 import toCamelCase from "../../utils/toCamelCase";
 import useLocales from "../../hooks/useLocales";
 import { fetchJoinGroupReqs } from "../../redux/conversation/conversationApi";
-import { SocketContext } from "../../contexts/SocketProvider";
+import useAxios from "../../hooks/useAxios";
+import instance from "../../socket";
 
 const JoinGroupReqs = ({ open, handleClose }) => {
   const dispatch = useDispatch();
   const { translate } = useLocales();
   const joinGroupReqs = useSelector(selectJoinGroupReqs);
-  const socket = useContext(SocketContext);
+  const socket = instance.getSocket();
+
+  const { callAction, isLoading, isError, error } = useAxios();
 
   useEffect(() => {
-    dispatch(fetchJoinGroupReqs());
+    console.log("use effect at chat");
+    const fetchCvs = async () => {
+      try {
+        await callAction(fetchJoinGroupReqs());
+      } catch (error) {
+        console.log(error);
+      }
+    };
+    fetchCvs();
   }, []);
 
   const handleAccept = (id) => {

@@ -22,7 +22,6 @@ import {
   reportMessage,
   deleteMessage,
 } from "../../redux/message/messageSlice";
-import { SocketContext } from "../../contexts/SocketProvider";
 
 // msg types component
 const DocMsg = memo(({ el, menu }) => {
@@ -346,7 +345,6 @@ const Message_options = [
 const MessageOptions = memo(({ msg }) => {
   const [anchorEl, setAnchorEl] = useState(null);
   const open = Boolean(anchorEl);
-  const socket = useContext(SocketContext);
   const dispatch = useDispatch();
   const handleClick = (event) => {
     setAnchorEl(event.currentTarget);
@@ -356,7 +354,7 @@ const MessageOptions = memo(({ msg }) => {
   };
 
   const handleMsg = ({ msg, onclick }) => {
-    dispatch(onclick({ msg, socket }));
+    dispatch(onclick({ msg }));
     handleClose();
   };
 

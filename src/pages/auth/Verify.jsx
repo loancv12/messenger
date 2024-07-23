@@ -4,12 +4,19 @@ import VerifyForm from "../../components/auth/VerifyForm";
 import { useDispatch, useSelector } from "react-redux";
 import { selectEmail } from "../../redux/auth/authSlice";
 import { resendOtp } from "../../redux/auth/authApi";
+import useAxios from "../../hooks/useAxios";
 
 const Verify = () => {
   const email = useSelector(selectEmail);
+  const { callAction, isLoading, isError, error } = useAxios();
+
   const dispatch = useDispatch();
-  const handleResentOtp = () => {
-    dispatch(resendOtp({ email }));
+  const handleResentOtp = async () => {
+    try {
+      await callAction(resendOtp({ email }));
+    } catch (error) {
+      console.log(error);
+    }
   };
   return (
     <>

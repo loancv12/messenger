@@ -11,15 +11,15 @@ import { Provider as ReduxProvider } from "react-redux";
 import { Helmet, HelmetProvider } from "react-helmet-async";
 
 ReactDOM.createRoot(document.getElementById("root")).render(
-  // <React.StrictMode>
-  <ReduxProvider store={store}>
-    <PersistGate loading={null} persistor={persistor}>
-      <SettingsProvider>
-        <BrowserRouter>
-          <App />
-        </BrowserRouter>
-      </SettingsProvider>
-    </PersistGate>
-  </ReduxProvider>
-  // </React.StrictMode>
+  <React.StrictMode>
+    <ReduxProvider store={store}>
+      <PersistGate loading={null} persistor={persistor}>
+        <SettingsProvider>
+          <BrowserRouter>
+            <App />
+          </BrowserRouter>
+        </SettingsProvider>
+      </PersistGate>
+    </ReduxProvider>
+  </React.StrictMode>
 );

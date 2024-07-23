@@ -14,7 +14,6 @@ import {
   PURGE,
   REGISTER,
 } from "redux-persist";
-import apiMiddleware from "./mdw/apiMdw";
 // allow us to persit the data => if we close the tab or refresh the page, state wont be lost
 
 const persistedReducer = persistReducer(rootPersistConfig, rootReducer);
@@ -33,7 +32,7 @@ const store = configureStore({
           "api",
         ],
       },
-    }).concat(apiMiddleware),
+    }),
   devTools: true,
 });
 

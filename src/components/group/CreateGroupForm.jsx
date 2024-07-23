@@ -9,16 +9,16 @@ import RHFAutoComplete from "../../components/hook-form/RHFAutoComplete";
 // import { socket } from "../../socket";
 import { useSelector } from "react-redux";
 import useLocales from "../../hooks/useLocales";
-import { SocketContext } from "../../contexts/SocketProvider";
 import { selectFriends } from "../../redux/relationShip/relationShipSlice";
 import NewGroupSchema from "../../hookForm/schema/NewGroupSchema";
 import useAuth from "../../hooks/useAuth";
+import instance from "../../socket";
 
 const CreateGroupForm = ({ handleClose }) => {
   const friends = useSelector(selectFriends);
   const { userId } = useAuth();
 
-  const socket = useContext(SocketContext);
+  const socket = instance.getSocket();
 
   const defaultValues = {
     name: "",

@@ -4,7 +4,7 @@ import {
   updateUsers,
 } from "../relationShip/relationShipSlice";
 import { dispatch } from "../store";
-import { apiAction } from "../mdw/apiMdw";
+import { apiAction } from "../../utils/apiAction";
 
 // users, friends, friendRequets
 export const fetchUsers = () =>

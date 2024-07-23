@@ -12,7 +12,14 @@ import {
   styled,
   useTheme,
 } from "@mui/material";
-import React, { useContext, useEffect, useState } from "react";
+import React, {
+  memo,
+  useCallback,
+  useContext,
+  useEffect,
+  useRef,
+  useState,
+} from "react";
 import {
   Archive,
   CircleDashed,
@@ -25,20 +32,17 @@ import SearchIconWrapper from "../../../components/search/SearchIconWrapper";
 import StyledInputBase from "../../../components/search/StyledInputBase";
 import ChatElement from "../../../components/ChatElement";
 import RelationShips from "../../../components/relationShips";
+import LoadingScreen from "../../../components/LoadingScreen";
 import { useSelector } from "react-redux";
 import { dispatch } from "../../../redux/store";
 import { chatTypes, noticeTypes } from "../../../redux/config";
-import {
-  selectNotice,
-  selectTypeOfCvs,
-  updateNotice,
-} from "../../../redux/app/appSlice";
+import { selectNotice, updateNotice } from "../../../redux/app/appSlice";
 import toCamelCase from "../../../utils/toCamelCase";
 import useLocales from "../../../hooks/useLocales";
-import { fetchConversations } from "../../../redux/conversation/conversationApi";
 
-const Chats = () => {
+const Chats = memo(() => {
   const [openDialog, setOpenDialog] = useState(false);
+
   const friendReqNotice = useSelector((state) =>
     selectNotice(state, noticeTypes.FRIEND_REQ)
   );
@@ -61,9 +65,6 @@ const Chats = () => {
     }
   };
 
-  useEffect(() => {
-    dispatch(fetchConversations({ type: chatTypes.DIRECT_CHAT }));
-  }, []);
   return (
     <>
       <Stack
@@ -157,6 +158,6 @@ const Chats = () => {
       )}
     </>
   );
-};
+});
 
 export default Chats;

@@ -21,6 +21,7 @@ import {
   selectCurrentMsgs,
   setCurrentMsgs,
   concatMessages,
+  selectNumOfPage,
 } from "../../redux/message/messageSlice";
 import { fetchMessages } from "../../redux/message/messageApi";
 
@@ -28,6 +29,8 @@ import { selectChatType } from "../../redux/app/appSlice";
 import { selectCurrCvsId } from "../../redux/conversation/conversationSlice";
 import useAuth from "../../hooks/useAuth";
 import { fDateFromNow } from "../../utils/formatTime";
+import useAxios from "../../hooks/useAxios";
+import { useGetTestMutation } from "../../redux/app/api";
 
 function transformMessages(rawMsg, userId) {
   let timeOfStartMsg = "",
@@ -59,38 +62,36 @@ function transformMessages(rawMsg, userId) {
 }
 
 function Messages({ menu }) {
-  console.log("messges comp");
   const { userId } = useAuth();
-  const [isLoading, setIsLoading] = useState(false);
-  const [isGetNextLoading, setIsGetNextLoading] = useState(false);
-  const [isLastPage, setIsLastPage] = useState(false);
+  const dispatch = useDispatch();
 
-  const isVeryBottomRef = useRef(true);
+  const chatType = useSelector(selectChatType);
+  const numOfPage = useSelector((state) => selectNumOfPage(state, chatType));
+  const currentCvsId = useSelector((state) => selectCurrCvsId(state, chatType));
+  const currentMsgs = useSelector((state) =>
+    selectCurrentMsgs(state, chatType)
+  );
+
+  const { callAction, isLoading, isError, error } = useAxios("mes");
+
   const pageRef = useRef({
     page: 1,
-    numberOfPages: 1,
+    numberOfPages: numOfPage,
   });
+
   const outerScrollBox = useRef();
   const topTargetRef = useRef();
   const bottomTargetRef = useRef();
 
   // set Number.MAX_SAFE_INTEGER value to prevent 'scroll up enter' of target element
   // of intersection observer during the first invoke callback
-  const intersectRef = useRef({
+  const intersectRelateRef = useRef({
     previousY: Number.MAX_SAFE_INTEGER,
     previousRatio: Number.MAX_SAFE_INTEGER,
+    isVeryBottom: true,
+    prevPos: 0,
+    lastMsgId: "",
   });
-
-  const prevPosRef = useRef(0);
-
-  const lastMsgIdRef = useRef("");
-
-  const dispatch = useDispatch();
-  const chatType = useSelector(selectChatType);
-  const currentCvsId = useSelector((state) => selectCurrCvsId(state, chatType));
-  const currentMsgs = useSelector((state) =>
-    selectCurrentMsgs(state, chatType)
-  );
 
   const scrollToBottom = (el) => {
     el.scrollTo({
@@ -106,41 +107,41 @@ function Messages({ menu }) {
     });
   };
 
-  const handleGetNextMsgs = () => {
+  const fetchMsg = async (page, onSuccess) => {
+    try {
+      await callAction(
+        fetchMessages({
+          data: {
+            type: chatType,
+            conversationId: currentCvsId,
+            page,
+          },
+          onSuccess,
+        })
+      );
+    } catch (error) {
+      console.log(error);
+    }
+  };
+
+  const handleGetNextMsgs = async () => {
     console.log("handleGetNextMsgs", pageRef);
 
-    dispatch(
-      fetchMessages({
-        data: {
-          type: chatType,
-          conversationId: currentCvsId,
-          page: pageRef.current.page,
-        },
-        onApiStart: () => setIsGetNextLoading(true),
-        onApiEnd: () => {
-          if (pageRef.current.page === pageRef.current.numberOfPages) {
-            setIsLastPage(true);
-          }
-          setIsGetNextLoading(false);
-        },
-        onSuccess: (res) => {
-          const numberOfPages = res?.headers?.["x-pagination"];
-          pageRef.current.numberOfPages = Number(numberOfPages);
-          dispatch(
-            concatMessages({ type: chatType, newMessages: res.data.data })
-          );
-        },
-      })
-    );
+    const onSuccess = (res) => {
+      const numberOfPages = res?.headers?.["x-pagination"];
+      pageRef.current.numberOfPages = Number(numberOfPages);
+      dispatch(concatMessages({ type: chatType, newMessages: res.data.data }));
+    };
+    await fetchMsg(pageRef.current.page, onSuccess);
   };
 
   const resetRefWhenChangeCvs = () => {
     pageRef.current.page = 1;
     pageRef.current.numberOfPages = 1;
 
-    intersectRef.current.previousY = Number.MAX_SAFE_INTEGER;
-    intersectRef.current.previousRatio = Number.MAX_SAFE_INTEGER;
-    prevPosRef.current = 0;
+    intersectRelateRef.current.previousY = Number.MAX_SAFE_INTEGER;
+    intersectRelateRef.current.previousRatio = Number.MAX_SAFE_INTEGER;
+    intersectRelateRef.current.prevPos = 0;
   };
 
   // call getNextDate when scroll to very up
@@ -152,14 +153,15 @@ function Messages({ menu }) {
         isIntersecting,
       } = entry;
 
-      const { previousY, previousRatio } = intersectRef.current;
+      const { previousY, previousRatio } = intersectRelateRef.current;
       if (
         currentY > previousY &&
         isIntersecting &&
         currentRatio >= previousRatio
       ) {
-        console.log("Scrolling very up enter");
-        prevPosRef.current = outerScrollBox.current.scrollHeight;
+        console.log("Scrolling very up enter", pageRef);
+        intersectRelateRef.current.prevPos =
+          outerScrollBox.current.scrollHeight;
 
         if (pageRef.current.page < pageRef.current.numberOfPages) {
           pageRef.current.page++;
@@ -167,26 +169,29 @@ function Messages({ menu }) {
         }
       }
 
-      intersectRef.current.previousY = currentY;
-      intersectRef.current.previousRatio = currentRatio;
+      intersectRelateRef.current.previousY = currentY;
+      intersectRelateRef.current.previousRatio = currentRatio;
     });
   };
 
-  // update isVeryBottomRef based on bottom target
+  // update isVeryBottom based on bottom target
   const handleBottomIntersect = (entries) => {
     entries.forEach((entry) => {
       const isIntersecting = entry.isIntersecting;
       if (isIntersecting) {
-        isVeryBottomRef.current = true;
+        intersectRelateRef.current.isVeryBottom = true;
       } else {
-        isVeryBottomRef.current = false;
+        intersectRelateRef.current.isVeryBottom = false;
       }
     });
   };
 
   const isMsgAdded = () => {
     if (currentMsgs?.length) {
-      return currentMsgs[currentMsgs.length - 1].id !== lastMsgIdRef.current;
+      return (
+        currentMsgs[currentMsgs.length - 1].id !==
+        intersectRelateRef.current.lastMsgId
+      );
     } else return false;
   };
 
@@ -206,64 +211,39 @@ function Messages({ menu }) {
     };
   }, []);
 
+  // const [getTest, result] = useGetTestMutation();
+  // console.log("getTest", getTest);
   useEffect(() => {
-    console.log("isLastPage", isLastPage);
-  }, [pageRef.current.page]);
-
-  useEffect(() => {
-    console.log("change currentCvsId", currentCvsId, chatType);
-    let timeOutId;
-    if (currentCvsId) {
-      // setTimeout to prevent get wrong cvs type msgs,
-      // because useEffect of DirectPage or GroupPage(Which selectTypeOfCvs ) run after this useEffect run,
-      // so when this useEffect run, currentCvsId is old, msg is not correct cvs type,
-      // after selectTypeOfCvs, currentCvsId change, api run with correct path with correct cvs type msg
-      timeOutId = setTimeout(function () {
-        dispatch(
-          fetchMessages({
-            data: {
-              type: chatType,
-              conversationId: currentCvsId,
-              page: 1,
-            },
-            // onApiStart
-            onApiStart: () => setIsLoading(true),
-            onApiEnd: () => setIsLoading(false),
-            onSuccess: (res) => {
-              const numberOfPages = res?.headers?.["x-pagination"];
-              pageRef.current.numberOfPages = Number(numberOfPages);
-
-              dispatch(
-                setCurrentMsgs({ type: chatType, messages: res.data.data })
-              );
-            },
-          })
-        );
-      }, 10);
-    }
     resetRefWhenChangeCvs();
     scrollToBottom(outerScrollBox.current);
-    return () => {
-      clearTimeout(timeOutId);
-    };
   }, [currentCvsId]);
 
   useEffect(() => {
+    pageRef.current.numberOfPages = numOfPage;
+  }, [numOfPage]);
+
+  // 2 case for change currentMsg: after call setCurrentMsg, call addMsg.
+  useEffect(() => {
     const isMsgAddedRet = isMsgAdded();
-    if (isVeryBottomRef.current && isMsgAddedRet) {
+    // when msg add and isVeryBottom, incase not isVeryBottom( we scroll to up before) and isMsgAddedRet, not scroll again to bottom
+    if (intersectRelateRef.current.isVeryBottom && isMsgAddedRet) {
       scrollToBottom(outerScrollBox.current);
     }
     if (currentMsgs?.length) {
-      lastMsgIdRef.current = currentMsgs[currentMsgs.length - 1]?.id;
+      intersectRelateRef.current.lastMsgId =
+        currentMsgs[currentMsgs.length - 1]?.id;
     }
-    const prevPos = outerScrollBox.current.scrollHeight - prevPosRef.current;
+    const prevPos =
+      outerScrollBox.current.scrollHeight - intersectRelateRef.current.prevPos;
 
-    // only scroll to old pos when comp rerender( page!==1) and have msg added
-    // when after comp mounted, we scroll up a bit, not make page change, add msg still remain
-    // pos, so we no need to scroll to old pos
-    // 32px for 32 height of loading box
+    // only scroll to old pos when comp call next page( page!==1) and not in case have msg added
+    // (currentMsgs can change when msg added)
+    // incase we call next page before (page=2 for ex),
+    // we check !isMsgAddedRet to make sure that we add msg dont make this scroll to oldPos, we want it still there, not scroll
+    // in case: when after comp mounted, we scroll up a bit, not make page change,
+    // add msg still remain pos, so we no need to scroll to old pos
     if (pageRef.current.page !== 1 && !isMsgAddedRet) {
-      scrollToOldPos(outerScrollBox.current, prevPos - 32);
+      scrollToOldPos(outerScrollBox.current, prevPos);
     }
   }, [currentMsgs]);
 
@@ -331,33 +311,11 @@ function Messages({ menu }) {
           "& *": {
             overflowAnchor: "none",
           },
-          // second div is the first msg div
-          "& > div:nth-of-type(2)": {
+          "& > div:nth-of-type(1)": {
             marginTop: "0 !important",
           },
         }}
       >
-        {" "}
-        <Box
-          sx={{
-            // pageRef.current.page < pageRef.current.numberOfPages
-            display: "block",
-            height: isLastPage ? 0 : "32px",
-            opacity: isGetNextLoading ? 1 : 0,
-            width: "100%",
-            textAlign: "center",
-            marginTop: "0 !important",
-          }}
-        >
-          <CircularProgress
-            size={24}
-            sx={
-              {
-                //
-              }
-            }
-          />
-        </Box>
         <Typography
           ref={topTargetRef}
           sx={{

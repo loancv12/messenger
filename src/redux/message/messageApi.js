@@ -1,18 +1,9 @@
-import { apiAction } from "../mdw/apiMdw";
+import { apiAction } from "../../utils/apiAction";
 
-export const fetchMessages = ({
-  data,
-  onApiStart,
-  onApiEnd,
-  onSuccess,
-  label,
-}) =>
+export const fetchMessages = ({ data, onSuccess }) =>
   apiAction({
     url: `/message/get-messages/${data.type}`,
-    label,
     data,
-    onApiStart,
-    onApiEnd,
     onSuccess,
   });
 

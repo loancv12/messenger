@@ -8,12 +8,20 @@ import {
   Typography,
   useTheme,
 } from "@mui/material";
-import React, { useContext, useEffect, useState } from "react";
+import React, {
+  useCallback,
+  useContext,
+  useEffect,
+  useRef,
+  useState,
+} from "react";
 import SearchIconWrapper from "../../../components/search/SearchIconWrapper";
 import Search from "../../../components/search/Search";
 import StyledInputBase from "../../../components/search/StyledInputBase";
 import { MagnifyingGlass, Plus, UserList, UsersThree } from "phosphor-react";
 import ChatElement from "../../../components/ChatElement";
+import LoadingScreen from "../../../components/LoadingScreen";
+
 import { CreateGroup } from "../../../components/group";
 import { useDispatch, useSelector } from "react-redux";
 import {
@@ -32,12 +40,13 @@ import JoinGroupReqs from "../../../components/group/JoinGroupReqs";
 import toCamelCase from "../../../utils/toCamelCase";
 import useLocales from "../../../hooks/useLocales";
 import { fetchConversations } from "../../../redux/conversation/conversationApi";
-import { SocketContext } from "../../../contexts/SocketProvider";
+import useAxios from "../../../hooks/useAxios";
+import instance from "../../../socket";
 
 const Group = () => {
   const theme = useTheme();
   const { translate } = useLocales();
-  const socket = useContext(SocketContext);
+  const socket = instance.getSocket();
 
   const [open, setOpen] = useState(false);
   const [openDialog, setOpenDialog] = useState(false);
@@ -63,9 +72,6 @@ const Group = () => {
     setOpenDialog(false);
   };
 
-  useEffect(() => {
-    dispatch(fetchConversations({ type: chatTypes.GROUP_CHAT }));
-  }, []);
   return (
     <>
       <Stack

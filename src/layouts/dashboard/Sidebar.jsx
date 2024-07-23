@@ -37,6 +37,9 @@ import { selectNotice, updateNotice } from "../../redux/app/appSlice";
 import { chatTypes, noticeTypes } from "../../redux/config";
 import useLocales from "../../hooks/useLocales";
 import toCamelCase from "../../utils/toCamelCase";
+import useAuth from "../../hooks/useAuth";
+import useAxios from "../../hooks/useAxios";
+import useAxiosNoJWT from "../../hooks/useAxiosNoJWT";
 
 const Profile_Menu = [
   {
@@ -75,6 +78,7 @@ const Nav_Buttons = [
 
 const Sidebar = () => {
   const theme = useTheme();
+  const { userId } = useAuth();
   const { translate } = useLocales();
   const navigate = useNavigate();
   const { onToggleMode } = useSettings();
@@ -95,12 +99,15 @@ const Sidebar = () => {
   const handleClick = (event) => {
     setAnchorEl(event.currentTarget);
   };
-  const email = useSelector((state) => state.auth.email);
-  console.log("email", email);
+  const { callAction, isLoading, isError, error } = useAxios();
 
-  const handleMenu = (el, i) => {
+  const handleMenu = async (el, i) => {
     if (i === Profile_Menu.length - 1) {
-      dispatch(logOutUser({ email }));
+      try {
+        await callAction(logOutUser());
+      } catch (error) {
+        console.log(error);
+      }
     } else {
       navigate(el.path);
     }
@@ -158,10 +165,6 @@ const Sidebar = () => {
             spacing={2}
           >
             <Avatar src={faker.image.avatar()} />
-
-            <Typography variant="body1" fontSize={"1.5rem"}>
-              {email?.split("@")[0]}
-            </Typography>
             <AntSwitch
               defaultChecked
               onChange={() => {
@@ -317,7 +320,7 @@ const Sidebar = () => {
           <Stack
             alignItems={"center"}
             direction={"column"}
-            gap={4}
+            spacing={2}
             sx={{ display: { xs: "none", md: "block" } }}
           >
             <AntSwitch
@@ -326,7 +329,6 @@ const Sidebar = () => {
                 onToggleMode();
               }}
             />
-            <Typography variant="subtitle2">{email?.split("@")[0]}</Typography>
             <Avatar
               onClick={handleClick}
               id="basic-button"
