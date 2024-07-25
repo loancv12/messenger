@@ -157,7 +157,11 @@ const SocketWrapper = ({ children }) => {
     });
 
     // message
-    socket.on("new_messages", (data) => {
+    socket.on("new_messages", (data, callback) => {
+      console.log("callback", callback);
+      if (typeof callback === "function") {
+        callback();
+      }
       dispatch(handleNewMessages(data));
     });
 

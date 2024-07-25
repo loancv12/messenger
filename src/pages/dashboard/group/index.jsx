@@ -15,6 +15,7 @@ import Group from "./Group";
 import { useEffect, useRef } from "react";
 import { chatTypes } from "../../../redux/config";
 import {
+  concatMessages,
   setCurrentMsgs,
   setNumOfPage,
 } from "../../../redux/message/messageSlice";
@@ -27,6 +28,11 @@ const GroupChat = () => {
   const isFirstMount = useRef(true);
   const runFetchCvs = useRef(false);
 
+  const cursorRef = useRef({
+    lastMsgCreated: "",
+    isHaveMoreMsg: true,
+  });
+
   const sidebar = useSelector(selectSidebar);
   const dispatch = useDispatch();
   const currentCvsId = useSelector((state) =>
@@ -38,38 +44,60 @@ const GroupChat = () => {
     dispatch(updateShowCvsComp({ open: false }));
   };
 
+  const handleGetNextMsgs = async () => {
+    const onSuccess = (res) => {
+      const isHaveMoreMsg = res?.headers?.["x-pagination"];
+      cursorRef.current.isHaveMoreMsg = isHaveMoreMsg;
+      cursorRef.current.lastMsgCreated = res.data.data[0].createdAt;
+
+      dispatch(
+        concatMessages({
+          type: chatTypes.GROUP_CHAT,
+          newMessages: res.data.data,
+        })
+      );
+    };
+
+    if (cursorRef.current.isHaveMoreMsg) {
+      await callAction(
+        fetchMessages({
+          data: {
+            type: chatTypes.GROUP_CHAT,
+            conversationId: currentCvsId,
+            cursor: cursorRef.current.lastMsgCreated,
+          },
+          onSuccess,
+        })
+      );
+    }
+  };
+
   // cause if we put 2 fetch cvs and msg separately into 2 comp: Chats and Message (respectively),
   // a error will happen with refetch token, when first call will make refresh token of second call unauthorized
   // so I put 2 call in here, in one comp and make them sequence
-  const runFetchMsg = useRef(false);
   useEffect(() => {
     dispatch(selectTypeOfCvs({ chatType: chatTypes.GROUP_CHAT }));
 
     const fetchCvsAndMsg = async () => {
       const onSuccess = (res) => {
-        const numberOfPages = res?.headers?.["x-pagination"];
+        const isHaveMoreMsg = res?.headers?.["x-pagination"];
+        cursorRef.current.isHaveMoreMsg = isHaveMoreMsg;
+        cursorRef.current.lastMsgCreated = res.data.data[0].createdAt;
         dispatch(
           setCurrentMsgs({
             type: chatTypes.GROUP_CHAT,
             messages: res.data.data,
           })
         );
-        dispatch(
-          setNumOfPage({
-            type: chatTypes.GROUP_CHAT,
-            numOfPage: Number(numberOfPages),
-          })
-        );
       };
+      // i put this in useEffect with dep is currentCvsId when this run one when mount instead of dep being []
+      // cause if put this in useEffetc with dep being [],
+      // when currentCvsId change, we need another useEffect with dep is currentCvsId with a call fetchMsg when currentCvsId change
+      // while in useEffetc with dep being [], we call both fetchCvs and fetchMsg,
+      // it is difficult to make sure that the useEffect with dep is currentCvsId is run only when user click to chatElement to change current cvs
+      // not when mount as useEffetc with dep being [],
+      // i already try to count the render but it not work
       try {
-        // i put this in useEffect with dep is currentCvsId when this run one when mount instead of dep being []
-        // cause if put this in useEffetc with dep being [],
-        // when currentCvsId change, we need another useEffect with dep is currentCvsId with a call fetchMsg when currentCvsId change
-        // while in useEffetc with dep being [], we call both fetchCvs and fetchMsg,
-        // it is difficult to make sure that the useEffect with dep is currentCvsId is run only when user click to chatElement to change current cvs
-        // not when mount as useEffetc with dep being [],
-        // i already try to count the render but it not work
-
         // make sure that fetch cvs only one when mount
         if (!runFetchCvs.current) {
           await callAction(fetchConversations({ type: chatTypes.GROUP_CHAT }));
@@ -81,12 +109,11 @@ const GroupChat = () => {
               data: {
                 type: chatTypes.GROUP_CHAT,
                 conversationId: currentCvsId,
-                page: 1,
+                cursor: new Date(),
               },
               onSuccess,
             })
           );
-          runFetchMsg.current = true;
         }
       } catch (error) {
         console.log(error);
@@ -104,7 +131,10 @@ const GroupChat = () => {
   return (
     <LeftAsideLayout isShowRightAside={sidebar.open}>
       <Group />
-      <Conversation handleBack={handleBack} />
+      <Conversation
+        handleBack={handleBack}
+        handleGetNextMsgs={handleGetNextMsgs}
+      />
       {(() => {
         switch (sidebar.type) {
           case "CONTACT":

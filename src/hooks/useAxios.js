@@ -5,10 +5,6 @@ import { selectToken, setCredentials } from "../redux/auth/authSlice";
 import useRefresh from "./useRefresh";
 
 function useAxios(comp) {
-  const token = useSelector(selectToken);
-  const firstMount = useRef(true);
-  const dispatch = useDispatch();
-  const refresh = useRefresh();
   const [apiCallState, setApiCallState] = useState({
     isLoading: false,
     isError: false,
@@ -42,6 +38,7 @@ function useAxios(comp) {
           isError: false,
         }));
       } catch (error) {
+        console.log(error);
         setApiCallState((prev) => ({
           ...prev,
           isError: true,
@@ -59,49 +56,6 @@ function useAxios(comp) {
     },
     [axiosInstance]
   );
-
-  useEffect(() => {
-    let reqInterceptor, resInterceptor;
-    if (!firstMount.current) {
-      reqInterceptor = axiosInstance.interceptors.request.use(
-        (config) => {
-          if (token) {
-            config.headers.Authorization = `Bearer ${token}`;
-          }
-          return config;
-        },
-        (error) => Promise.reject(error)
-      );
-
-      resInterceptor = axiosInstance.interceptors.response.use(
-        (response) => {
-          if (
-            response.headers.hasContentType("application/json") &&
-            typeof response.data === "string"
-          ) {
-            response.data = JSON.parse(response.data);
-          }
-          return response;
-        },
-        async (error) => {
-          const prevReq = error?.config;
-
-          if (error?.response?.status === 403 && !prevReq?.sent) {
-            prevReq.sent = true;
-            const newAccessToken = await refresh();
-            prevReq.headers["Authorization"] = `Bearer ${newAccessToken}`;
-            return axiosInstance(prevReq);
-          }
-          return Promise.reject(error);
-        }
-      );
-    }
-    return () => {
-      firstMount.current = false;
-      axiosInstance.interceptors.request.clear();
-      axiosInstance.interceptors.response.clear();
-    };
-  }, [token]);
 
   return { callAction, ...apiCallState };
 }

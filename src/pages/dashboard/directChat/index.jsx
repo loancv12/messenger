@@ -19,6 +19,8 @@ import { selectCurrCvsId } from "../../../redux/conversation/conversationSlice";
 import {
   setNumOfPage,
   setCurrentMsgs,
+  concatMessages,
+  addMessages,
 } from "../../../redux/message/messageSlice";
 import LoadingScreen from "../../../components/LoadingScreen";
 import { Typography } from "@mui/material";
@@ -26,6 +28,10 @@ import { Typography } from "@mui/material";
 const DirectChat = () => {
   const isFirstMount = useRef(true);
   const runFetchCvs = useRef(false);
+  const cursorRef = useRef({
+    lastMsgCreated: "",
+    isHaveMoreMsg: true,
+  });
 
   const sidebar = useSelector(selectSidebar);
   const currentCvsId = useSelector((state) =>
@@ -39,26 +45,53 @@ const DirectChat = () => {
     dispatch(updateShowCvsComp({ open: false }));
   };
 
+  // oldest:0 to latest:20
+  // useCallback to make sure that get the correct msg of currentCvsId, esp get next after change currentCvsId
+  const handleGetNextMsgs = async (currentCvsId) => {
+    console.log("handleGetNextMsgs", cursorRef.current, currentCvsId);
+    const onSuccess = (res) => {
+      console.log("res in onSuccess", res);
+      const isHaveMoreMsg = res?.headers?.["x-pagination"];
+      cursorRef.current.isHaveMoreMsg = isHaveMoreMsg;
+      cursorRef.current.lastMsgCreated = res.data.data[0].createdAt;
+
+      dispatch(
+        concatMessages({
+          type: chatTypes.DIRECT_CHAT,
+          newMessages: res.data.data,
+        })
+      );
+    };
+
+    if (cursorRef.current.isHaveMoreMsg) {
+      await callAction(
+        fetchMessages({
+          data: {
+            type: chatTypes.DIRECT_CHAT,
+            conversationId: currentCvsId,
+            cursor: cursorRef.current.lastMsgCreated,
+          },
+          onSuccess,
+        })
+      );
+    }
+  };
+
   // cause if we put 2 fetch cvs and msg separately into 2 comp: Chats and Message (respectively),
   // a error will happen with refetch token, when first call will make refresh token of second call unauthorized
   // so I put 2 call in here, in one comp and make them sequence
-  const runFetchMsg = useRef(false);
   useEffect(() => {
     dispatch(selectTypeOfCvs({ chatType: chatTypes.DIRECT_CHAT }));
 
     const fetchCvsAndMsg = async () => {
       const onSuccess = (res) => {
-        const numberOfPages = res?.headers?.["x-pagination"];
+        const isHaveMoreMsg = res?.headers?.["x-pagination"];
+        cursorRef.current.isHaveMoreMsg = isHaveMoreMsg;
+        cursorRef.current.lastMsgCreated = res.data.data[0].createdAt;
         dispatch(
           setCurrentMsgs({
             type: chatTypes.DIRECT_CHAT,
             messages: res.data.data,
-          })
-        );
-        dispatch(
-          setNumOfPage({
-            type: chatTypes.DIRECT_CHAT,
-            numOfPage: Number(numberOfPages),
           })
         );
       };
@@ -82,12 +115,11 @@ const DirectChat = () => {
               data: {
                 type: chatTypes.DIRECT_CHAT,
                 conversationId: currentCvsId,
-                page: 1,
+                cursor: new Date(),
               },
               onSuccess,
             })
           );
-          runFetchMsg.current = true;
         }
       } catch (error) {
         console.log(error);
@@ -103,19 +135,14 @@ const DirectChat = () => {
   }, [currentCvsId]);
 
   let content;
-  // remember not use this if else case cause when loading for 2 fetch,
-  // it will unmount Conversation and Messages, thus clear all interceptor
-  // thus get error in second fetch
-  // if (isLoading) {
-  //   content = <LoadingScreen />;
-  // } else if (isError) {
-  //   content = <Typography>Some thing wrong</Typography>;
-  // } else {
   content = (
     <LeftAsideLayout isShowRightAside={sidebar.open}>
       <Chats />
       {/* <DirectMsgs /> */}
-      <Conversation handleBack={handleBack} />
+      <Conversation
+        handleBack={handleBack}
+        handleGetNextMsgs={handleGetNextMsgs}
+      />
       {(() => {
         switch (sidebar.type) {
           case "CONTACT":

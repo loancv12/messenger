@@ -2,6 +2,7 @@ import {
   Box,
   Button,
   CircularProgress,
+  IconButton,
   Stack,
   Typography,
   useTheme,
@@ -16,12 +17,11 @@ import {
   Timeline,
 } from "./MsgTypes";
 import { useDispatch, useSelector } from "react-redux";
-import { useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import {
   selectCurrentMsgs,
   setCurrentMsgs,
   concatMessages,
-  selectNumOfPage,
 } from "../../redux/message/messageSlice";
 import { fetchMessages } from "../../redux/message/messageApi";
 
@@ -31,6 +31,7 @@ import useAuth from "../../hooks/useAuth";
 import { fDateFromNow } from "../../utils/formatTime";
 import useAxios from "../../hooks/useAxios";
 import { useGetTestMutation } from "../../redux/app/api";
+import { ArrowCircleDown } from "phosphor-react";
 
 function transformMessages(rawMsg, userId) {
   let timeOfStartMsg = "",
@@ -41,7 +42,6 @@ function transformMessages(rawMsg, userId) {
   }
 
   const incoming = userId === rawMsg.from ? false : true;
-
   if (rawMsg?.isReply) {
     isMyReply = userId === rawMsg.from;
     isSelfReply = userId !== rawMsg.replyMsg?.from ? true : false;
@@ -61,23 +61,22 @@ function transformMessages(rawMsg, userId) {
   return solveMsg;
 }
 
-function Messages({ menu }) {
+function Messages({ menu, handleGetNextMsgs }) {
+  const [showArrScrollBtm, setShowArrScrollBtm] = useState(false);
   const { userId } = useAuth();
   const dispatch = useDispatch();
 
   const chatType = useSelector(selectChatType);
-  const numOfPage = useSelector((state) => selectNumOfPage(state, chatType));
   const currentCvsId = useSelector((state) => selectCurrCvsId(state, chatType));
   const currentMsgs = useSelector((state) =>
     selectCurrentMsgs(state, chatType)
   );
-
-  const { callAction, isLoading, isError, error } = useAxios("mes");
-
-  const pageRef = useRef({
-    page: 1,
-    numberOfPages: numOfPage,
-  });
+  // cause of handleTopIntersect is defined at mounted, so currentCvsId in handleGetNextMsgs is defined there
+  // cause of handleGetNextMsgs is pass by pros, so it also defined when this comp mounted, =>cannot make handleGetNextMsgs no para
+  // making handleGetNextMsgs is defined here, it cannot acccess the cursor, we can pass cursor as pros, but it take 2 useEffect to reset cursor
+  // so, make a ref, which a refence variable, unchange, the value of key, which only change; is a suitable option, no need to add useEffect,
+  // this comp have enough useEffect and logic, i dont want any more  :<<
+  const currentCvsIdRef = useRef(currentCvsId);
 
   const outerScrollBox = useRef();
   const topTargetRef = useRef();
@@ -91,6 +90,7 @@ function Messages({ menu }) {
     isVeryBottom: true,
     prevPos: 0,
     lastMsgId: "",
+    runGetNext: false,
   });
 
   const scrollToBottom = (el) => {
@@ -107,38 +107,7 @@ function Messages({ menu }) {
     });
   };
 
-  const fetchMsg = async (page, onSuccess) => {
-    try {
-      await callAction(
-        fetchMessages({
-          data: {
-            type: chatType,
-            conversationId: currentCvsId,
-            page,
-          },
-          onSuccess,
-        })
-      );
-    } catch (error) {
-      console.log(error);
-    }
-  };
-
-  const handleGetNextMsgs = async () => {
-    console.log("handleGetNextMsgs", pageRef);
-
-    const onSuccess = (res) => {
-      const numberOfPages = res?.headers?.["x-pagination"];
-      pageRef.current.numberOfPages = Number(numberOfPages);
-      dispatch(concatMessages({ type: chatType, newMessages: res.data.data }));
-    };
-    await fetchMsg(pageRef.current.page, onSuccess);
-  };
-
   const resetRefWhenChangeCvs = () => {
-    pageRef.current.page = 1;
-    pageRef.current.numberOfPages = 1;
-
     intersectRelateRef.current.previousY = Number.MAX_SAFE_INTEGER;
     intersectRelateRef.current.previousRatio = Number.MAX_SAFE_INTEGER;
     intersectRelateRef.current.prevPos = 0;
@@ -159,14 +128,12 @@ function Messages({ menu }) {
         isIntersecting &&
         currentRatio >= previousRatio
       ) {
-        console.log("Scrolling very up enter", pageRef);
+        console.log("Scrolling very up enter", currentCvsIdRef);
         intersectRelateRef.current.prevPos =
           outerScrollBox.current.scrollHeight;
 
-        if (pageRef.current.page < pageRef.current.numberOfPages) {
-          pageRef.current.page++;
-          handleGetNextMsgs();
-        }
+        handleGetNextMsgs(currentCvsIdRef.current);
+        intersectRelateRef.current.runGetNext = true;
       }
 
       intersectRelateRef.current.previousY = currentY;
@@ -205,9 +172,20 @@ function Messages({ menu }) {
 
     observerTop.observe(topTargetRef.current);
     observerBottom.observe(bottomTargetRef.current);
+
+    // const lastMsgCreated = currentMsgs[currentMsgs.length - 1].createdAt;
+    // const conversationId = currentMsgs[currentMsgs.length - 1].conversationId;
+    const intervalId = setInterval(function () {
+      // socket.emit("seen-msg", {
+      //   lastMsgCreated,
+      //   chatType,
+      // });
+    }, 1000);
+
     return () => {
       observerTop.disconnect();
       observerBottom.disconnect();
+      clearInterval(intervalId);
     };
   }, []);
 
@@ -216,11 +194,8 @@ function Messages({ menu }) {
   useEffect(() => {
     resetRefWhenChangeCvs();
     scrollToBottom(outerScrollBox.current);
+    currentCvsIdRef.current = currentCvsId;
   }, [currentCvsId]);
-
-  useEffect(() => {
-    pageRef.current.numberOfPages = numOfPage;
-  }, [numOfPage]);
 
   // 2 case for change currentMsg: after call setCurrentMsg, call addMsg.
   useEffect(() => {
@@ -236,22 +211,27 @@ function Messages({ menu }) {
     const prevPos =
       outerScrollBox.current.scrollHeight - intersectRelateRef.current.prevPos;
 
-    // only scroll to old pos when comp call next page( page!==1) and not in case have msg added
-    // (currentMsgs can change when msg added)
-    // incase we call next page before (page=2 for ex),
-    // we check !isMsgAddedRet to make sure that we add msg dont make this scroll to oldPos, we want it still there, not scroll
-    // in case: when after comp mounted, we scroll up a bit, not make page change,
-    // add msg still remain pos, so we no need to scroll to old pos
-    if (pageRef.current.page !== 1 && !isMsgAddedRet) {
+    if (intersectRelateRef.current.runGetNext) {
       scrollToOldPos(outerScrollBox.current, prevPos);
+      intersectRelateRef.current.runGetNext = false;
     }
   }, [currentMsgs]);
 
+  useEffect(() => {
+    if (!intersectRelateRef.current.isVeryBottom) {
+      setShowArrScrollBtm(true);
+    } else {
+      setShowArrScrollBtm(false);
+    }
+  }, [intersectRelateRef.current.isVeryBottom]);
+
+  // the order is reverse cause of createdAt:-1
   const msgs = currentMsgs?.map((el, i) => {
     const props = {
       el: transformMessages(el, userId),
       key: i,
       menu,
+      isLastMsg: i === currentMsgs[currentMsgs.length - 1],
     };
     switch (el.type) {
       case "img":
@@ -284,23 +264,17 @@ function Messages({ menu }) {
         msOverflowStyle: "none",
       }}
     >
-      {isLoading ? (
-        <Box
-          sx={{
-            position: "absolute",
-            left: 0,
-            top: 0,
-            right: 0,
-            bottom: 0,
-            zIndex: 9999,
-            display: "flex",
-            alignItems: "center",
-            justifyContent: "center",
-          }}
-        >
-          <CircularProgress />
-        </Box>
-      ) : null}
+      {/* {true ? (
+      ) : null} */}
+      <IconButton
+        sx={{
+          position: "absolute",
+          bottom: "10px",
+          right: "10px",
+        }}
+      >
+        <ArrowCircleDown size={32} color="#b80000" weight="fill" />
+      </IconButton>
       <Stack
         p={3}
         direction={"column"}

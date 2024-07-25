@@ -1,4 +1,5 @@
 import {
+  Avatar,
   Box,
   Button,
   Divider,
@@ -10,7 +11,12 @@ import {
   Typography,
   useTheme,
 } from "@mui/material";
-import { DotsThreeVertical, DownloadSimple } from "phosphor-react";
+import {
+  CheckCircle,
+  DotsThreeVertical,
+  DownloadSimple,
+  WarningCircle,
+} from "phosphor-react";
 import React, { useState, useRef, memo, useContext } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import { fDateFromNow } from "../../utils/formatTime";
@@ -22,9 +28,10 @@ import {
   reportMessage,
   deleteMessage,
 } from "../../redux/message/messageSlice";
+import { faker } from "@faker-js/faker";
 
 // msg types component
-const DocMsg = memo(({ el, menu }) => {
+const DocMsg = memo(({ el, menu, isLastMsg }) => {
   const theme = useTheme();
   return (
     <Box>
@@ -75,7 +82,7 @@ const DocMsg = memo(({ el, menu }) => {
   );
 });
 
-const LinkMsg = memo(({ el, menu }) => {
+const LinkMsg = memo(({ el, menu, isLastMsg }) => {
   const theme = useTheme();
 
   return (
@@ -134,7 +141,7 @@ const LinkMsg = memo(({ el, menu }) => {
   );
 });
 
-const MediaMsg = memo(({ el, menu }) => {
+const MediaMsg = memo(({ el, menu, isLastMsg }) => {
   const theme = useTheme();
 
   return (
@@ -184,9 +191,8 @@ const MediaMsg = memo(({ el, menu }) => {
   );
 });
 
-const TextMsg = memo(({ el, menu }) => {
+const TextMsg = memo(({ el, menu, isLastMsg }) => {
   const theme = useTheme();
-
   return (
     <Box>
       {el?.isStartMsg ? <Timeline time={el?.timeOfStartMsg} /> : null}
@@ -209,6 +215,7 @@ const TextMsg = memo(({ el, menu }) => {
               width: "max-content",
               zIndex: 1,
               maxWidth: "70%",
+              // position: "relative",
             }}
             p={1}
           >
@@ -218,9 +225,51 @@ const TextMsg = memo(({ el, menu }) => {
             >
               {el.text}
             </Typography>
+
+            {/* {el.unread ? (
+              isLastMsg && !el.incoming ? (
+                <Avatar
+                  alt="Remy Sharp"
+                  src={faker.image.avatar()}
+                  sx={{
+                    width: 14,
+                    height: 14,
+                    position: "absolute",
+                    bottom: "4px",
+                    right: "-18px",
+                  }}
+                />
+              ) : null
+            ) : null} */}
           </Box>
         )}
+        {/* <Avatar
+          alt="Remy Sharp"
+          src={faker.image.avatar()}
+          sx={{ width: 14, height: 14 }}
+        /> */}
+        {/* <WarningCircle size={32} color="#5e5e5e" weight="fill" style={{ position: "absolute", bottom: "4px", right: "-18px" }}/> */}
+        {/* // <CheckCircle size={12} color="#5e5e5e" weight="fill" /> */}
         {menu && <MessageOptions msg={el} />}
+        {isLastMsg && !el.unread ? (
+          <Avatar
+            alt="Remy Sharp"
+            src={faker.image.avatar()}
+            sx={{
+              width: 14,
+              height: 14,
+              position: "absolute",
+              bottom: "4px",
+              right: "0",
+            }}
+          />
+        ) : isLastMsg && !el.incoming ? (
+          <CheckCircle
+            size={12}
+            color="#5e5e5e"
+            weight={el.sentSuccess ? "fill" : undefined}
+          />
+        ) : null}
       </Stack>
     </Box>
   );
@@ -254,6 +303,8 @@ const ReplyMsg = memo(({ replyMsg }) => {
       targetEl.scrollIntoView({
         behavior: "smooth",
       });
+    } else {
+      console.log("not see targetEl", replyMsg?.id);
     }
   };
 

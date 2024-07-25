@@ -156,6 +156,20 @@ export const handleNewMessages = (data) => {
   };
 };
 
+export const updateSentSuccessMsg = (data) => {
+  const { msgId, chatType } = data;
+  console.log(msgId);
+  return (dispatch, getState) => {
+    dispatch(
+      updateMessage({
+        type: chatType,
+        msgId,
+        updatedContent: { sentSuccess: true },
+      })
+    );
+  };
+};
+
 export function setReplyMessage({ msg, socket }) {
   console.log("replyMessage", msg);
   return (dispatch, getState) => {

@@ -17,7 +17,7 @@ import NoChatSVG from "../../assets/Illistration/NoChat";
 import useLocales from "../../hooks/useLocales";
 import toCamelCase from "../../utils/toCamelCase";
 
-function Conversation({ handleBack }) {
+function Conversation({ handleBack, handleGetNextMsgs }) {
   const dispatch = useDispatch();
   const chatType = useSelector(selectChatType);
   const currentCvs = useSelector((state) => selectCurrCvs(state, chatType));
@@ -95,7 +95,7 @@ function Conversation({ handleBack }) {
           {/* MsG */}
           {/* <SimpleBarStyle> */}
 
-          <Messages menu={true} />
+          <Messages menu={true} handleGetNextMsgs={handleGetNextMsgs} />
 
           <Footer />
         </Stack>
