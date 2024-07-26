@@ -376,7 +376,7 @@ function Footer() {
             </IconButton>
           </Stack>
         </Box>
-        <Box>
+        {/* <Box>
           <IconButton
             onClick={(e) => {
               e.preventDefault();
@@ -391,7 +391,7 @@ function Footer() {
           >
             <ClockClockwise size={24} />
           </IconButton>
-        </Box>
+        </Box> */}
       </Stack>
     </Box>
   );

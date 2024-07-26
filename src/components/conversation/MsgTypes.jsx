@@ -297,6 +297,13 @@ const Timeline = memo(({ time }) => {
 
 const ReplyMsg = memo(({ replyMsg }) => {
   const theme = useTheme();
+
+  const scrollToTop = (el) => {
+    el.scrollTo({
+      top: 0,
+      behavior: "smooth",
+    });
+  };
   const handleTrackMsg = () => {
     const targetEl = document.querySelector(`[data-ref="${replyMsg?.id}"]`);
     if (targetEl) {
@@ -304,6 +311,9 @@ const ReplyMsg = memo(({ replyMsg }) => {
         behavior: "smooth",
       });
     } else {
+      const outerScrollBox = document.querySelector(`.outerScrollBox`);
+
+      scrollToTop(outerScrollBox);
       console.log("not see targetEl", replyMsg?.id);
     }
   };

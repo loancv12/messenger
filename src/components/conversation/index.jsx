@@ -65,6 +65,7 @@ function Conversation({ handleBack, handleGetNextMsgs }) {
             // maxHeight: "100vh",
             height: "100vh",
             width: "auto",
+            position: "relative",
           }}
         >
           <Box

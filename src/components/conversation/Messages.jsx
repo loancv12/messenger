@@ -3,6 +3,7 @@ import {
   Button,
   CircularProgress,
   IconButton,
+  Slide,
   Stack,
   Typography,
   useTheme,
@@ -17,7 +18,14 @@ import {
   Timeline,
 } from "./MsgTypes";
 import { useDispatch, useSelector } from "react-redux";
-import { useCallback, useEffect, useRef, useState } from "react";
+import {
+  useCallback,
+  useDeferredValue,
+  useEffect,
+  useRef,
+  useState,
+  useTransition,
+} from "react";
 import {
   selectCurrentMsgs,
   setCurrentMsgs,
@@ -63,6 +71,9 @@ function transformMessages(rawMsg, userId) {
 
 function Messages({ menu, handleGetNextMsgs }) {
   const [showArrScrollBtm, setShowArrScrollBtm] = useState(false);
+  // to make a smooth show scroll down button,
+  //
+  const deferredShow = useDeferredValue(showArrScrollBtm);
   const { userId } = useAuth();
   const dispatch = useDispatch();
 
@@ -71,10 +82,10 @@ function Messages({ menu, handleGetNextMsgs }) {
   const currentMsgs = useSelector((state) =>
     selectCurrentMsgs(state, chatType)
   );
-  // cause of handleTopIntersect is defined at mounted, so currentCvsId in handleGetNextMsgs is defined there
+  // cause of currentCvsId is defined at mounted in useEffect with no dep, rerender not update it, so currentCvsId in handleGetNextMsgs is defined there
   // cause of handleGetNextMsgs is pass by pros, so it also defined when this comp mounted, =>cannot make handleGetNextMsgs no para
   // making handleGetNextMsgs is defined here, it cannot acccess the cursor, we can pass cursor as pros, but it take 2 useEffect to reset cursor
-  // so, make a ref, which a refence variable, unchange, the value of key, which only change; is a suitable option, no need to add useEffect,
+  // so, make a ref, which a refence variable, not a primitive, unchange, same as every render is a suitable option, no need to add useEffect,
   // this comp have enough useEffect and logic, i dont want any more  :<<
   const currentCvsIdRef = useRef(currentCvsId);
 
@@ -144,12 +155,15 @@ function Messages({ menu, handleGetNextMsgs }) {
   // update isVeryBottom based on bottom target
   const handleBottomIntersect = (entries) => {
     entries.forEach((entry) => {
+      console.log("entry.isIntersecting", entry.isIntersecting);
       const isIntersecting = entry.isIntersecting;
-      if (isIntersecting) {
-        intersectRelateRef.current.isVeryBottom = true;
-      } else {
-        intersectRelateRef.current.isVeryBottom = false;
-      }
+      intersectRelateRef.current.isVeryBottom = isIntersecting;
+
+      // actually, first i use useEffect with dep is intersectRelateRef.current.isVeryBottom,it not work cause
+      // dependencies in useEffect is The list of all reactive values referenced inside of the setup code.
+      // Reactive values include props, state, and all the variables and functions declared directly inside your component body
+      // ofcourse value of refObject is not that
+      setShowArrScrollBtm(!isIntersecting);
     });
   };
 
@@ -217,15 +231,6 @@ function Messages({ menu, handleGetNextMsgs }) {
     }
   }, [currentMsgs]);
 
-  useEffect(() => {
-    if (!intersectRelateRef.current.isVeryBottom) {
-      setShowArrScrollBtm(true);
-    } else {
-      setShowArrScrollBtm(false);
-    }
-  }, [intersectRelateRef.current.isVeryBottom]);
-
-  // the order is reverse cause of createdAt:-1
   const msgs = currentMsgs?.map((el, i) => {
     const props = {
       el: transformMessages(el, userId),
@@ -246,64 +251,70 @@ function Messages({ menu, handleGetNextMsgs }) {
   });
 
   return (
-    <Box
-      ref={outerScrollBox}
-      width="100%"
-      height={"100%"}
-      sx={{
-        position: "relative",
-        flexGrow: 1,
-        overflowY: "scroll",
-        /* Hide scrollbar for Chrome, Safari and Opera */
-        "&::-webkit-scrollbar": {
-          width: 0,
-        },
-        /* IE and Edge */
-        // scrollbarWidth: " none",
-        /* Firefox */
-        msOverflowStyle: "none",
-      }}
-    >
-      {/* {true ? (
-      ) : null} */}
-      <IconButton
-        sx={{
-          position: "absolute",
-          bottom: "10px",
-          right: "10px",
-        }}
-      >
-        <ArrowCircleDown size={32} color="#b80000" weight="fill" />
-      </IconButton>
-      <Stack
-        p={3}
-        direction={"column"}
-        spacing={3}
-        id="scrollableDiv"
-        sx={{
-          overflow: "auto",
-          "& *": {
-            overflowAnchor: "none",
-          },
-          "& > div:nth-of-type(1)": {
-            marginTop: "0 !important",
-          },
-        }}
-      >
-        <Typography
-          ref={topTargetRef}
+    <>
+      <Slide direction="up" in={deferredShow} mountOnEnter unmountOnExit>
+        <IconButton
           sx={{
-            marginTop: "0 !important",
-            height: "1px",
+            position: "absolute",
+            bottom: "71px",
+            right: "13px",
+            zIndex: 1,
           }}
-        ></Typography>
-        {msgs}
-        <Typography
-          ref={bottomTargetRef}
-          sx={{ marginTop: "0 !important", height: "1px" }}
-        ></Typography>
-      </Stack>
-    </Box>
+          onClick={() => scrollToBottom(outerScrollBox.current)}
+        >
+          <ArrowCircleDown size={32} color="#b80000" weight="fill" />
+        </IconButton>
+      </Slide>
+
+      <Box
+        className="outerScrollBox"
+        ref={outerScrollBox}
+        width="100%"
+        height={"100%"}
+        sx={{
+          position: "relative",
+          flexGrow: 1,
+          overflowY: "scroll",
+          /* Hide scrollbar for Chrome, Safari and Opera */
+          "&::-webkit-scrollbar": {
+            width: 0,
+          },
+          /* IE and Edge */
+          // scrollbarWidth: " none",
+          /* Firefox */
+          msOverflowStyle: "none",
+        }}
+      >
+        <Stack
+          p={3}
+          direction={"column"}
+          spacing={3}
+          id="scrollableDiv"
+          sx={{
+            overflow: "auto",
+            "& *": {
+              overflowAnchor: "none",
+            },
+            "& > div:nth-of-type(1)": {
+              marginTop: "0 !important",
+            },
+          }}
+        >
+          <Typography
+            ref={topTargetRef}
+            sx={{
+              marginTop: "0 !important",
+              height: "1px",
+            }}
+          ></Typography>
+          {msgs}
+          <Typography
+            ref={bottomTargetRef}
+            sx={{ marginTop: "0 !important", height: "1px" }}
+          ></Typography>
+        </Stack>
+      </Box>
+    </>
   );
 }
 
