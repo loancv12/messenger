@@ -10,98 +10,51 @@ import {
 } from "@mui/material";
 import { CaretLeft, ChatCircle, ChatsCircle } from "phosphor-react";
 import Messages from "./Messages";
-import { useDispatch, useSelector } from "react-redux";
-import { selectChatType, updateShowCvsComp } from "../../redux/app/appSlice";
-import { selectCurrCvs } from "../../redux/conversation/conversationSlice";
-import NoChatSVG from "../../assets/Illistration/NoChat";
-import useLocales from "../../hooks/useLocales";
-import toCamelCase from "../../utils/toCamelCase";
 
-function Conversation({ handleBack, handleGetNextMsgs }) {
-  const dispatch = useDispatch();
-  const chatType = useSelector(selectChatType);
-  const currentCvs = useSelector((state) => selectCurrCvs(state, chatType));
-  const { translate } = useLocales();
-
+function Conversation({ handleBack }) {
   const theme = useTheme();
   return (
-    <>
-      {!currentCvs ? (
-        <Stack
-          spacing={2}
-          sx={{ height: "100%", width: "100%" }}
-          alignItems={"center"}
-          justifyContent={"center"}
-        >
-          <NoChatSVG />
-          <Button
+    <Stack
+      sx={{
+        // height: "100%",
+        // maxHeight: "100vh",
+        height: "100vh",
+        width: "auto",
+        position: "relative",
+      }}
+    >
+      <Box
+        p={2}
+        sx={{
+          width: "100%",
+          backgroundColor:
+            theme.palette.mode === "light"
+              ? "#F8F8F8"
+              : theme.palette.background.paper,
+          boxShadow: "0 0 2px rgba(0,0,0,.25)",
+          zIndex: 2,
+        }}
+      >
+        <Stack direction={"row"} justifyContent={"space-between"}>
+          <IconButton
+            onClick={handleBack}
             sx={{
-              display: {
-                xs: "block",
-                md: "none",
-              },
+              display: { xs: "flex", md: "none" },
+              marginRight: "10px",
             }}
-            endIcon={<ChatsCircle size={32} />}
-            onClick={() => dispatch(updateShowCvsComp({ open: false }))}
           >
-            {translate(`conversation.${toCamelCase("Start Chat")}`)}
-          </Button>
-          <Typography
-            sx={{
-              display: {
-                xs: "none",
-                md: "block",
-              },
-            }}
-            variant="subtitle2"
-          >
-            {translate(`conversation.${toCamelCase("Start Chat")}`)}
-          </Typography>
+            <CaretLeft size={24} color="#1a4858" />
+          </IconButton>
+          <Header />
         </Stack>
-      ) : (
-        <Stack
-          sx={{
-            // height: "100%",
-            // maxHeight: "100vh",
-            height: "100vh",
-            width: "auto",
-            position: "relative",
-          }}
-        >
-          <Box
-            p={2}
-            sx={{
-              width: "100%",
-              backgroundColor:
-                theme.palette.mode === "light"
-                  ? "#F8F8F8"
-                  : theme.palette.background.paper,
-              boxShadow: "0 0 2px rgba(0,0,0,.25)",
-              zIndex: 2,
-            }}
-          >
-            <Stack direction={"row"} justifyContent={"space-between"}>
-              <IconButton
-                onClick={handleBack}
-                sx={{
-                  display: { xs: "flex", md: "none" },
-                  marginRight: "10px",
-                }}
-              >
-                <CaretLeft size={24} color="#1a4858" />
-              </IconButton>
-              <Header />
-            </Stack>
-          </Box>
-          {/* MsG */}
-          {/* <SimpleBarStyle> */}
+      </Box>
+      {/* MsG */}
+      {/* <SimpleBarStyle> */}
 
-          <Messages menu={true} handleGetNextMsgs={handleGetNextMsgs} />
+      <Messages menu={true} />
 
-          <Footer />
-        </Stack>
-      )}
-    </>
+      <Footer />
+    </Stack>
   );
 }
 

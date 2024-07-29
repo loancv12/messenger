@@ -11,6 +11,7 @@ import {
   alpha,
   styled,
   useTheme,
+  Skeleton,
 } from "@mui/material";
 import React, {
   memo,
@@ -30,7 +31,7 @@ import {
 import Search from "../../../components/search/Search";
 import SearchIconWrapper from "../../../components/search/SearchIconWrapper";
 import StyledInputBase from "../../../components/search/StyledInputBase";
-import ChatElement from "../../../components/ChatElement";
+import ChatElement from "../../../chat/ChatElement";
 import RelationShips from "../../../components/relationShips";
 import LoadingScreen from "../../../components/LoadingScreen";
 import { useSelector } from "react-redux";
@@ -39,9 +40,14 @@ import { chatTypes, noticeTypes } from "../../../redux/config";
 import { selectNotice, updateNotice } from "../../../redux/app/appSlice";
 import toCamelCase from "../../../utils/toCamelCase";
 import useLocales from "../../../hooks/useLocales";
+import { fetchConversations } from "../../../redux/conversation/conversationApi";
+import useAxios from "../../../hooks/useAxios";
+import ChatSkeleton from "../../../chat/ChatSkeleton";
 
 const Chats = memo(() => {
   const [openDialog, setOpenDialog] = useState(false);
+  const isFirstMount = useRef(true);
+  const { callAction, isLoading, isError } = useAxios("direct chat");
 
   const friendReqNotice = useSelector((state) =>
     selectNotice(state, noticeTypes.FRIEND_REQ)
@@ -64,6 +70,29 @@ const Chats = memo(() => {
       dispatch(updateNotice({ type: noticeTypes.FRIEND_REQ, show: false }));
     }
   };
+
+  useEffect(() => {
+    const fetchCvs = async () => {
+      await callAction(fetchConversations({ type: chatTypes.DIRECT_CHAT }));
+    };
+    if (!isFirstMount.current || process.env.NODE_ENV !== "development") {
+      fetchCvs();
+    }
+    return () => {
+      isFirstMount.current = false;
+    };
+  }, []);
+
+  let cvsContent;
+  if (isLoading) {
+    cvsContent = [...Array(6).keys()].map((_, i) => <ChatSkeleton key={i} />);
+  } else if (isError) {
+    cvsContent = <Typography>Something wrong</Typography>;
+  } else {
+    cvsContent = conversations.map((el, i) => {
+      return <ChatElement key={i} {...el} />;
+    });
+  }
 
   return (
     <>
@@ -107,6 +136,8 @@ const Chats = memo(() => {
             </IconButton>
           </Stack>
         </Stack>
+
+        {/* search */}
         <Stack sx={{ width: "100%" }}>
           <Search>
             <SearchIconWrapper>
@@ -115,6 +146,7 @@ const Chats = memo(() => {
             <StyledInputBase placeholder="Search" />
           </Search>
         </Stack>
+
         <Stack spacing={1}>
           <Stack direction="row" alignItems="center" spacing={1.5}>
             <Archive size={24} />
@@ -122,6 +154,8 @@ const Chats = memo(() => {
           </Stack>
           <Divider />
         </Stack>
+
+        {/* msg list */}
         <Stack
           sx={{
             flexGrow: 1,
@@ -147,9 +181,7 @@ const Chats = memo(() => {
             >
               {translate(`directCvs.${toCamelCase("All chats")}`)}
             </Typography>
-            {conversations.map((el, i) => {
-              return <ChatElement key={i} {...el} />;
-            })}
+            {cvsContent}
           </Stack>
         </Stack>
       </Stack>

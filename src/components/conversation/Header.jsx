@@ -29,8 +29,6 @@ function Header() {
   const chatType = useSelector(selectChatType);
   const currentCvs = useSelector((state) => selectCurrCvs(state, chatType));
 
-  const { name, online } = currentCvs;
-
   const [open, setOpen] = useState(false);
 
   const handleClose = (value) => {
@@ -72,7 +70,7 @@ function Header() {
                   );
                 })}
               </AvatarGroup>
-            ) : online ? (
+            ) : currentCvs?.online ? (
               <StyledBadge
                 overlap="circular"
                 anchorOrigin={{
@@ -92,7 +90,7 @@ function Header() {
                 src={faker.image.avatar()}
               />
             )}
-            <Typography variant="subtitle2">{name}</Typography>
+            <Typography variant="subtitle2">{currentCvs?.name}</Typography>
           </Stack>
         </Stack>
         <Stack

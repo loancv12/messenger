@@ -1,5 +1,5 @@
 import { Avatar, Badge, Box, Stack, Typography, useTheme } from "@mui/material";
-import StyledBadge from "./StyledBadge";
+import StyledBadge from "../components/StyledBadge";
 import { faker } from "@faker-js/faker";
 import { useDispatch, useSelector } from "react-redux";
 import { selectChatType, updateShowCvsComp } from "../redux/app/appSlice";
@@ -9,9 +9,11 @@ import {
 } from "../redux/conversation/conversationSlice";
 import { memo } from "react";
 import { fRelativeDate } from "../utils/formatTime";
+import { useNavigate } from "react-router-dom";
 
 const ChatElement = memo(
   ({ id, name, img, msg, updatedAt, online, unread }) => {
+    const navigate = useNavigate();
     const theme = useTheme();
     const chatType = useSelector(selectChatType);
     const dispatch = useDispatch();
@@ -27,6 +29,7 @@ const ChatElement = memo(
           updatedContent: { unread: 0 },
         })
       );
+      navigate(id);
     };
 
     return (

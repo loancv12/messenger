@@ -8,11 +8,13 @@ import {
   Typography,
   useTheme,
 } from "@mui/material";
+import LoadingScreen from "../LoadingScreen";
 import {
   DeletedMsg,
   DocMsg,
   LinkMsg,
   MediaMsg,
+  MsgSkeleton,
   ReplyMsg,
   TextMsg,
   Timeline,
@@ -40,6 +42,8 @@ import { fDateFromNow } from "../../utils/formatTime";
 import useAxios from "../../hooks/useAxios";
 import { useGetTestMutation } from "../../redux/app/api";
 import { ArrowCircleDown } from "phosphor-react";
+import { chatTypes } from "../../redux/config";
+import { useParams } from "react-router-dom";
 
 function transformMessages(rawMsg, userId) {
   let timeOfStartMsg = "",
@@ -69,22 +73,47 @@ function transformMessages(rawMsg, userId) {
   return solveMsg;
 }
 
-function Messages({ menu, handleGetNextMsgs }) {
+const scrollToBottom = (el) => {
+  console.log("scroll to btm", el);
+  el.scrollTo({
+    top: el.scrollHeight,
+    behavior: "smooth",
+  });
+};
+
+function Messages({ menu }) {
   const [showArrScrollBtm, setShowArrScrollBtm] = useState(false);
+  const { cvsId } = useParams();
+
+  const {
+    callAction: callMsgs,
+    isLoading: isLdMsgs,
+    isError: isErrorMsgs,
+  } = useAxios("msg list");
+  const {
+    callAction: callGetNext,
+    isLoading: isLdGetNext,
+    isError: isErrorGetNext,
+  } = useAxios("get next");
+
+  const {
+    callAction: callGetRep,
+    isLoading: isLdGetRep,
+    isError: isErrorGetRep,
+  } = useAxios("get rep");
+
   // to make a smooth show scroll down button,
-  //
   const deferredShow = useDeferredValue(showArrScrollBtm);
   const { userId } = useAuth();
   const dispatch = useDispatch();
 
   const chatType = useSelector(selectChatType);
+  // beware of this, cause update currentCvsId is
   const currentCvsId = useSelector((state) => selectCurrCvsId(state, chatType));
   const currentMsgs = useSelector((state) =>
     selectCurrentMsgs(state, chatType)
   );
   // cause of currentCvsId is defined at mounted in useEffect with no dep, rerender not update it, so currentCvsId in handleGetNextMsgs is defined there
-  // cause of handleGetNextMsgs is pass by pros, so it also defined when this comp mounted, =>cannot make handleGetNextMsgs no para
-  // making handleGetNextMsgs is defined here, it cannot acccess the cursor, we can pass cursor as pros, but it take 2 useEffect to reset cursor
   // so, make a ref, which a refence variable, not a primitive, unchange, same as every render is a suitable option, no need to add useEffect,
   // this comp have enough useEffect and logic, i dont want any more  :<<
   const currentCvsIdRef = useRef(currentCvsId);
@@ -99,29 +128,77 @@ function Messages({ menu, handleGetNextMsgs }) {
     previousY: Number.MAX_SAFE_INTEGER,
     previousRatio: Number.MAX_SAFE_INTEGER,
     isVeryBottom: true,
-    prevPos: 0,
+    oldestMsgId: "",
     lastMsgId: "",
     runGetNext: false,
   });
 
-  const scrollToBottom = (el) => {
-    el.scrollTo({
-      top: el.scrollHeight,
-      behavior: "smooth",
-    });
-  };
-
-  const scrollToOldPos = (el, pos) => {
-    el.scrollTo({
-      top: pos,
-      behavior: "instant",
-    });
-  };
+  // cursor for paginate
+  const cursorRef = useRef({
+    lastMsgCreated: "",
+    isHaveMoreMsg: true,
+  });
 
   const resetRefWhenChangeCvs = () => {
     intersectRelateRef.current.previousY = Number.MAX_SAFE_INTEGER;
     intersectRelateRef.current.previousRatio = Number.MAX_SAFE_INTEGER;
-    intersectRelateRef.current.prevPos = 0;
+  };
+
+  // oldest:0 to latest:20
+  // useCallback to make sure that get the correct msg of currentCvsId, esp get next after change currentCvsId
+  const handleGetNextMsgs = async () => {
+    const onSuccess = (res) => {
+      const isHaveMoreMsg = res?.headers?.["x-pagination"];
+      cursorRef.current.isHaveMoreMsg = isHaveMoreMsg;
+      cursorRef.current.lastMsgCreated = res.data.data[0].createdAt;
+
+      dispatch(
+        concatMessages({
+          type: chatType,
+          newMessages: res.data.data,
+        })
+      );
+    };
+
+    await callGetNext(
+      fetchMessages({
+        data: {
+          type: chatType,
+          conversationId: currentCvsIdRef.current,
+          endCursor: cursorRef.current.lastMsgCreated,
+        },
+        onSuccess,
+      })
+    );
+  };
+
+  const handleGetToRepMsg = async (cursor) => {
+    const onSuccess = (res) => {
+      const isHaveMoreMsg = res?.headers?.["x-pagination"];
+      cursorRef.current.isHaveMoreMsg = isHaveMoreMsg;
+      cursorRef.current.lastMsgCreated = res.data.data[0].createdAt;
+
+      dispatch(
+        concatMessages({
+          type: chatType,
+          newMessages: res.data.data,
+        })
+      );
+    };
+
+    if (cursorRef.current.isHaveMoreMsg) {
+      await callGetRep(
+        fetchMessages({
+          data: {
+            type: chatType,
+            conversationId: currentCvsIdRef.current,
+            endCursor: cursorRef.current.lastMsgCreated,
+            startCursor: cursor,
+          },
+          onSuccess,
+        })
+      );
+    }
   };
 
   // call getNextDate when scroll to very up
@@ -132,7 +209,6 @@ function Messages({ menu, handleGetNextMsgs }) {
         intersectionRatio: currentRatio,
         isIntersecting,
       } = entry;
-
       const { previousY, previousRatio } = intersectRelateRef.current;
       if (
         currentY > previousY &&
@@ -140,10 +216,9 @@ function Messages({ menu, handleGetNextMsgs }) {
         currentRatio >= previousRatio
       ) {
         console.log("Scrolling very up enter", currentCvsIdRef);
-        intersectRelateRef.current.prevPos =
-          outerScrollBox.current.scrollHeight;
-
-        handleGetNextMsgs(currentCvsIdRef.current);
+        if (cursorRef.current.isHaveMoreMsg) {
+          handleGetNextMsgs();
+        }
         intersectRelateRef.current.runGetNext = true;
       }
 
@@ -155,7 +230,6 @@ function Messages({ menu, handleGetNextMsgs }) {
   // update isVeryBottom based on bottom target
   const handleBottomIntersect = (entries) => {
     entries.forEach((entry) => {
-      console.log("entry.isIntersecting", entry.isIntersecting);
       const isIntersecting = entry.isIntersecting;
       intersectRelateRef.current.isVeryBottom = isIntersecting;
 
@@ -204,54 +278,142 @@ function Messages({ menu, handleGetNextMsgs }) {
   }, []);
 
   // const [getTest, result] = useGetTestMutation();
-  // console.log("getTest", getTest);
+
   useEffect(() => {
     resetRefWhenChangeCvs();
-    scrollToBottom(outerScrollBox.current);
+
     currentCvsIdRef.current = currentCvsId;
+    let timeId;
+    const onSuccess = (res) => {
+      const isHaveMoreMsg = res?.headers?.["x-pagination"];
+      cursorRef.current.isHaveMoreMsg = isHaveMoreMsg;
+      cursorRef.current.lastMsgCreated = res.data.data[0]?.createdAt;
+      dispatch(
+        setCurrentMsgs({
+          type: chatType,
+          messages: res.data.data,
+        })
+      );
+
+      timeId = setTimeout(function () {
+        scrollToBottom(outerScrollBox.current);
+      }, 100);
+    };
+
+    const fetchMsgs = async () => {
+      await callMsgs(
+        fetchMessages({
+          data: {
+            type: chatType,
+            conversationId: cvsId,
+            endCursor: new Date(),
+          },
+          onSuccess,
+        })
+      );
+    };
+
+    fetchMsgs();
+
+    return () => {
+      clearTimeout(timeId);
+    };
   }, [currentCvsId]);
 
+  const findAndScrollToView = (msgId) => {
+    const targetEl = document.querySelector(`[data-ref="${msgId}"]`);
+
+    console.log("scroll into view");
+    targetEl.scrollIntoView({
+      behavior: "instant",
+    });
+  };
   // 2 case for change currentMsg: after call setCurrentMsg, call addMsg.
   useEffect(() => {
     const isMsgAddedRet = isMsgAdded();
+    let timeId;
     // when msg add and isVeryBottom, incase not isVeryBottom( we scroll to up before) and isMsgAddedRet, not scroll again to bottom
     if (intersectRelateRef.current.isVeryBottom && isMsgAddedRet) {
-      scrollToBottom(outerScrollBox.current);
+      // make sure that scroll to btm after all UI is render
+      timeId = setTimeout(function () {
+        scrollToBottom(outerScrollBox.current);
+      }, 0);
     }
+
+    if (intersectRelateRef.current.runGetNext) {
+      console.log("oldestMsgId", intersectRelateRef.current.oldestMsgId);
+      findAndScrollToView(intersectRelateRef.current.oldestMsgId);
+      intersectRelateRef.current.runGetNext = false;
+    }
+
     if (currentMsgs?.length) {
       intersectRelateRef.current.lastMsgId =
         currentMsgs[currentMsgs.length - 1]?.id;
+      intersectRelateRef.current.oldestMsgId = currentMsgs[0]?.id;
     }
-    const prevPos =
-      outerScrollBox.current.scrollHeight - intersectRelateRef.current.prevPos;
 
-    if (intersectRelateRef.current.runGetNext) {
-      scrollToOldPos(outerScrollBox.current, prevPos);
-      intersectRelateRef.current.runGetNext = false;
-    }
+    return () => {
+      clearTimeout(timeId);
+    };
   }, [currentMsgs]);
 
-  const msgs = currentMsgs?.map((el, i) => {
-    const props = {
-      el: transformMessages(el, userId),
-      key: i,
-      menu,
-      isLastMsg: i === currentMsgs[currentMsgs.length - 1],
-    };
-    switch (el.type) {
-      case "img":
-        return <MediaMsg {...{ ...props }} />;
-      case "doc":
-        return <DocMsg {...{ ...props }} />;
-      case "link":
-        return <LinkMsg {...{ ...props }} />;
-      default:
-        return <TextMsg {...{ ...props }} />;
-    }
-  });
+  let repMsgs;
+  if (isLdGetRep) {
+    repMsgs = <LoadingScreen />;
+  } else if (isErrorGetRep) {
+    repMsgs = <Typography>Some thing wrong</Typography>;
+  }
+
+  let nextMsgs;
+  if (isLdGetNext) {
+    nextMsgs = (
+      <Typography
+        sx={{
+          position: "absolute",
+          top: "76px",
+          right: "50%",
+          transform: "translateX(50%)",
+        }}
+      >
+        <CircularProgress size={18} />
+      </Typography>
+    );
+  } else if (isErrorGetNext) {
+    nextMsgs = <Typography>Some thing wrong</Typography>;
+  }
+
+  let msgs;
+  if (isLdMsgs) {
+    msgs = [...Array(15).keys()].map((_, i) => <MsgSkeleton key={i} />);
+  } else if (isErrorMsgs) {
+    msgs = <Typography>Some thing wrong</Typography>;
+  } else {
+    msgs = currentMsgs?.map((el, i) => {
+      const props = {
+        el: transformMessages(el, userId),
+        key: i,
+        menu,
+        isLastMsg: i === currentMsgs[currentMsgs.length - 1],
+        handleGetToRepMsg,
+      };
+      switch (el.type) {
+        case "img":
+          return <MediaMsg {...{ ...props }} />;
+        case "doc":
+          return <DocMsg {...{ ...props }} />;
+        case "link":
+          return <LinkMsg {...{ ...props }} />;
+        default:
+          return <TextMsg {...{ ...props }} />;
+      }
+    });
+  }
 
   return (
     <>
+      {repMsgs}
+      {nextMsgs}
+
       <Slide direction="up" in={deferredShow} mountOnEnter unmountOnExit>
         <IconButton
           sx={{
@@ -298,15 +460,23 @@ function Messages({ menu, handleGetNextMsgs }) {
             "& > div:nth-of-type(1)": {
               marginTop: "0 !important",
             },
+            "& > p": {
+              marginTop: "0 !important",
+            },
           }}
         >
           <Typography
             ref={topTargetRef}
             sx={{
+              position: "absolute",
+              top: "200px",
+              left: 0,
               marginTop: "0 !important",
               height: "1px",
+              width: "1px",
             }}
           ></Typography>
+
           {msgs}
           <Typography
             ref={bottomTargetRef}

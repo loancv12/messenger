@@ -7,6 +7,7 @@ import {
   Link,
   Menu,
   MenuItem,
+  Skeleton,
   Stack,
   Typography,
   useTheme,
@@ -29,12 +30,13 @@ import {
   deleteMessage,
 } from "../../redux/message/messageSlice";
 import { faker } from "@faker-js/faker";
+import useAxios from "../../hooks/useAxios";
 
 // msg types component
-const DocMsg = memo(({ el, menu, isLastMsg }) => {
+export const DocMsg = memo(({ el, menu, isLastMsg, handleGetToRepMsg }) => {
   const theme = useTheme();
   return (
-    <Box>
+    <Box data-ref={el.id} sx={{ scrollMarginTop: "20px" }}>
       {el?.isStartMsg ? <Timeline time={el?.timeOfStartMsg} /> : null}
       <Stack
         data-ref={el.id}
@@ -42,7 +44,12 @@ const DocMsg = memo(({ el, menu, isLastMsg }) => {
         justifyContent={el.incoming ? "start" : "end"}
         sx={{ position: "relative" }}
       >
-        {el?.isReply ? <ReplyMsg replyMsg={el.replyMsg} /> : null}
+        {el?.isReply ? (
+          <ReplyMsg
+            replyMsg={el.replyMsg}
+            handleGetToRepMsg={handleGetToRepMsg}
+          />
+        ) : null}
         {el?.isDeleted ? (
           <DeletedMsg el={el} />
         ) : (
@@ -82,11 +89,11 @@ const DocMsg = memo(({ el, menu, isLastMsg }) => {
   );
 });
 
-const LinkMsg = memo(({ el, menu, isLastMsg }) => {
+export const LinkMsg = memo(({ el, menu, isLastMsg, handleGetToRepMsg }) => {
   const theme = useTheme();
 
   return (
-    <Box>
+    <Box data-ref={el.id} sx={{ scrollMarginTop: "20px" }}>
       {el?.isStartMsg ? <Timeline time={el?.timeOfStartMsg} /> : null}
       <Stack
         data-ref={el.id}
@@ -94,7 +101,12 @@ const LinkMsg = memo(({ el, menu, isLastMsg }) => {
         justifyContent={el.incoming ? "start" : "end"}
         sx={{ position: "relative" }}
       >
-        {el?.isReply ? <ReplyMsg replyMsg={el.replyMsg} /> : null}
+        {el?.isReply ? (
+          <ReplyMsg
+            replyMsg={el.replyMsg}
+            handleGetToRepMsg={handleGetToRepMsg}
+          />
+        ) : null}
         {el?.isDeleted ? (
           <DeletedMsg el={el} />
         ) : (
@@ -141,11 +153,11 @@ const LinkMsg = memo(({ el, menu, isLastMsg }) => {
   );
 });
 
-const MediaMsg = memo(({ el, menu, isLastMsg }) => {
+export const MediaMsg = memo(({ el, menu, isLastMsg, handleGetToRepMsg }) => {
   const theme = useTheme();
 
   return (
-    <Box>
+    <Box data-ref={el.id} sx={{ scrollMarginTop: "20px" }}>
       {el?.isStartMsg ? <Timeline time={el?.timeOfStartMsg} /> : null}
       <Stack
         data-ref={el.id}
@@ -153,7 +165,12 @@ const MediaMsg = memo(({ el, menu, isLastMsg }) => {
         justifyContent={el.incoming ? "start" : "end"}
         sx={{ position: "relative" }}
       >
-        {el?.isReply ? <ReplyMsg replyMsg={el.replyMsg} /> : null}
+        {el?.isReply ? (
+          <ReplyMsg
+            replyMsg={el.replyMsg}
+            handleGetToRepMsg={handleGetToRepMsg}
+          />
+        ) : null}
         {el?.isDeleted ? (
           <DeletedMsg el={el} />
         ) : (
@@ -191,18 +208,22 @@ const MediaMsg = memo(({ el, menu, isLastMsg }) => {
   );
 });
 
-const TextMsg = memo(({ el, menu, isLastMsg }) => {
+export const TextMsg = memo(({ el, menu, isLastMsg, handleGetToRepMsg }) => {
   const theme = useTheme();
   return (
-    <Box>
+    <Box data-ref={el.id} sx={{ scrollMarginTop: "20px" }}>
       {el?.isStartMsg ? <Timeline time={el?.timeOfStartMsg} /> : null}
       <Stack
-        data-ref={el.id}
         direction="row"
         justifyContent={el.incoming ? "start" : "end"}
         sx={{ position: "relative" }}
       >
-        {el?.isReply ? <ReplyMsg replyMsg={el.replyMsg} /> : null}
+        {el?.isReply ? (
+          <ReplyMsg
+            replyMsg={el.replyMsg}
+            handleGetToRepMsg={handleGetToRepMsg}
+          />
+        ) : null}
         {el?.isDeleted ? (
           <DeletedMsg el={el} />
         ) : (
@@ -276,7 +297,7 @@ const TextMsg = memo(({ el, menu, isLastMsg }) => {
 });
 
 // utilities component
-const Timeline = memo(({ time }) => {
+export const Timeline = memo(({ time }) => {
   const theme = useTheme();
 
   return (
@@ -295,26 +316,38 @@ const Timeline = memo(({ time }) => {
   );
 });
 
-const ReplyMsg = memo(({ replyMsg }) => {
+export const ReplyMsg = memo(({ replyMsg, handleGetToRepMsg }) => {
   const theme = useTheme();
 
-  const scrollToTop = (el) => {
-    el.scrollTo({
-      top: 0,
+  const scrollAndHightLightEl = (el) => {
+    const svg = el.querySelector("svg");
+    const divInside = svg.previousElementSibling;
+    console.log("scroll into view", divInside);
+    el.scrollIntoView({
       behavior: "smooth",
     });
-  };
-  const handleTrackMsg = () => {
-    const targetEl = document.querySelector(`[data-ref="${replyMsg?.id}"]`);
-    if (targetEl) {
-      targetEl.scrollIntoView({
-        behavior: "smooth",
-      });
-    } else {
-      const outerScrollBox = document.querySelector(`.outerScrollBox`);
 
-      scrollToTop(outerScrollBox);
-      console.log("not see targetEl", replyMsg?.id);
+    // divInside.style.transform = "scale(1.3)";
+    divInside.style.boxShadow = "6px 4px 2px  rgb(255 0 0)";
+
+    setTimeout(function () {
+      divInside.style.transform = "none";
+      divInside.style.boxShadow = "none";
+    }, 3000);
+  };
+
+  const handleTrackMsg = async () => {
+    const targetEl = document.querySelector(`[data-ref="${replyMsg?.id}"]`);
+
+    if (targetEl) {
+      scrollAndHightLightEl(targetEl);
+    } else {
+      await handleGetToRepMsg(replyMsg.createdAt);
+      const targetEle = document.querySelector(`[data-ref="${replyMsg?.id}"]`);
+      console.log(targetEle);
+      if (targetEle) {
+        scrollAndHightLightEl(targetEle);
+      }
     }
   };
 
@@ -323,6 +356,7 @@ const ReplyMsg = memo(({ replyMsg }) => {
       onClick={handleTrackMsg}
       sx={[
         {
+          cursor: "Pointer",
           position: "absolute",
           top: 0,
           transform: "translateY(calc(-100% + 4px))",
@@ -355,7 +389,7 @@ const ReplyMsg = memo(({ replyMsg }) => {
   );
 });
 
-const DeletedMsg = memo(({ el }) => {
+export const DeletedMsg = memo(({ el }) => {
   const theme = useTheme();
 
   return (
@@ -377,7 +411,33 @@ const DeletedMsg = memo(({ el }) => {
   );
 });
 
-const Message_options = [
+export const MsgSkeleton = () => {
+  const theme = useTheme();
+  const incoming = Math.round(Math.random());
+  return (
+    <Box>
+      <Stack direction="row" justifyContent={incoming ? "start" : "end"}>
+        <Box
+          sx={{
+            backgroundColor: incoming
+              ? theme.palette.background.default
+              : theme.palette.primary.main,
+            borderRadius: 1.5,
+            width: "max-content",
+            zIndex: 1,
+            maxWidth: "70%",
+            // position: "relative",
+          }}
+          p={1}
+        >
+          <Skeleton variant="rounded" width={150} height={38} />
+        </Box>
+      </Stack>
+    </Box>
+  );
+};
+
+export const Message_options = [
   {
     title: "Reply",
     onclick: setReplyMessage,
@@ -403,7 +463,7 @@ const Message_options = [
     onclick: deleteMessage,
   },
 ];
-const MessageOptions = memo(({ msg }) => {
+export const MessageOptions = memo(({ msg }) => {
   const [anchorEl, setAnchorEl] = useState(null);
   const open = Boolean(anchorEl);
   const dispatch = useDispatch();
@@ -454,5 +514,3 @@ const MessageOptions = memo(({ msg }) => {
     </>
   );
 });
-
-export { Timeline, TextMsg, MediaMsg, ReplyMsg, LinkMsg, DocMsg, DeletedMsg };

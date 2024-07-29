@@ -5,13 +5,14 @@ import { selectToken, setCredentials } from "../redux/auth/authSlice";
 import useRefresh from "./useRefresh";
 
 function useAxios(comp) {
-  const [apiCallState, setApiCallState] = useState({
+  const defaultState = {
     isLoading: false,
     isError: false,
     error: null,
     isSuccessful: false,
     isUninitialized: true,
-  });
+  };
+  const [apiCallState, setApiCallState] = useState(defaultState);
 
   const callAction = useCallback(
     async (apiAction) => {
@@ -23,7 +24,8 @@ function useAxios(comp) {
         ...config
       } = apiAction;
       const dataOrParams = ["GET"].includes(method) ? "params" : "data";
-      setApiCallState((prev) => ({ ...prev, isLoading: true }));
+      console.log("set loading tru");
+      setApiCallState({ ...defaultState, isLoading: true });
       try {
         const res = await axiosInstance.request({
           ...config,
@@ -31,20 +33,11 @@ function useAxios(comp) {
           [dataOrParams]: data,
         });
         onSuccess(res);
-        setApiCallState((prev) => ({
-          ...prev,
-          error: null,
-          isSuccessful: true,
-          isError: false,
-        }));
+        setApiCallState({ ...defaultState, isSuccessful: true });
       } catch (error) {
         console.log(error);
-        setApiCallState((prev) => ({
-          ...prev,
-          isError: true,
-          error: error,
-          isSuccessful: false,
-        }));
+        setApiCallState({ ...defaultState, error, isError: true });
+
         onFailure();
       } finally {
         setApiCallState((prev) => ({

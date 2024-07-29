@@ -19,7 +19,7 @@ import SearchIconWrapper from "../../../components/search/SearchIconWrapper";
 import Search from "../../../components/search/Search";
 import StyledInputBase from "../../../components/search/StyledInputBase";
 import { MagnifyingGlass, Plus, UserList, UsersThree } from "phosphor-react";
-import ChatElement from "../../../components/ChatElement";
+import ChatElement from "../../../chat/ChatElement";
 import LoadingScreen from "../../../components/LoadingScreen";
 
 import { CreateGroup } from "../../../components/group";
@@ -30,7 +30,6 @@ import {
   selectTypeOfCvs,
   updateNotice,
 } from "../../../redux/app/appSlice";
-// import { socket } from "../../../socket";
 import { chatTypes, noticeTypes } from "../../../redux/config";
 import {
   selectCvss,
@@ -41,12 +40,14 @@ import toCamelCase from "../../../utils/toCamelCase";
 import useLocales from "../../../hooks/useLocales";
 import { fetchConversations } from "../../../redux/conversation/conversationApi";
 import useAxios from "../../../hooks/useAxios";
-import instance from "../../../socket";
+import ChatSkeleton from "../../../chat/ChatSkeleton";
 
 const Group = () => {
   const theme = useTheme();
   const { translate } = useLocales();
-  const socket = instance.getSocket();
+
+  const isFirstMount = useRef(true);
+  const { callAction, isLoading, isError } = useAxios("group chat");
 
   const [open, setOpen] = useState(false);
   const [openDialog, setOpenDialog] = useState(false);
@@ -71,6 +72,29 @@ const Group = () => {
   const handleCloseDialog = () => {
     setOpenDialog(false);
   };
+
+  useEffect(() => {
+    const fetchCvs = async () => {
+      await callAction(fetchConversations({ type: chatTypes.GROUP_CHAT }));
+    };
+    if (!isFirstMount.current || process.env.NODE_ENV !== "development") {
+      fetchCvs();
+    }
+    return () => {
+      isFirstMount.current = false;
+    };
+  }, []);
+
+  let cvsContent;
+  if (isLoading) {
+    cvsContent = [...Array(6).keys()].map((_, i) => <ChatSkeleton key={i} />);
+  } else if (isError) {
+    cvsContent = <Typography>Something wrong</Typography>;
+  } else {
+    cvsContent = conversations.map((el, i) => {
+      return <ChatElement key={i} {...el} />;
+    });
+  }
 
   return (
     <>
@@ -147,7 +171,7 @@ const Group = () => {
               </IconButton>
             </Stack>
             <Divider />
-            {/* Chats body */}
+            {/* msg list */}
             <Stack
               sx={{
                 flexGrow: 1,
@@ -173,9 +197,7 @@ const Group = () => {
                 >
                   {translate(`groupCvs.${toCamelCase("All group")}`)}
                 </Typography>
-                {conversations.map((el, i) => {
-                  return <ChatElement key={i} {...el} />;
-                })}
+                {cvsContent}
               </Stack>
             </Stack>
           </Stack>

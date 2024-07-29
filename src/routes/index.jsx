@@ -13,6 +13,8 @@ import Home from "../pages/Home";
 import SocketProvider from "../contexts/SocketProvider";
 import PersistLogin from "../components/auth/PersistLogin";
 import AxiosProvider from "../contexts/AxiosProvider";
+import { element } from "prop-types";
+import NoCvs from "../components/conversation/NoCvs";
 
 const Loadable = (Component) => (props) => {
   return (
@@ -70,10 +72,23 @@ export default function Router() {
                   element: <Navigate to={DEFAULT_PATH} replace />,
                   index: true,
                 },
-                { path: "app", element: <DirectChatPage /> },
                 {
-                  path: "group",
+                  path: "direct-chat",
+                  element: <DirectChatPage />,
+                  children: [
+                    { index: true, element: <NoCvs /> },
+
+                    { path: ":cvsId", element: <Conversation /> },
+                  ],
+                },
+                {
+                  path: "group-chat",
                   element: <GroupPage />,
+                  children: [
+                    { index: true, element: <NoCvs /> },
+
+                    { path: ":cvsId", element: <Conversation /> },
+                  ],
                 },
                 { path: "settings", element: <Settings /> },
                 { path: "profile", element: <ProfilePage /> },
@@ -94,6 +109,8 @@ const GroupPage = Loadable(lazy(() => import("../pages/dashboard/group")));
 const DirectChatPage = Loadable(
   lazy(() => import("../pages/dashboard/directChat"))
 );
+const Conversation = Loadable(lazy(() => import("../components/conversation")));
+
 const ProfilePage = Loadable(lazy(() => import("../pages/dashboard/profile")));
 const LoginPage = Loadable(lazy(() => import("../pages/auth/Login")));
 const RegisterPage = Loadable(lazy(() => import("../pages/auth/Register")));

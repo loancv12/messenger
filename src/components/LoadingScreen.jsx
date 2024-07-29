@@ -3,9 +3,10 @@ import { Box, Stack, styled } from "@mui/material";
 import React from "react";
 import CircularProgress from "@mui/material/CircularProgress";
 
-const LoadingScreen = () => {
+const LoadingScreen = ({ el = "div" }) => {
   return (
     <Box
+      component={el}
       sx={{
         position: "fixed",
         left: 0,

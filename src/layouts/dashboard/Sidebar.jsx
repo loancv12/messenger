@@ -63,14 +63,14 @@ const Nav_Buttons = [
   {
     index: 0,
     title: "Direct chats",
-    path: "/app",
+    path: "/direct-chat",
     icon: <ChatCircleDots />,
     noticeType: noticeTypes.NEW_MSG_DIRECT,
   },
   {
     index: 1,
     title: "Groups",
-    path: "/group",
+    path: "/group-chat",
     icon: <Users />,
     noticeType: noticeTypes.NEW_MSG_GROUP,
   },
