@@ -11,7 +11,12 @@ import React, { useEffect, useState } from "react";
 import { useDispatch } from "react-redux";
 import { showSnackbar } from "../redux/app/appSlice";
 import { getFileFormat } from "../utils/getFileFormat";
-import { maxNumberOfFiles } from "../config";
+import {
+  allowFileExts,
+  allowFileTypes,
+  maxNumberOfFiles,
+  maxSize,
+} from "../config";
 
 const VisuallyHiddenInput = styled("input")(({ theme }) => ({
   "& .MuiInputBase-input, fieldset": {
@@ -38,30 +43,32 @@ const VisuallyHiddenInput = styled("input")(({ theme }) => ({
   },
 }));
 
-function classifyFile(files, allowFiles, maxSize) {
+function classifyFile(files) {
   return Array.from(files).filter((file, i) => {
-    const fileFormat = getFileFormat(file.name);
-    const isValidFormat = allowFiles.includes(fileFormat);
-    const isValidSize = Math.round(file.size / 1024) <= maxSize;
-    // Forgive this stupid naming, couldn't find a better name
+    const isValidType = allowFileTypes.includes(file.type);
+
+    const ext = file.name.substring(file.name.lastIndexOf("."));
+    const isVAlidExt = allowFileExts.includes(ext);
+    const isValidSize = file.size <= maxSize;
+    // Forgive for this stupid naming, couldn't find a better name
     const isSingleFileAllowed = i <= maxNumberOfFiles;
 
-    return isValidSize && isValidFormat && isSingleFileAllowed;
+    return isValidSize && isValidType && isVAlidExt && isSingleFileAllowed;
   });
 }
 
-function InputHidden({ setFiles, name, allowFiles, maxSize }) {
+function InputHidden({ setFiles, name }) {
   const dispatch = useDispatch();
   const handleChange = (e) => {
     const { files } = e.target;
-    const filteredFiles = classifyFile(files, allowFiles, maxSize);
+    const filteredFiles = classifyFile(files);
 
     if (filteredFiles.length !== files.length) {
       dispatch(
         showSnackbar({
           severity: "error",
           message:
-            "Files size must smaller than 1MB and only allowed file type: MS docs, MS excel, image. Max number of files can upload is 10",
+            "Files size must smaller than 1MB and only allowed file type: image with ext is .png .jpg .jpeg. Max number of files can upload is 10",
         })
       );
     }

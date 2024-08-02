@@ -41,13 +41,11 @@ import { useDispatch, useSelector } from "react-redux";
 import {
   clearReplyMessage,
   selectReplyMsg,
-  updateSentSuccessMsg,
 } from "../../redux/message/messageSlice";
 import { uploadFile } from "../../redux/message/messageApi";
 import { chatTypes } from "../../redux/config";
-import { allowFiles, maxSize } from "../../config";
 import ChatInput from "./ChatInput";
-import { selectChatType } from "../../redux/app/appSlice";
+import { selectChatType, showSnackbar } from "../../redux/app/appSlice";
 import { selectCurrCvs } from "../../redux/conversation/conversationSlice";
 import useAuth from "../../hooks/useAuth";
 import useAxios from "../../hooks/useAxios";
@@ -120,8 +118,6 @@ function Footer() {
 
   const socket = instance.getSocket();
 
-  // console.log("socket at footer", socket);
-
   const handleSelectEmojis = (emojis) => {
     textRef.current.innerHTML += emojis.native;
     // textRef.current.value += emojis.native;
@@ -133,11 +129,18 @@ function Footer() {
   };
 
   const onSuccess = (res) => {
-    console.log(res);
     setFiles([]);
     setVariant("determinate");
   };
   const onFailure = (err) => {
+    console.log("upload file err", err, files);
+
+    dispatch(
+      showSnackbar({
+        severity: "error",
+        message: err?.response?.data ?? "Something wrong",
+      })
+    );
     setVariant("determinate");
   };
 
@@ -145,39 +148,19 @@ function Footer() {
     e.preventDefault();
     const textMsg = textRef.current.textContent.trim();
 
-    // Acknowledgements to sure that msg is store to ;
-    // sender send with call back, this call back that will handleNewMessages
-    // when server store msg successfull to db, call this callback
-    // the state of sentSuccess is default false, it only true when req receive it
-    // it was confirm when in socket of sender, i emit it to req client with a other call back,
-    // this call back will call updateMsg to sentSuccess to true
-    // and then when req receive it, just call the callback.
-
-    const callback = ({ msgId, chatType, status }) => {
-      console.log("callback in client", msgId, chatType, status);
-      if (status === "success") {
-        dispatch(updateSentSuccessMsg({ msgId, chatType }));
-      } else {
-        // dispatch(updateSentSuccessMsg({ msgId, chatType }));
-      }
-    };
     if (textMsg) {
-      socket.emit(
-        "text_message",
-        {
-          type: chatType,
-          newMsg: {
-            to: currentCvs?.userId,
-            from: userId,
-            isReply: !!replyMsg,
-            replyMsgId: replyMsg?.id,
-            text: textMsg,
-            conversationId: currentCvs.id,
-            type: "text",
-          },
+      socket.emit("text_message", {
+        type: chatType,
+        newMsg: {
+          to: currentCvs?.userId,
+          from: userId,
+          isReply: !!replyMsg,
+          replyMsgId: replyMsg?.id,
+          text: textMsg,
+          conversationId: currentCvs.id,
+          type: "text",
         },
-        callback
-      );
+      });
       textRef.current.value = "";
     }
     if (!!replyMsg?.id) {
@@ -267,9 +250,7 @@ function Footer() {
                       backgroundColor: el.color,
                     }}
                   >
-                    <Comp
-                      {...{ setFiles, name: "file", allowFiles, maxSize }}
-                    />
+                    <Comp {...{ setFiles, name: "file" }} />
                   </Fab>
                 </Tooltip>
               );
@@ -376,22 +357,6 @@ function Footer() {
             </IconButton>
           </Stack>
         </Box>
-        {/* <Box>
-          <IconButton
-            onClick={(e) => {
-              e.preventDefault();
-              if (socket.connected) {
-                console.log("force disconnect");
-                socket.disconnect();
-              } else {
-                console.log("force connect");
-                socket.connect();
-              }
-            }}
-          >
-            <ClockClockwise size={24} />
-          </IconButton>
-        </Box> */}
       </Stack>
     </Box>
   );

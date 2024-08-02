@@ -1,14 +1,12 @@
 import React, { useEffect, useRef, useState } from "react";
 import usePersist from "../../hooks/usePersist";
-import useAuth from "../../hooks/useAuth";
 import { useDispatch, useSelector } from "react-redux";
 import { selectToken, setCredentials } from "../../redux/auth/authSlice";
 import { Navigate, Outlet, useNavigate } from "react-router-dom";
 import LoadingScreen from "../LoadingScreen";
-import axiosInstance from "../../utils/axios";
+import { axiosPublic } from "../../services/axios/axiosClient";
 
 const PersistLogin = () => {
-  const navigate = useNavigate();
   const dispatch = useDispatch();
   const token = useSelector(selectToken);
 
@@ -28,7 +26,7 @@ const PersistLogin = () => {
       const verifyRefresh = async () => {
         setIsLoading(true);
         try {
-          const res = await axiosInstance.get("/auth/refresh");
+          const res = await axiosPublic.get("/auth/refresh");
           const newAccessToken = res.data.data;
           dispatch(setCredentials({ token: newAccessToken }));
           setIsSuccess(true);
@@ -55,19 +53,14 @@ const PersistLogin = () => {
 
   let content;
   if (!persist) {
-    console.log("no persist");
     content = <Outlet />;
   } else {
     // content = <Outlet />;
 
     if (token) {
-      console.log("have token");
-
       content = <Outlet />;
     } else {
       if (isLoading) {
-        console.log("loading");
-
         content = <LoadingScreen />;
       } else if (isError) {
         console.log("error");

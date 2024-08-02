@@ -1,10 +1,7 @@
 import React, { useCallback, useEffect, useState } from "react";
-import { axiosNoJWT } from "../utils/axios";
-import { useDispatch, useSelector } from "react-redux";
-import { selectToken } from "../redux/auth/authSlice";
-import { apiAction } from "../utils/apiAction";
+import { axiosPublic } from "../services/axios/axiosClient";
 
-function useAxiosNoJWT() {
+function useAxiosPublic() {
   const [apiCallState, setApiCallState] = useState({
     isLoading: false,
     isError: false,
@@ -25,7 +22,7 @@ function useAxiosNoJWT() {
       const dataOrParams = ["GET"].includes(method) ? "params" : "data";
       setApiCallState((prev) => ({ ...prev, isLoading: true }));
       try {
-        const res = await axiosNoJWT.request({
+        const res = await axiosPublic.request({
           ...config,
           method,
           [dataOrParams]: data,
@@ -43,29 +40,10 @@ function useAxiosNoJWT() {
         }));
       }
     },
-    [axiosNoJWT]
+    [axiosPublic]
   );
-
-  useEffect(() => {
-    const resInterceptor = axiosNoJWT.interceptors.response.use(
-      (response) => {
-        if (
-          response.headers.hasContentType("application/json") &&
-          typeof response.data === "string"
-        ) {
-          response.data = JSON.parse(response.data);
-        }
-        return response;
-      },
-      (error) => Promise.reject(error)
-    );
-
-    return () => {
-      axiosNoJWT.interceptors.response.eject(resInterceptor);
-    };
-  }, []);
 
   return { callAction, ...apiCallState };
 }
 
-export default useAxiosNoJWT;
+export default useAxiosPublic;

@@ -10,6 +10,7 @@ export const logInUser = (formValues) =>
     data: { ...formValues },
     onSuccess: (res) => {
       const { data: token, message } = res.data;
+      console.log("set token", token);
       dispatch(
         setCredentials({
           token,

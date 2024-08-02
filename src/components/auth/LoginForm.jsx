@@ -14,20 +14,23 @@ import {
 } from "@mui/material";
 import { RHFTextField } from "../../components/hook-form";
 import { Eye, EyeSlash } from "phosphor-react";
-import { Link as RouterLink } from "react-router-dom";
+import { Link as RouterLink, useLocation, useNavigate } from "react-router-dom";
 import { logInUser } from "../../redux/auth/authApi";
 import { useDispatch } from "react-redux";
 import transform from "../../utils/transform";
 import usePersist from "../../hooks/usePersist";
 import useAxios from "../../hooks/useAxios";
-import useAxiosNoJWT from "../../hooks/useAxiosNoJWT";
+import useAxiosPublic from "../../hooks/useAxiosPublic";
+import { DEFAULT_PATH } from "../../config";
 
 const LoginForm = () => {
   const [showPwd, setShowPwd] = useState(false);
   const dispatch = useDispatch();
+  const location = useLocation();
+  const navigate = useNavigate();
   const [persist, setPersist] = usePersist();
 
-  const { callAction, isLoading, isError, error } = useAxiosNoJWT();
+  const { callAction, isLoading, isError, error } = useAxiosPublic();
 
   const handleToggle = () => {
     setPersist((prev) => !prev);
@@ -58,9 +61,6 @@ const LoginForm = () => {
 
   const onSubmit = async (data) => {
     try {
-      // Submit data
-      console.log(data);
-
       const tranformerMap = {
         pwd: {
           newKey: "password",

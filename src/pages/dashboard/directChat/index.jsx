@@ -12,8 +12,11 @@ import SharedMessages from "../../../components/sidebar/SharedMessages";
 import StarredMessages from "../../../components/sidebar/StarredMessages";
 import { useCallback, useEffect, useRef, useState } from "react";
 import { chatTypes } from "../../../redux/config";
-import { Outlet, useNavigate } from "react-router-dom";
-import { selectCurrCvsId } from "../../../redux/conversation/conversationSlice";
+import { Outlet, useNavigate, useParams } from "react-router-dom";
+import {
+  selectCurrCvsId,
+  setCurrentCvs,
+} from "../../../redux/conversation/conversationSlice";
 
 const DirectChat = () => {
   const dispatch = useDispatch();

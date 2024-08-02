@@ -1,8 +1,5 @@
 import React, { useCallback, useEffect, useRef, useState } from "react";
-import axiosInstance, { axiosNoJWT } from "../utils/axios";
-import { useDispatch, useSelector } from "react-redux";
-import { selectToken, setCredentials } from "../redux/auth/authSlice";
-import useRefresh from "./useRefresh";
+import { axiosPrivate } from "../services/axios/axiosClient";
 
 function useAxios(comp) {
   const defaultState = {
@@ -24,10 +21,9 @@ function useAxios(comp) {
         ...config
       } = apiAction;
       const dataOrParams = ["GET"].includes(method) ? "params" : "data";
-      console.log("set loading tru");
       setApiCallState({ ...defaultState, isLoading: true });
       try {
-        const res = await axiosInstance.request({
+        const res = await axiosPrivate.request({
           ...config,
           method,
           [dataOrParams]: data,
@@ -37,8 +33,7 @@ function useAxios(comp) {
       } catch (error) {
         console.log(error);
         setApiCallState({ ...defaultState, error, isError: true });
-
-        onFailure();
+        onFailure(error);
       } finally {
         setApiCallState((prev) => ({
           ...prev,
@@ -47,7 +42,7 @@ function useAxios(comp) {
         }));
       }
     },
-    [axiosInstance]
+    [axiosPrivate]
   );
 
   return { callAction, ...apiCallState };

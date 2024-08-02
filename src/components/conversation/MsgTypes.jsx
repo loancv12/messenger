@@ -4,6 +4,8 @@ import {
   Button,
   Divider,
   IconButton,
+  ImageList,
+  ImageListItem,
   Link,
   Menu,
   MenuItem,
@@ -16,6 +18,7 @@ import {
   CheckCircle,
   DotsThreeVertical,
   DownloadSimple,
+  Image,
   WarningCircle,
 } from "phosphor-react";
 import React, { useState, useRef, memo, useContext } from "react";
@@ -31,6 +34,7 @@ import {
 } from "../../redux/message/messageSlice";
 import { faker } from "@faker-js/faker";
 import useAxios from "../../hooks/useAxios";
+import ShowImage from "./ShowImage";
 
 // msg types component
 export const DocMsg = memo(({ el, menu, isLastMsg, handleGetToRepMsg }) => {
@@ -75,7 +79,7 @@ export const DocMsg = memo(({ el, menu, isLastMsg, handleGetToRepMsg }) => {
                 }}
               >
                 <Image size={48} />
-                <Typography variant="caption">{el.text}</Typography>
+                <Typography variant="caption">{el.files[0].alt}</Typography>
                 <IconButton>
                   <DownloadSimple />
                 </IconButton>
@@ -128,14 +132,15 @@ export const LinkMsg = memo(({ el, menu, isLastMsg, handleGetToRepMsg }) => {
                 borderRadius: 1.5,
               }}
             >
-              <img
+              sdda
+              {/* <img
                 src={el?.file}
                 alt={el.text}
                 style={{
                   maxHeight: 210,
                   borderRadius: "10px",
                 }}
-              />
+              /> */}
               <Typography
                 variant="body2"
                 to="//https://www.youtobe.com"
@@ -156,6 +161,88 @@ export const LinkMsg = memo(({ el, menu, isLastMsg, handleGetToRepMsg }) => {
 export const MediaMsg = memo(({ el, menu, isLastMsg, handleGetToRepMsg }) => {
   const theme = useTheme();
 
+  let imgs;
+  if (el.files.length <= 2) {
+    const col = el.files.length;
+    imgs = (
+      <ImageList
+        sx={{ width: 200, height: 200, margin: 0 }}
+        cols={col}
+        rowHeight={200}
+      >
+        {el.files.map((file, i) => (
+          <ImageListItem key={i}>
+            <ShowImage link={file.link} alt={file.alt}>
+              <img
+                src={file.link}
+                alt={file.alt}
+                loading="lazy"
+                style={{
+                  width: col === 2 ? "100px" : "200px",
+                  height: col === 2 ? "100px" : "200px",
+                  display: "block",
+                  borderRadius: "10px",
+                  objectFit: "cover",
+                }}
+              />
+            </ShowImage>
+          </ImageListItem>
+        ))}
+      </ImageList>
+    );
+  } else {
+    const row = Math.ceil(el.files.length / 3);
+    const col = 3;
+    const topLeft = (i) => i === 1 - 1;
+    const topRight = (i) => i === 3 - 1;
+    const bottomLeft = (i) => i === col * (row - 1) + 1 - 1;
+    const bottomRight = (i) => i === col * row - 1;
+    imgs = (
+      <ImageList
+        sx={{
+          width: 300,
+          height: row * 100 + (row - 1) * 4, //4px for gap
+          margin: 0,
+          overflow: "hidden",
+        }}
+        cols={col}
+        rowHeight={100}
+      >
+        {el.files.map((file, i) => {
+          return (
+            <ImageListItem key={i}>
+              <ShowImage link={file.link} alt={file.alt}>
+                <img
+                  src={file.link}
+                  alt={file.alt}
+                  loading="lazy"
+                  style={{
+                    display: "block",
+                    width: "100px",
+                    height: "100px",
+                    maxHeight: 100,
+                    borderTopLeftRadius: topLeft(i) ? "10px" : "4px",
+                    MozBorderRadiusTopleft: topLeft(i) ? "10px" : "4px",
+
+                    borderTopRightRadius: topRight(i) ? "10px" : "4px",
+                    MozBorderRadiusTopright: topRight(i) ? "10px" : "4px",
+
+                    borderBottomLeftRadius: bottomLeft(i) ? "10px" : "4px",
+                    MozBorderRadiusBottomleft: bottomLeft(i) ? "10px" : "4px",
+
+                    borderBottomRightRadius: bottomRight(i) ? "10px" : "4px",
+                    MozBorderRadiusBottomright: bottomRight(i) ? "10px" : "4px",
+
+                    objectFit: "cover",
+                  }}
+                />
+              </ShowImage>
+            </ImageListItem>
+          );
+        })}
+      </ImageList>
+    );
+  }
   return (
     <Box data-ref={el.id} sx={{ scrollMarginTop: "20px" }}>
       {el?.isStartMsg ? <Timeline time={el?.timeOfStartMsg} /> : null}
@@ -185,7 +272,8 @@ export const MediaMsg = memo(({ el, menu, isLastMsg, handleGetToRepMsg }) => {
             }}
             p={1}
           >
-            <a href={el.file} target="_blank" rel="noopener">
+            {imgs}
+            {/* <a href={el.file} target="_blank" rel="noopener">
               <img
                 src={el.file}
                 alt={el.text}
@@ -199,7 +287,7 @@ export const MediaMsg = memo(({ el, menu, isLastMsg, handleGetToRepMsg }) => {
                 }}
                 loading="lazy"
               />
-            </a>
+            </a> */}
           </Box>
         )}
         {menu && <MessageOptions msg={el} />}
@@ -288,7 +376,8 @@ export const TextMsg = memo(({ el, menu, isLastMsg, handleGetToRepMsg }) => {
           <CheckCircle
             size={12}
             color="#5e5e5e"
-            weight={el.sentSuccess ? "fill" : undefined}
+            style={{ position: "absolute", bottom: "4px", right: "4px" }}
+            weight={el.sentSuccess === "success" ? "fill" : undefined}
           />
         ) : null}
       </Stack>
@@ -322,7 +411,6 @@ export const ReplyMsg = memo(({ replyMsg, handleGetToRepMsg }) => {
   const scrollAndHightLightEl = (el) => {
     const svg = el.querySelector("svg");
     const divInside = svg.previousElementSibling;
-    console.log("scroll into view", divInside);
     el.scrollIntoView({
       behavior: "smooth",
     });
@@ -344,7 +432,6 @@ export const ReplyMsg = memo(({ replyMsg, handleGetToRepMsg }) => {
     } else {
       await handleGetToRepMsg(replyMsg.createdAt);
       const targetEle = document.querySelector(`[data-ref="${replyMsg?.id}"]`);
-      console.log(targetEle);
       if (targetEle) {
         scrollAndHightLightEl(targetEle);
       }

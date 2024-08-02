@@ -36,7 +36,10 @@ import {
 import { fetchMessages } from "../../redux/message/messageApi";
 
 import { selectChatType } from "../../redux/app/appSlice";
-import { selectCurrCvsId } from "../../redux/conversation/conversationSlice";
+import {
+  selectCurrCvsId,
+  setCurrentCvs,
+} from "../../redux/conversation/conversationSlice";
 import useAuth from "../../hooks/useAuth";
 import { fDateFromNow } from "../../utils/formatTime";
 import useAxios from "../../hooks/useAxios";
@@ -74,11 +77,12 @@ function transformMessages(rawMsg, userId) {
 }
 
 const scrollToBottom = (el) => {
-  console.log("scroll to btm", el);
-  el.scrollTo({
-    top: el.scrollHeight,
-    behavior: "smooth",
-  });
+  if (el) {
+    el.scrollTo({
+      top: el.scrollHeight,
+      behavior: "smooth",
+    });
+  }
 };
 
 function Messages({ menu }) {
@@ -104,6 +108,7 @@ function Messages({ menu }) {
 
   // to make a smooth show scroll down button,
   const deferredShow = useDeferredValue(showArrScrollBtm);
+  // const isLdG = useDeferredValue(isLdGetNext);
   const { userId } = useAuth();
   const dispatch = useDispatch();
 
@@ -281,6 +286,7 @@ function Messages({ menu }) {
 
   useEffect(() => {
     resetRefWhenChangeCvs();
+    dispatch(setCurrentCvs({ type: chatType, conversationId: cvsId }));
 
     currentCvsIdRef.current = currentCvsId;
     let timeId;
@@ -318,15 +324,18 @@ function Messages({ menu }) {
     return () => {
       clearTimeout(timeId);
     };
-  }, [currentCvsId]);
+  }, [cvsId]);
 
   const findAndScrollToView = (msgId) => {
     const targetEl = document.querySelector(`[data-ref="${msgId}"]`);
 
-    console.log("scroll into view");
-    targetEl.scrollIntoView({
-      behavior: "instant",
-    });
+    if (targetEl) {
+      console.log("scroll into view");
+
+      targetEl.scrollIntoView({
+        behavior: "instant",
+      });
+    }
   };
   // 2 case for change currentMsg: after call setCurrentMsg, call addMsg.
   useEffect(() => {
@@ -341,7 +350,6 @@ function Messages({ menu }) {
     }
 
     if (intersectRelateRef.current.runGetNext) {
-      console.log("oldestMsgId", intersectRelateRef.current.oldestMsgId);
       findAndScrollToView(intersectRelateRef.current.oldestMsgId);
       intersectRelateRef.current.runGetNext = false;
     }
@@ -393,7 +401,7 @@ function Messages({ menu }) {
         el: transformMessages(el, userId),
         key: i,
         menu,
-        isLastMsg: i === currentMsgs[currentMsgs.length - 1],
+        isLastMsg: i === currentMsgs.length - 1,
         handleGetToRepMsg,
       };
       switch (el.type) {

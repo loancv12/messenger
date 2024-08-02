@@ -9,11 +9,8 @@ import { DEFAULT_PATH } from "../config";
 import LoadingScreen from "../components/LoadingScreen";
 import CenterScreenLayout from "../layouts/main";
 import RequiredAuth from "../components/auth/RequiredAuth";
-import Home from "../pages/Home";
 import SocketProvider from "../contexts/SocketProvider";
 import PersistLogin from "../components/auth/PersistLogin";
-import AxiosProvider from "../contexts/AxiosProvider";
-import { element } from "prop-types";
 import NoCvs from "../components/conversation/NoCvs";
 
 const Loadable = (Component) => (props) => {
@@ -62,9 +59,7 @@ export default function Router() {
             {
               element: (
                 <SocketProvider>
-                  <AxiosProvider>
-                    <DashboardLayout />
-                  </AxiosProvider>
+                  <DashboardLayout />
                 </SocketProvider>
               ),
               children: [

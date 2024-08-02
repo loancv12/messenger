@@ -39,7 +39,6 @@ import useLocales from "../../hooks/useLocales";
 import toCamelCase from "../../utils/toCamelCase";
 import useAuth from "../../hooks/useAuth";
 import useAxios from "../../hooks/useAxios";
-import useAxiosNoJWT from "../../hooks/useAxiosNoJWT";
 
 const Profile_Menu = [
   {

@@ -70,6 +70,21 @@ const slice = createSlice({
       });
     },
 
+    updateMessages(state, action) {
+      console.log("updateMessage", action.payload);
+      const { type, msgIds, updatedContent } = action.payload;
+      state[type].currentMsgs = state[type].currentMsgs.map((el) => {
+        if (!msgIds.includes(el.id)) {
+          return el;
+        } else {
+          return {
+            ...el,
+            ...updatedContent,
+          };
+        }
+      });
+    },
+
     updateReplyMsgId(state, action) {
       console.log("updateReplyMsgId", action.payload);
       const { replyMsgId } = action.payload;
@@ -103,16 +118,21 @@ export const {
   concatMessages,
   addMessages,
   updateMessage,
+  updateMessages,
   updateReplyMsgId,
 } = actions;
 // Export the reducer, either as a default or named export
 export default reducer;
 
 // thunk
-export const handleNewMessages = (data) => {
+export const handleNewMessages = ({ chatType, messages, conversationId }) => {
   return (dispatch, getState) => {
-    console.log("input new_message event data", data);
-    const { chatType, messages, conversationId } = data;
+    console.log(
+      "input new_message event data",
+      chatType,
+      messages,
+      conversationId
+    );
 
     const currentChatType = getState().app.chatType;
     if (currentChatType !== chatType) {
@@ -141,7 +161,7 @@ export const handleNewMessages = (data) => {
     dispatch(
       updateConversation({
         type: chatType,
-        conversationId: data.conversationId,
+        conversationId,
         updatedContent,
       })
     );
@@ -156,15 +176,21 @@ export const handleNewMessages = (data) => {
   };
 };
 
-export const updateSentSuccessMsg = (data) => {
-  const { msgId, chatType } = data;
-  console.log(msgId);
+export const updateSentSuccessMsgs = (data) => {
+  const { chatType, messages, conversationId, sentSuccess } = data;
+  console.log(
+    "updateSentSuccessMsgs",
+    chatType,
+    messages,
+    conversationId,
+    sentSuccess
+  );
   return (dispatch, getState) => {
     dispatch(
-      updateMessage({
+      updateMessages({
         type: chatType,
-        msgId,
-        updatedContent: { sentSuccess: true },
+        msgIds: messages.map((msg) => msg.id),
+        updatedContent: { sentSuccess },
       })
     );
   };

@@ -20,8 +20,7 @@ import { useNavigate } from "react-router-dom";
 import { showSnackbar } from "../../redux/app/appSlice";
 import { updateEmail } from "../../redux/auth/authSlice";
 import RegisterSchema from "../../hookForm/schema/RegisterSchema";
-import useAxios from "../../hooks/useAxios";
-import useAxiosNoJWT from "../../hooks/useAxiosNoJWT";
+import useAxiosPublic from "../../hooks/useAxiosPublic";
 
 const RegisterForm = () => {
   const [showPwd, setShowPwd] = useState(false);
@@ -54,7 +53,7 @@ const RegisterForm = () => {
 
     navigate("/auth/verify");
   };
-  const { callAction, isLoading, isError, error } = useAxiosNoJWT();
+  const { callAction, isLoading, isError, error } = useAxiosPublic();
 
   const onSubmit = async (data) => {
     const transformMap = {

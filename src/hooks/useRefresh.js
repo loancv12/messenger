@@ -1,11 +1,11 @@
 import React from "react";
 import { dispatch } from "../redux/store";
 import { setCredentials } from "../redux/auth/authSlice";
-import { axiosNoJWT } from "../utils/axios";
+import { axiosPublic } from "../services/axios/axiosClient";
 
 const useRefresh = () => {
   const refresh = async () => {
-    const response = await axiosNoJWT.get("/auth/refresh", {
+    const response = await axiosPublic.get("/auth/refresh", {
       withCredentials: true,
     });
     dispatch(setCredentials({ token: response.data.data }));

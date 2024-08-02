@@ -4,11 +4,12 @@ import { Navigate, Outlet } from "react-router-dom";
 import Logo from "../../assets/Images/logo.ico";
 import { useSelector } from "react-redux";
 import useAuth from "../../hooks/useAuth";
+import { DEFAULT_PATH } from "../../config";
 
 const CenterScreenLayout = () => {
   const { userId } = useAuth();
   if (userId) {
-    return <Navigate to="/app" />;
+    return <Navigate to={DEFAULT_PATH} />;
   }
   return (
     <>

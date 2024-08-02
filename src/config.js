@@ -57,14 +57,21 @@ export const allLangs = [
   },
 ];
 
-// export const allowFiles = ["msDoc", "msEx", "img"];
-export const allowFiles = ["image", "word", "excel", "pdf"];
-export const maxSize = 1024; // 1e6 (1 MB-1024kB)
+export const allowFileTypes = [
+  "image/jpg",
+  "image/jpeg",
+  "image/png",
+  "application/msword",
+  "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
+];
+export const allowFileExts = [".png", ".jpg", ".jpeg", ".doc", ".docx"];
+
+export const maxSize = 1024 * 1024 * 1; // 1e6 (1 MB-1024kB)
+export const maxNumberOfFiles = 10;
+
+export const msgsLimit = 20;
 
 export const defaultLang = allLangs[0]; // English
-
-export const maxNumberOfFiles = 10;
-export const msgsLimit = 20;
 
 // DEFAULT ROOT PATH
 export const DEFAULT_PATH = PATH_DASHBOARD.general.app; // as '/app'

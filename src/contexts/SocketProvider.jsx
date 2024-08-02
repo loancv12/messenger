@@ -11,6 +11,7 @@ import {
 import {
   handleDeleteMsgRet,
   handleNewMessages,
+  updateSentSuccessMsgs,
 } from "../redux/message/messageSlice";
 import {
   handleFriendReqAcceptedRet,
@@ -127,6 +128,7 @@ const SocketWrapper = ({ children }) => {
     socket.on("friend_req_accepted_ret", (data) => {
       dispatch(handleFriendReqAcceptedRet(data));
     });
+
     socket.on("friend_req_decline_ret", (data) => {
       dispatch(handleFriendReqDeclineRet(data));
     });
@@ -157,16 +159,22 @@ const SocketWrapper = ({ children }) => {
     });
 
     // message
-    socket.on("new_messages", (data, callback) => {
-      console.log("callback", callback);
-      if (typeof callback === "function") {
-        callback();
-      }
+    socket.on("new_messages", (data) => {
+      console.log("new_messages", data);
       dispatch(handleNewMessages(data));
+
+      // when receiver receiver msg, emit event tp update msgs to sentSuccess to 'success'
+      if (data.messages[0].to === userId) {
+        socket.emit("receive_new_msgs", data);
+      }
     });
 
     socket.on("delete_message_ret", (data) => {
       dispatch(handleDeleteMsgRet(data));
+    });
+
+    socket.on("update_sent_success", (data) => {
+      dispatch(updateSentSuccessMsgs(data));
     });
 
     socket.onAny((event, ...args) => {
@@ -193,6 +201,7 @@ const SocketWrapper = ({ children }) => {
       socket.off("new_member");
       socket.off("new_messages");
       socket.off("delete_message_ret");
+      socket.off("update_sent_success");
       socket.disconnect();
     };
   }, []);

@@ -7,12 +7,7 @@ export const fetchMessages = ({ data, onSuccess }) =>
     onSuccess,
   });
 
-export const uploadFile = (
-  formData,
-  onSuccess,
-  onDownloadProgress,
-  onUploadProgress
-) =>
+export const uploadFile = (formData, onSuccess, onFailure) =>
   apiAction({
     url: "/message/upload-files",
     method: "POST",
@@ -20,7 +15,6 @@ export const uploadFile = (
       "Content-Type": "multipart/form-data",
     },
     data: formData,
-    onDownloadProgress,
-    onUploadProgress,
     onSuccess,
+    onFailure,
   });
