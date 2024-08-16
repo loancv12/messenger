@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useEffect } from "react";
 import {
   Box,
   Divider,
@@ -29,11 +29,15 @@ import { useState } from "react";
 import Logo from "../../assets/Images/logo.ico";
 import { faker } from "@faker-js/faker";
 import useSettings from "../../hooks/useSettings";
-import AntSwitch from "../../components/AntSwitch";
+import AntSwitch from "../../components/common/AntSwitch";
 import { NavLink, useNavigate } from "react-router-dom";
 import { logOutUser } from "../../redux/auth/authApi";
 import { useDispatch, useSelector } from "react-redux";
-import { selectNotice, updateNotice } from "../../redux/app/appSlice";
+import {
+  selectClientId,
+  selectNotice,
+  updateNotice,
+} from "../../redux/app/appSlice";
 import { chatTypes, noticeTypes } from "../../redux/config";
 import useLocales from "../../hooks/useLocales";
 import toCamelCase from "../../utils/toCamelCase";
@@ -64,14 +68,14 @@ const Nav_Buttons = [
     title: "Direct chats",
     path: "/direct-chat",
     icon: <ChatCircleDots />,
-    noticeType: noticeTypes.NEW_MSG_DIRECT,
+    noticeType: noticeTypes[chatTypes.DIRECT_CHAT],
   },
   {
     index: 1,
     title: "Groups",
     path: "/group-chat",
     icon: <Users />,
-    noticeType: noticeTypes.NEW_MSG_GROUP,
+    noticeType: noticeTypes[chatTypes.GROUP_CHAT],
   },
 ];
 
@@ -100,10 +104,12 @@ const Sidebar = () => {
   };
   const { callAction, isLoading, isError, error } = useAxios();
 
+  const clientId = useSelector(selectClientId);
+
   const handleMenu = async (el, i) => {
     if (i === Profile_Menu.length - 1) {
       try {
-        await callAction(logOutUser());
+        await callAction(logOutUser(clientId));
       } catch (error) {
         console.log(error);
       }
@@ -131,6 +137,7 @@ const Sidebar = () => {
       dispatch(updateNotice({ type: el.noticeType, show: false }));
     }
   };
+
   return (
     <>
       {/* <=tablet */}

@@ -31,9 +31,9 @@ import {
 import Search from "../../../components/search/Search";
 import SearchIconWrapper from "../../../components/search/SearchIconWrapper";
 import StyledInputBase from "../../../components/search/StyledInputBase";
-import ChatElement from "../../../chat/ChatElement";
+import ChatElement from "../../../components/chat/ChatElement";
 import RelationShips from "../../../components/relationShips";
-import LoadingScreen from "../../../components/LoadingScreen";
+import LoadingScreen from "../../../components/common/LoadingScreen";
 import { useSelector } from "react-redux";
 import { dispatch } from "../../../redux/store";
 import { chatTypes, noticeTypes } from "../../../redux/config";
@@ -42,7 +42,8 @@ import toCamelCase from "../../../utils/toCamelCase";
 import useLocales from "../../../hooks/useLocales";
 import { fetchConversations } from "../../../redux/conversation/conversationApi";
 import useAxios from "../../../hooks/useAxios";
-import ChatSkeleton from "../../../chat/ChatSkeleton";
+import ChatSkeleton from "../../../components/chat/ChatSkeleton";
+import { selectCvssDefinedChatType } from "../../../redux/conversation/conversationSlice";
 
 const Chats = memo(() => {
   const [openDialog, setOpenDialog] = useState(false);
@@ -52,8 +53,8 @@ const Chats = memo(() => {
   const friendReqNotice = useSelector((state) =>
     selectNotice(state, noticeTypes.FRIEND_REQ)
   );
-  const conversations = useSelector(
-    (state) => state.conversation[chatTypes.DIRECT_CHAT].conversations
+  const conversations = useSelector((state) =>
+    selectCvssDefinedChatType(state, chatTypes.DIRECT_CHAT)
   );
   const { translate } = useLocales();
 

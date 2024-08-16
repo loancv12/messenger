@@ -8,7 +8,7 @@ import {
   Typography,
   useTheme,
 } from "@mui/material";
-import LoadingScreen from "../LoadingScreen";
+import LoadingScreen from "../common/LoadingScreen";
 import {
   DeletedMsg,
   DocMsg,
@@ -30,7 +30,7 @@ import {
 } from "react";
 import {
   selectCurrentMsgs,
-  setCurrentMsgs,
+  setMessages,
   concatMessages,
 } from "../../redux/message/messageSlice";
 import { fetchMessages } from "../../redux/message/messageApi";
@@ -38,7 +38,9 @@ import { fetchMessages } from "../../redux/message/messageApi";
 import { selectChatType } from "../../redux/app/appSlice";
 import {
   selectCurrCvsId,
-  setCurrentCvs,
+  selectNumOfParticipants,
+  setCurrentCvsId,
+  updateConversation,
 } from "../../redux/conversation/conversationSlice";
 import useAuth from "../../hooks/useAuth";
 import { fDateFromNow } from "../../utils/formatTime";
@@ -47,6 +49,7 @@ import { useGetTestMutation } from "../../redux/app/api";
 import { ArrowCircleDown } from "phosphor-react";
 import { chatTypes } from "../../redux/config";
 import { useParams } from "react-router-dom";
+import instance from "../../socket";
 
 function transformMessages(rawMsg, userId) {
   let timeOfStartMsg = "",
@@ -85,9 +88,75 @@ const scrollToBottom = (el) => {
   }
 };
 
+const findAndScrollToView = (msgId) => {
+  const targetEl = document.querySelector(`[data-ref="${msgId}"]`);
+
+  if (targetEl) {
+    targetEl.scrollIntoView({
+      behavior: "instant",
+    });
+  }
+};
+
+const getLastReadUserIds = (currentMsgs, numOfParticipants, curUserId) => {
+  let lastReadUserIds = {};
+  let haveLastReadMsgUser = [];
+  for (let i = currentMsgs.length - 1; i >= 0; i--) {
+    const currMsg = currentMsgs[i];
+    const { readUserIds: currMsgReadUserIds } = currMsg;
+
+    // if all user have their last read msg, break
+    if (haveLastReadMsgUser.length === numOfParticipants) {
+      break;
+    }
+    // get all the user that read msg, except the currUser ( i dont want to show current user)
+    // sorry for stupid name
+    const exceptCurrUser = [...currMsgReadUserIds, currMsg.from].filter(
+      (userId) => userId !== curUserId
+    );
+    // the latest msg, attach all read user with msgId
+    if (i === currentMsgs.length - 1) {
+      lastReadUserIds[currMsg.id] = exceptCurrUser;
+      // so, these above user  have their own last read msg
+    } else {
+      // chose all user that not have own their last read msg yet
+      lastReadUserIds[currMsg.id] = exceptCurrUser.filter(
+        (userId) => !haveLastReadMsgUser.includes(userId)
+      );
+    }
+    if (lastReadUserIds[currMsg.id].length)
+      haveLastReadMsgUser.push(...lastReadUserIds[currMsg.id]);
+  }
+
+  return lastReadUserIds;
+};
+
+const getFromUserIds = (currentMsgs, userId) => {
+  let currUser;
+  let list = {};
+  // 1fo, 2o6, 3fo, 4fo 5de
+  for (let i = currentMsgs.length - 1; i >= 0; i--) {
+    const currMsg = currentMsgs[i];
+    if (currMsg.from === currUser || currMsg.from === userId) {
+      currUser = currMsg.from;
+      continue;
+    } else {
+      list[currMsg.id] = currMsg.from;
+      currUser = currMsg.from;
+    }
+  }
+  return list;
+};
+
 function Messages({ menu }) {
+  const socket = instance.getSocket();
+
   const [showArrScrollBtm, setShowArrScrollBtm] = useState(false);
+  const deferredShow = useDeferredValue(showArrScrollBtm);
+
   const { cvsId } = useParams();
+  const { userId } = useAuth();
+  const dispatch = useDispatch();
 
   const {
     callAction: callMsgs,
@@ -106,22 +175,14 @@ function Messages({ menu }) {
     isError: isErrorGetRep,
   } = useAxios("get rep");
 
-  // to make a smooth show scroll down button,
-  const deferredShow = useDeferredValue(showArrScrollBtm);
-  // const isLdG = useDeferredValue(isLdGetNext);
-  const { userId } = useAuth();
-  const dispatch = useDispatch();
-
   const chatType = useSelector(selectChatType);
-  // beware of this, cause update currentCvsId is
-  const currentCvsId = useSelector((state) => selectCurrCvsId(state, chatType));
-  const currentMsgs = useSelector((state) =>
-    selectCurrentMsgs(state, chatType)
-  );
+  const currentCvsId = useSelector(selectCurrCvsId);
+  const currentMsgs = useSelector(selectCurrentMsgs);
+  const numOfParticipants = useSelector(selectNumOfParticipants);
   // cause of currentCvsId is defined at mounted in useEffect with no dep, rerender not update it, so currentCvsId in handleGetNextMsgs is defined there
   // so, make a ref, which a refence variable, not a primitive, unchange, same as every render is a suitable option, no need to add useEffect,
   // this comp have enough useEffect and logic, i dont want any more  :<<
-  const currentCvsIdRef = useRef(currentCvsId);
+  const currentCvsIdRef = useRef(cvsId);
 
   const outerScrollBox = useRef();
   const topTargetRef = useRef();
@@ -160,6 +221,7 @@ function Messages({ menu }) {
       dispatch(
         concatMessages({
           type: chatType,
+          conversationId: currentCvsId,
           newMessages: res.data.data,
         })
       );
@@ -186,6 +248,7 @@ function Messages({ menu }) {
       dispatch(
         concatMessages({
           type: chatType,
+          conversationId: currentCvsIdRef.current,
           newMessages: res.data.data,
         })
       );
@@ -282,21 +345,20 @@ function Messages({ menu }) {
     };
   }, []);
 
-  // const [getTest, result] = useGetTestMutation();
-
   useEffect(() => {
     resetRefWhenChangeCvs();
-    dispatch(setCurrentCvs({ type: chatType, conversationId: cvsId }));
 
-    currentCvsIdRef.current = currentCvsId;
+    currentCvsIdRef.current = cvsId;
+
     let timeId;
     const onSuccess = (res) => {
       const isHaveMoreMsg = res?.headers?.["x-pagination"];
       cursorRef.current.isHaveMoreMsg = isHaveMoreMsg;
       cursorRef.current.lastMsgCreated = res.data.data[0]?.createdAt;
       dispatch(
-        setCurrentMsgs({
+        setMessages({
           type: chatType,
+          conversationId: cvsId,
           messages: res.data.data,
         })
       );
@@ -326,20 +388,35 @@ function Messages({ menu }) {
     };
   }, [cvsId]);
 
-  const findAndScrollToView = (msgId) => {
-    const targetEl = document.querySelector(`[data-ref="${msgId}"]`);
-
-    if (targetEl) {
-      console.log("scroll into view");
-
-      targetEl.scrollIntoView({
-        behavior: "instant",
-      });
-    }
-  };
-  // 2 case for change currentMsg: after call setCurrentMsg, call addMsg.
+  // 2 case for change currentMsg: after call setMessage, call addMsg.
   useEffect(() => {
     const isMsgAddedRet = isMsgAdded();
+    // we can comfirm that to user seen msg by emit a event when isMsgAdded (to user of msg added is this user), this event will emit to from user to update unseen
+    const latestMsg = currentMsgs[currentMsgs.length - 1];
+
+    const isAllMsgRead = latestMsg?.readUserIds?.includes(userId);
+    if (
+      isMsgAddedRet &&
+      latestMsg &&
+      !isAllMsgRead &&
+      latestMsg.from !== userId
+    ) {
+      socket.emit("read_msg", {
+        conversationId: currentCvsIdRef.current,
+        chatType,
+        to: userId,
+        from: latestMsg.from,
+      });
+
+      dispatch(
+        updateConversation({
+          type: chatType,
+          conversationId: cvsId,
+          updatedContent: { unread: 0 },
+        })
+      );
+    }
+
     let timeId;
     // when msg add and isVeryBottom, incase not isVeryBottom( we scroll to up before) and isMsgAddedRet, not scroll again to bottom
     if (intersectRelateRef.current.isVeryBottom && isMsgAddedRet) {
@@ -354,9 +431,9 @@ function Messages({ menu }) {
       intersectRelateRef.current.runGetNext = false;
     }
 
+    // findAndScrollToView MUST before setting oldestMsgId
     if (currentMsgs?.length) {
-      intersectRelateRef.current.lastMsgId =
-        currentMsgs[currentMsgs.length - 1]?.id;
+      intersectRelateRef.current.lastMsgId = latestMsg?.id;
       intersectRelateRef.current.oldestMsgId = currentMsgs[0]?.id;
     }
 
@@ -396,6 +473,13 @@ function Messages({ menu }) {
   } else if (isErrorMsgs) {
     msgs = <Typography>Some thing wrong</Typography>;
   } else {
+    const lastReadUserIds = getLastReadUserIds(
+      currentMsgs,
+      numOfParticipants,
+      userId
+    );
+    const fromUserIds = getFromUserIds(currentMsgs, userId);
+
     msgs = currentMsgs?.map((el, i) => {
       const props = {
         el: transformMessages(el, userId),
@@ -403,6 +487,8 @@ function Messages({ menu }) {
         menu,
         isLastMsg: i === currentMsgs.length - 1,
         handleGetToRepMsg,
+        lastReadUserIds,
+        fromUserIds,
       };
       switch (el.type) {
         case "img":
@@ -456,9 +542,9 @@ function Messages({ menu }) {
         }}
       >
         <Stack
-          p={3}
+          p={2}
           direction={"column"}
-          spacing={3}
+          spacing={2}
           id="scrollableDiv"
           sx={{
             overflow: "auto",

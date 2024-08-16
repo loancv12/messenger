@@ -11,7 +11,7 @@ import {
   useTheme,
 } from "@mui/material";
 import { useState } from "react";
-import GridItem from "../GridItem";
+import GridItem from "../common/GridItem";
 
 const JoinGroupReqItem = ({ sender, group, handleAccept }) => {
   const theme = useTheme();

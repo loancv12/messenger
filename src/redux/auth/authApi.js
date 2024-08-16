@@ -31,11 +31,11 @@ export const refresh = () =>
       );
     },
   });
-export const logOutUser = () =>
+export const logOutUser = (clientId) =>
   apiAction({
     url: "/auth/logout",
     method: "POST",
-    data: [],
+    data: { clientId },
     onSuccess: (res) => {
       dispatch(logout());
       window.localStorage.removeItem("userId");

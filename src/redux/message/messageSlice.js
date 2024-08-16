@@ -3,22 +3,18 @@ import {
   createSelector,
   createSlice,
 } from "@reduxjs/toolkit";
-import { showSnackbar, updateNotice } from "../app/appSlice";
+import { selectChatType, showSnackbar, updateNotice } from "../app/appSlice";
 import { chatTypes, noticeTypes } from "../config";
-import { updateConversation } from "../conversation/conversationSlice";
-// import { socket } from "../../socket";
+import {
+  selectCurrCvsId,
+  updateConversation,
+} from "../conversation/conversationSlice";
 import { showNotification } from "../../services/notification";
 import instance from "../../socket";
 
 const initialState = {
-  [chatTypes.DIRECT_CHAT]: {
-    currentMsgs: [],
-    numOfPage: 1,
-  },
-  [chatTypes.GROUP_CHAT]: {
-    currentMsgs: [],
-    numOfPage: 1,
-  },
+  [chatTypes.DIRECT_CHAT]: {},
+  [chatTypes.GROUP_CHAT]: {},
   replyMsgId: "",
 };
 
@@ -26,39 +22,35 @@ const slice = createSlice({
   name: "message",
   initialState,
   reducers: {
-    // message
-    setCurrentMsgs(state, action) {
-      // debugger;
-      console.log("setCurrentMsgs", action.payload);
-      const { type, messages } = action.payload;
-      state[type].currentMsgs = messages;
-    },
-
-    setNumOfPage(state, action) {
-      console.log("setNumOfPage", action.payload);
-      const { type, numOfPage } = action.payload;
-      state[type].numOfPage = numOfPage;
+    setMessages(state, action) {
+      console.log("setMessages", action);
+      const { type, messages, conversationId } = action.payload;
+      state[type][conversationId] = messages;
     },
 
     concatMessages(state, action) {
       console.log("concatMessages", action);
-      const { type, newMessages } = action.payload;
-      const oldMsgs = state[type].currentMsgs;
-      state[type].currentMsgs = newMessages.concat(oldMsgs);
+      const { type, newMessages, conversationId } = action.payload;
+      const oldMsgs = state[type][conversationId];
+      state[type][conversationId] = newMessages.concat(oldMsgs);
     },
 
     addMessages(state, action) {
       console.log("addMessages", action);
-      const { type, newMessages } = action.payload;
+      const { type, newMessages, conversationId } = action.payload;
       newMessages.forEach((msg) => {
-        state[type].currentMsgs.push({ ...msg });
+        if (state[type][conversationId]) {
+          state[type][conversationId].push({ ...msg });
+        } else {
+          state[type][conversationId] = newMessages;
+        }
       });
     },
 
     updateMessage(state, action) {
       console.log("updateMessage", action.payload);
-      const { type, msgId, updatedContent } = action.payload;
-      state[type].currentMsgs = state[type].currentMsgs.map((el) => {
+      const { type, msgId, updatedContent, conversationId } = action.payload;
+      state[type][conversationId] = state[type][conversationId].map((el) => {
         if (el.id !== msgId) {
           return el;
         } else {
@@ -72,8 +64,8 @@ const slice = createSlice({
 
     updateMessages(state, action) {
       console.log("updateMessage", action.payload);
-      const { type, msgIds, updatedContent } = action.payload;
-      state[type].currentMsgs = state[type].currentMsgs.map((el) => {
+      const { type, msgIds, updatedContent, conversationId } = action.payload;
+      state[type][conversationId] = state[type][conversationId].map((el) => {
         if (!msgIds.includes(el.id)) {
           return el;
         } else {
@@ -90,21 +82,35 @@ const slice = createSlice({
       const { replyMsgId } = action.payload;
       state.replyMsgId = replyMsgId;
     },
+
+    updateUnreadMsgs(state, action) {
+      const { type, conversationId, newSeenUserId } = action.payload;
+      state[type][conversationId] = state[type][conversationId].map((el) => {
+        if (el.readUserIds.includes(newSeenUserId)) {
+          return el;
+        } else {
+          return {
+            ...el,
+            readUserIds: [...el.readUserIds, newSeenUserId],
+          };
+        }
+      });
+    },
   },
 });
 
-export const selectNumOfPage = (state, chatType) =>
-  state.message[chatType].numOfPage;
-export const selectAllMsgs = (state) =>
-  state.message[chatTypes.DIRECT_CHAT].currentMsgs?.concat(
-    state.message[chatTypes.GROUP_CHAT].currentMsgs
-  );
-export const selectCurrentMsgs = (state, chatType) =>
-  state.message[chatType].currentMsgs;
+export const selectMsgs = (state) => state.message;
+export const selectCurrentMsgs = createSelector(
+  [selectMsgs, selectChatType, selectCurrCvsId],
+  (msgs, chatType, conversationId) => msgs[chatType][conversationId] ?? []
+);
+
 export const selectReplyMsgId = (state) => state.message.replyMsgId;
+
 export const selectReplyMsg = createSelector(
-  [selectReplyMsgId, selectAllMsgs],
+  [selectReplyMsgId, selectCurrentMsgs],
   (id, msgs) => {
+    console.log("selectCurrentMsgs ret", msgs);
     return msgs.find((msg) => msg.id === id) ?? null;
   }
 );
@@ -113,13 +119,13 @@ export const selectReplyMsg = createSelector(
 const { actions, reducer } = slice;
 // Extract and export each action creator by name
 export const {
-  setCurrentMsgs,
-  setNumOfPage,
+  setMessages,
   concatMessages,
   addMessages,
   updateMessage,
   updateMessages,
   updateReplyMsgId,
+  updateUnreadMsgs,
 } = actions;
 // Export the reducer, either as a default or named export
 export default reducer;
@@ -127,23 +133,20 @@ export default reducer;
 // thunk
 export const handleNewMessages = ({ chatType, messages, conversationId }) => {
   return (dispatch, getState) => {
-    console.log(
-      "input new_message event data",
-      chatType,
-      messages,
-      conversationId
-    );
+    console.log("handleNewMessages", chatType, messages, conversationId);
 
+    // notice on sidebar when current chatType is not new msgs chatType
     const currentChatType = getState().app.chatType;
     if (currentChatType !== chatType) {
       dispatch(updateNotice({ type: noticeTypes[chatType], show: true }));
     }
 
-    const currentCvsID = getState().conversation[chatType].currentCvsId;
-    if (conversationId === currentCvsID) {
-      dispatch(addMessages({ type: chatType, newMessages: messages }));
-    }
+    // add new msgs (comment here stupid but it visually look good to separate logic)
+    dispatch(
+      addMessages({ type: chatType, newMessages: messages, conversationId })
+    );
 
+    // update conversation
     const latestMsg = messages[messages.length - 1];
     const userId = localStorage.getItem("userId");
     const isFromUser = latestMsg.from === userId;
@@ -167,6 +170,10 @@ export const handleNewMessages = ({ chatType, messages, conversationId }) => {
     );
 
     if (!isFromUser) {
+      // update title of to user
+      document.title = latestMsg.text;
+
+      // show notification
       showNotification({
         title: "Text Message",
         body: latestMsg.text,
@@ -189,8 +196,23 @@ export const updateSentSuccessMsgs = (data) => {
     dispatch(
       updateMessages({
         type: chatType,
-        msgIds: messages.map((msg) => msg.id),
+        msgIds: messages.map((msg) => msg.id), // TODO
+        conversationId,
         updatedContent: { sentSuccess },
+      })
+    );
+  };
+};
+
+export const handleUpdateReadUsers = (data) => {
+  return (dispatch, getState) => {
+    const { newSeenUserId, conversationId, chatType } = data;
+
+    dispatch(
+      updateUnreadMsgs({
+        type: chatType,
+        conversationId,
+        newSeenUserId,
       })
     );
   };
@@ -254,11 +276,13 @@ export function handleDeleteMsgRet(data) {
     if (data?.status === "error") {
       dispatch(showSnackbar({ severity: "error", message: data?.message }));
     } else {
-      const { msgId, type } = data;
+      const { msgId, type, conversationId } = data;
+      // updateMessage msg
       dispatch(
         updateMessage({
           type,
           msgId,
+          conversationId,
           updatedContent: {
             isDeleted: true,
             file: "Message is deleted",
@@ -267,11 +291,11 @@ export function handleDeleteMsgRet(data) {
         })
       );
 
-      const currentMsgs = getState().message[type].currentMsgs;
-      const isLatestMsg = currentMsgs.length
-        ? currentMsgs[currentMsgs.length - 1].id === msgId
-        : false;
+      // update conversation if deletedMsg is latest msg
+      const currentMsgs = getState().message[type][conversationId];
+      const isLatestMsg = currentMsgs[currentMsgs.length - 1].id === msgId;
       console.log("isLatestMsg", isLatestMsg);
+
       if (isLatestMsg) {
         dispatch(
           updateConversation({

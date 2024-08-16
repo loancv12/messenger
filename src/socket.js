@@ -22,6 +22,13 @@ class SocketIOService {
     return SocketIOService.#socket;
   }
 
+  connect(userId, clientId) {
+    console.log(userId, SocketIOService.#socket);
+    const auth = { userId, clientId };
+    SocketIOService.#socket.auth = auth;
+    SocketIOService.#socket.connect();
+  }
+
   ready() {
     return SocketIOService.#socket !== null;
   }

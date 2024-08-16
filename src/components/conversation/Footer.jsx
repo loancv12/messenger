@@ -31,10 +31,11 @@ import {
   File,
   User,
   ClockClockwise,
+  ClosedCaptioning,
 } from "phosphor-react";
 import data from "@emoji-mart/data";
 import Picker from "@emoji-mart/react";
-import InputHidden from "../InputHidden";
+import InputHidden from "../common/InputHidden";
 import PreviewFiles from "./PreviewFiles";
 // import { socket } from "../../socket";
 import { useDispatch, useSelector } from "react-redux";
@@ -117,6 +118,7 @@ function Footer() {
   const dispatch = useDispatch();
 
   const socket = instance.getSocket();
+  // console.log("socket at footer", socket);
 
   const handleSelectEmojis = (emojis) => {
     textRef.current.innerHTML += emojis.native;
@@ -145,11 +147,15 @@ function Footer() {
   };
 
   const handleSubmit = async (e) => {
+    // console.log(socket);
     e.preventDefault();
     const textMsg = textRef.current.textContent.trim();
 
     if (textMsg) {
-      socket.emit("text_message", {
+      // meo no that su, khi ma thay doi nho o SocketProvider khien comp nay unmount va mount lai,
+      //  socket, neu defined nhu the nay const socket=instance.getSocket(), va khi socket.emit('text..')
+      // no khong hoat dong vi Footer ko render lai, socket pid cua socket la cu so voi pid cua SocketProvider
+      instance.getSocket().emit("text_message", {
         type: chatType,
         newMsg: {
           to: currentCvs?.userId,
@@ -354,6 +360,40 @@ function Footer() {
           >
             <IconButton type="submit">
               <PaperPlaneTilt color="#fff" />
+            </IconButton>
+          </Stack>
+        </Box>
+
+        <Box
+          sx={{
+            height: 48,
+            width: 48,
+            borderRadius: 1.5,
+            backgroundColor: theme.palette.primary.main,
+          }}
+        >
+          <Stack
+            sx={{
+              height: "100%",
+              width: "100%",
+              alignItems: "center",
+              justifyContent: "center",
+            }}
+          >
+            <IconButton
+              onClick={() => {
+                console.log("socket.connected", socket.connected);
+                if (socket.connected) {
+                  console.log("make disconnect");
+                  socket.disconnect();
+                } else {
+                  console.log("make connect");
+
+                  socket.connect();
+                }
+              }}
+            >
+              <ClosedCaptioning color="#fff" />
             </IconButton>
           </Stack>
         </Box>

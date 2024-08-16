@@ -6,7 +6,7 @@ import DashboardLayout from "../layouts/dashboard";
 
 // config
 import { DEFAULT_PATH } from "../config";
-import LoadingScreen from "../components/LoadingScreen";
+import LoadingScreen from "../components/common/LoadingScreen";
 import CenterScreenLayout from "../layouts/main";
 import RequiredAuth from "../components/auth/RequiredAuth";
 import SocketProvider from "../contexts/SocketProvider";

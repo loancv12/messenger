@@ -3,7 +3,7 @@ import usePersist from "../../hooks/usePersist";
 import { useDispatch, useSelector } from "react-redux";
 import { selectToken, setCredentials } from "../../redux/auth/authSlice";
 import { Navigate, Outlet, useNavigate } from "react-router-dom";
-import LoadingScreen from "../LoadingScreen";
+import LoadingScreen from "../common/LoadingScreen";
 import { axiosPublic } from "../../services/axios/axiosClient";
 
 const PersistLogin = () => {

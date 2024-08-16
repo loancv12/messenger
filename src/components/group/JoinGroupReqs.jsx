@@ -1,10 +1,10 @@
-import { useContext, useEffect, useState } from "react";
+import { useContext, useEffect, useRef, useState } from "react";
 import JoinGroupReqItem from "./JoinGroupReqItem";
 import { useDispatch, useSelector } from "react-redux";
 // import { socket } from "../../socket";
 import { Dialog, Grid, Paper, Stack, Typography, styled } from "@mui/material";
 import { selectJoinGroupReqs } from "../../redux/conversation/conversationSlice";
-import GridItem from "../GridItem";
+import GridItem from "../common/GridItem";
 import toCamelCase from "../../utils/toCamelCase";
 import useLocales from "../../hooks/useLocales";
 import { fetchJoinGroupReqs } from "../../redux/conversation/conversationApi";
@@ -12,6 +12,7 @@ import useAxios from "../../hooks/useAxios";
 import instance from "../../socket";
 
 const JoinGroupReqs = ({ open, handleClose }) => {
+  const isFirstMount = useRef(true);
   const dispatch = useDispatch();
   const { translate } = useLocales();
   const joinGroupReqs = useSelector(selectJoinGroupReqs);
@@ -21,12 +22,20 @@ const JoinGroupReqs = ({ open, handleClose }) => {
 
   useEffect(() => {
     console.log("use effect at chat");
-    const fetchCvs = async () => {
+    const fetchJoinGroup = async () => {
       try {
         await callAction(fetchJoinGroupReqs());
       } catch (error) {
         console.log(error);
       }
+    };
+
+    if (!isFirstMount.current || process.env.NODE_ENV !== "development") {
+      fetchJoinGroup();
+    }
+
+    return () => {
+      isFirstMount.current = false;
     };
     fetchCvs();
   }, []);

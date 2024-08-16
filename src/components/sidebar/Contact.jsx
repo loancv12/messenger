@@ -27,7 +27,7 @@ import {
 import { useDispatch } from "react-redux";
 import { toggleSidebar, updateSidebar } from "../../redux/app/appSlice";
 import { faker } from "@faker-js/faker";
-import AntSwitch from "../AntSwitch";
+import AntSwitch from "../common/AntSwitch";
 import { useState } from "react";
 import React from "react";
 

@@ -13,6 +13,8 @@ const initialState = {
     severity: null,
   },
 
+  clientId: "",
+
   chatType: chatTypes.DIRECT_CHAT, //group_chat or direct_chat
 
   showConversationComp: false, // use in mobile screen to show conversation component
@@ -66,7 +68,16 @@ const slice = createSlice({
       state.snackbar.message = null;
     },
 
-    selectTypeOfCvs(state, action) {
+    setClientId(state, action) {
+      state.clientId = action.payload.clientId;
+    },
+
+    resetClientId(state, action) {
+      state.clientId = action.payload.clientId;
+    },
+
+    setChatType(state, action) {
+      console.log("setChatType", action);
       state.chatType = action.payload.chatType;
     },
 
@@ -87,6 +98,8 @@ const slice = createSlice({
 export const selectSidebar = (state) => state.app.sidebar;
 export const selectShowCvsComp = (state) => state.app.showConversationComp;
 
+export const selectClientId = (state) => state.app.clientId;
+
 export const selectChatType = (state) => state.app.chatType;
 
 export const selectNotices = (state) => state.app.notices;
@@ -103,7 +116,9 @@ export const {
   updateShowCvsComp,
   openSnackbar,
   closeSnackbar,
-  selectTypeOfCvs,
+  setClientId,
+  resetClientId,
+  setChatType,
   addNotice,
   updateNotice,
   updateSettingPart,

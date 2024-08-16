@@ -7,7 +7,7 @@ import { useDispatch, useSelector } from "react-redux";
 import { closeSnackbar } from "./redux/app/appSlice";
 import SocketProvider from "./contexts/SocketProvider";
 import { Suspense, useEffect } from "react";
-import LoadingScreen from "./components/LoadingScreen";
+import LoadingScreen from "./components/common/LoadingScreen";
 import askNotificationPermission from "./services/notification";
 import AuthProvider from "./contexts/AuthProvider";
 
@@ -21,7 +21,8 @@ function App() {
   const dispatch = useDispatch();
   useEffect(() => {
     askNotificationPermission();
-  });
+  }, []);
+
   return (
     <>
       <Suspense fallback={<LoadingScreen />}>

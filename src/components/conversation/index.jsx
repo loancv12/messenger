@@ -10,22 +10,23 @@ import {
 } from "@mui/material";
 import { CaretLeft, ChatCircle, ChatsCircle } from "phosphor-react";
 import Messages from "./Messages";
-import { useParams } from "react-router-dom";
 import { useEffect } from "react";
+import { useParams } from "react-router-dom";
+import { createImmutableStateInvariantMiddleware } from "@reduxjs/toolkit";
+import { setCurrentCvsId } from "../../redux/conversation/conversationSlice";
 import { useDispatch, useSelector } from "react-redux";
-import { setCurrentCvs } from "../../redux/conversation/conversationSlice";
 import { selectChatType } from "../../redux/app/appSlice";
 
 function Conversation({ handleBack }) {
   const theme = useTheme();
+  console.log(theme);
+  const dispatch = useDispatch();
   const { cvsId } = useParams();
   const chatType = useSelector(selectChatType);
 
-  const dispatch = useDispatch();
-
-  // useEffect(() => {
-  //   dispatch(setCurrentCvs({ type: chatType, conversationId: cvsId }));
-  // }, [cvsId]);
+  useEffect(() => {
+    dispatch(setCurrentCvsId({ type: chatType, conversationId: cvsId }));
+  }, [cvsId]);
 
   return (
     <Stack

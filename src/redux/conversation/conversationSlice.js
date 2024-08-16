@@ -1,7 +1,7 @@
 import { createSelector, createSlice } from "@reduxjs/toolkit";
 
 import { faker } from "@faker-js/faker";
-import { showSnackbar, updateNotice } from "../app/appSlice";
+import { selectChatType, showSnackbar, updateNotice } from "../app/appSlice";
 import { chatTypes, noticeTypes } from "../config";
 
 const initialState = {
@@ -25,9 +25,8 @@ const slice = createSlice({
     setConversations(state, action) {
       const { type, conversations } = action.payload;
       console.log("setConversations", conversations);
-      console.log("currentCvsId", state[type].currentCvsId);
       // because of fetchCvs and fetchMsg almost at same time of current cvs, so numberof unread is unpredictable
-      // other method is make fetches at the same comp
+      // other method is make fetches at the same comp //TODO
       const list = conversations.map((conversation, i) => {
         return {
           ...conversation,
@@ -63,8 +62,8 @@ const slice = createSlice({
       });
     },
 
-    setCurrentCvs(state, action) {
-      console.log("setCurrentCvs", action.payload);
+    setCurrentCvsId(state, action) {
+      console.log("setCurrentCvsId", action.payload);
       const { type, conversationId } = action.payload;
       state[type].currentCvsId = conversationId;
     },
@@ -86,16 +85,37 @@ const slice = createSlice({
   },
   extraReducers: (builder) => {},
 });
-export const selectCvss = (state, chatType) =>
-  state.conversation[chatType].conversations;
+export const selectCvssDefinedChatType = (
+  state,
+  chatType // ONLY for chatType is defined, cause the update of chatType can be after the operation
+) => state.conversation[chatType].conversations;
 
-export const selectCurrCvsId = (state, chatType) =>
-  state.conversation[chatType].currentCvsId;
+export const selectCurrCvsIdDefinedChatType = (
+  state,
+  chatType // ONLY for chatType is defined
+) => state.conversation[chatType].currentCvsId;
+
+const selectCvs = (state) => state.conversation;
+export const selectCurrCvsId = createSelector(
+  [selectCvs, selectChatType],
+  (conversations, chatType) => conversations[chatType].currentCvsId
+);
 
 export const selectCurrCvs = createSelector(
-  [selectCvss, selectCurrCvsId],
-  (conversations, cvsID) => {
-    return conversations.find((cvs) => cvs.id === cvsID) ?? null;
+  [selectCvs, selectChatType, selectCurrCvsId],
+  (conversations, chatType, cvsID) => {
+    return (
+      conversations[chatType].conversations.find((cvs) => cvs.id === cvsID) ??
+      null
+    );
+  }
+);
+
+export const selectNumOfParticipants = createSelector(
+  [selectChatType, selectCurrCvs],
+  (chatType, currCvs) => {
+    if (chatType === chatTypes.DIRECT_CHAT) return 2;
+    return currCvs?.userIds?.length ?? 3;
   }
 );
 
@@ -108,7 +128,7 @@ export const {
   setConversations,
   updateConversation,
   addConversation,
-  setCurrentCvs,
+  setCurrentCvsId,
   setJoinGroupReqs,
   addJoinGroupReq,
 } = actions;
@@ -141,7 +161,7 @@ export const startChat = (data) => {
       );
     }
     dispatch(
-      setCurrentCvs({
+      setCurrentCvsId({
         type: chatTypes.DIRECT_CHAT,
         conversationId: data.id,
       })
@@ -161,7 +181,7 @@ export const handleCreateGroupRet = (data) => {
       })
     );
     dispatch(
-      setCurrentCvs({
+      setCurrentCvsId({
         type: chatTypes.GROUP_CHAT,
         conversationId: newGroupCvs.id,
       })

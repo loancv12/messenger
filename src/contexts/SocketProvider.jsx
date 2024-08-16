@@ -1,6 +1,10 @@
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
-import { showSnackbar } from "../redux/app/appSlice";
+import {
+  selectClientId,
+  setClientId,
+  showSnackbar,
+} from "../redux/app/appSlice";
 import {
   handleCreateGroupRet,
   handleJoinGroupReq,
@@ -11,6 +15,7 @@ import {
 import {
   handleDeleteMsgRet,
   handleNewMessages,
+  handleUpdateReadUsers,
   updateSentSuccessMsgs,
 } from "../redux/message/messageSlice";
 import {
@@ -22,19 +27,59 @@ import {
 } from "../redux/relationShip/relationShipSlice";
 import useAuth from "../hooks/useAuth";
 import instance from "../socket";
+import { axiosPrivate } from "../services/axios/axiosClient";
+import { v4 as uuidv4 } from "uuid";
 
 const socket = instance.initSocket();
 
 const SocketWrapper = ({ children }) => {
   const dispatch = useDispatch();
   const { userId } = useAuth();
+  const isFirstMount = useRef(true);
 
-  console.log("socket provider rerender", socket);
+  console.log("socket providers rerender", socket);
 
   useEffect(() => {
+    let clientId = sessionStorage.getItem("mess_clientId") || "";
+    console.log("socket  connected", socket.connected);
     if (!socket.connected) {
-      socket.auth = { userId };
-      socket.connect();
+      // when user login, no clientId in there => create one in fe=> send to server =>create a in db, connect to socket by it
+      // when user reload, there a clientId there => no create one in fe=> send to server =>
+      // // // duplicate =>create new one in server= >
+      // // => return new one to client
+      // // => client receive it and connect to socket by that new one
+      // // // we need old clientId to delete all related thing off it, so, cannot create new clientId in fe,
+      // // // we can check duplicate before create new one in fe, but then we must send another re-set clientId to it,
+      // // // create new one server and return it to fe is suitable
+
+      if (!clientId) {
+        clientId = uuidv4();
+        sessionStorage.setItem("mess_clientId", clientId);
+      }
+
+      const sendClient = async () => {
+        const ret = await axiosPrivate({
+          url: "/client/create-client",
+          method: "POST",
+          data: { clientId, userId },
+        });
+
+        if (ret.data.message === "Duplicate clientId") {
+          clientId = ret.data.data;
+          sessionStorage.setItem("mess_clientId", clientId);
+        }
+
+        dispatch(setClientId({ clientId }));
+        instance.connect(userId, clientId);
+
+        console.log("ret of create client", ret);
+      };
+      if (
+        isFirstMount.current === false ||
+        process.env.NODE_ENV !== "development"
+      ) {
+        sendClient();
+      }
     }
 
     socket.on("ping", (value) => {
@@ -48,8 +93,16 @@ const SocketWrapper = ({ children }) => {
         // any event missed during the disconnection period will be received now
       } else {
         console.log(" new or unrecoverable session", socket.recovered);
-
         // new or unrecoverable session
+        const callback = (groupMsgs) => {
+          console.log("callback", groupMsgs);
+          groupMsgs?.map((groupMsg) => dispatch(handleNewMessages(groupMsg)));
+        };
+        socket.emit(
+          "miss-msg",
+          { date: new Date(), userId, clientId },
+          callback
+        );
       }
 
       // setTimeout(() => {
@@ -144,6 +197,9 @@ const SocketWrapper = ({ children }) => {
 
     socket.on("create_group_ret", (data) => {
       dispatch(handleCreateGroupRet(data));
+      // when one socket of admin create group, it will emit to adminId to notice create group successful
+      // but only that admin's socket join group in server, we emit this event to make sure that every socket of admin join group
+      socket.emit("make_all_socket_of_admin_join_group", data);
     });
 
     socket.on("join_group_request", (data) => {
@@ -164,9 +220,14 @@ const SocketWrapper = ({ children }) => {
       dispatch(handleNewMessages(data));
 
       // when receiver receiver msg, emit event tp update msgs to sentSuccess to 'success'
-      if (data.messages[0].to === userId) {
+      // AVOID using to
+      if (data.messages[0].from !== userId) {
         socket.emit("receive_new_msgs", data);
       }
+    });
+
+    socket.on("some-event", (callback) => {
+      callback({ status: "scucfff," });
     });
 
     socket.on("delete_message_ret", (data) => {
@@ -177,11 +238,24 @@ const SocketWrapper = ({ children }) => {
       dispatch(updateSentSuccessMsgs(data));
     });
 
-    socket.onAny((event, ...args) => {
-      console.log(event, args);
+    socket.on("update_read_users", (data) => {
+      dispatch(handleUpdateReadUsers(data));
     });
 
+    // socket.onAny((event, ...args) => {
+    //   console.log(event, args);
+    // })  ;
+
     return () => {
+      isFirstMount.current = false;
+      const deleteClient = async () => {
+        await axiosPrivate({
+          url: "/client/delete-client",
+          method: "DELETE",
+          data: { clientId },
+        });
+      };
+      deleteClient();
       console.log("socket off");
       socket.off("connect");
       socket.off("disconnect");
@@ -202,6 +276,7 @@ const SocketWrapper = ({ children }) => {
       socket.off("new_messages");
       socket.off("delete_message_ret");
       socket.off("update_sent_success");
+      socket.off("update_read_users");
       socket.disconnect();
     };
   }, []);

@@ -8,7 +8,7 @@ import {
   useTheme,
   AvatarGroup,
 } from "@mui/material";
-import StyledBadge from "../StyledBadge";
+import StyledBadge from "../common/StyledBadge";
 import { faker } from "@faker-js/faker";
 import {
   CaretDown,

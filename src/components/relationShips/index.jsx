@@ -3,7 +3,7 @@ import Users from "./Users";
 import Friends from "./Friends";
 import FriendReqs from "./FriendReqs";
 import { useState } from "react";
-import CustomTabPanel from "../CustomTabPanel";
+import CustomTabPanel from "../common/CustomTabPanel";
 
 function a11yProps(index) {
   return {

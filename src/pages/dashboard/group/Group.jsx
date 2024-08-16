@@ -19,20 +19,20 @@ import SearchIconWrapper from "../../../components/search/SearchIconWrapper";
 import Search from "../../../components/search/Search";
 import StyledInputBase from "../../../components/search/StyledInputBase";
 import { MagnifyingGlass, Plus, UserList, UsersThree } from "phosphor-react";
-import ChatElement from "../../../chat/ChatElement";
-import LoadingScreen from "../../../components/LoadingScreen";
+import ChatElement from "../../../components/chat/ChatElement";
+import LoadingScreen from "../../../components/common/LoadingScreen";
 
 import { CreateGroup } from "../../../components/group";
 import { useDispatch, useSelector } from "react-redux";
 import {
   selectChatType,
   selectNotice,
-  selectTypeOfCvs,
+  setChatType,
   updateNotice,
 } from "../../../redux/app/appSlice";
 import { chatTypes, noticeTypes } from "../../../redux/config";
 import {
-  selectCvss,
+  selectCvssDefinedChatType,
   setConversations,
 } from "../../../redux/conversation/conversationSlice";
 import JoinGroupReqs from "../../../components/group/JoinGroupReqs";
@@ -40,7 +40,7 @@ import toCamelCase from "../../../utils/toCamelCase";
 import useLocales from "../../../hooks/useLocales";
 import { fetchConversations } from "../../../redux/conversation/conversationApi";
 import useAxios from "../../../hooks/useAxios";
-import ChatSkeleton from "../../../chat/ChatSkeleton";
+import ChatSkeleton from "../../../components/chat/ChatSkeleton";
 
 const Group = () => {
   const theme = useTheme();
@@ -57,7 +57,7 @@ const Group = () => {
     selectNotice(state, noticeTypes.JOIN_GROUP_REQ)
   );
   const conversations = useSelector((state) =>
-    selectCvss(state, chatTypes.GROUP_CHAT)
+    selectCvssDefinedChatType(state, chatTypes.GROUP_CHAT)
   );
 
   const handleClose = () => {

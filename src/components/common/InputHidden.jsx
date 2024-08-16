@@ -9,14 +9,14 @@ import {
 import { Image, File } from "phosphor-react";
 import React, { useEffect, useState } from "react";
 import { useDispatch } from "react-redux";
-import { showSnackbar } from "../redux/app/appSlice";
-import { getFileFormat } from "../utils/getFileFormat";
+import { showSnackbar } from "../../redux/app/appSlice";
+import { getFileFormat } from "../../utils/getFileFormat";
 import {
   allowFileExts,
   allowFileTypes,
   maxNumberOfFiles,
   maxSize,
-} from "../config";
+} from "../../config";
 
 const VisuallyHiddenInput = styled("input")(({ theme }) => ({
   "& .MuiInputBase-input, fieldset": {

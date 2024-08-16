@@ -1,19 +1,32 @@
 import { Dialog, DialogContent, DialogTitle, Slide } from "@mui/material";
-import React, { useEffect } from "react";
+import React, { useEffect, useRef } from "react";
 import CreateGroupForm from "./CreateGroupForm";
 import { useDispatch } from "react-redux";
 import { fetchFriends } from "../../redux/relationShip/relationShipApi";
 import useLocales from "../../hooks/useLocales";
 import toCamelCase from "../../utils/toCamelCase";
+import useAxios from "../../hooks/useAxios";
 
 const Transition = React.forwardRef(function Transition(props, ref) {
   return <Slide direction="up" ref={ref} {...props} />;
 });
 const CreateGroup = ({ open, handleClose }) => {
-  const dispatch = useDispatch();
+  const isFirstMount = useRef(true);
+
   const { translate } = useLocales();
+  const { callAction, isLoading, isError } = useAxios("create group");
+
   useEffect(() => {
-    dispatch(fetchFriends());
+    const fetchFr = async () => {
+      await callAction(fetchFriends());
+    };
+    if (!isFirstMount.current || process.env.NODE_ENV !== "development") {
+      fetchFr();
+    }
+
+    return () => {
+      isFirstMount.current = false;
+    };
   }, []);
   return (
     <Dialog

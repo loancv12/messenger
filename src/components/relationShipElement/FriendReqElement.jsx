@@ -9,7 +9,7 @@ import {
   Button,
 } from "@mui/material";
 import { styled, useTheme } from "@mui/material/styles";
-import StyledBadge from "../StyledBadge";
+import StyledBadge from "../common/StyledBadge";
 
 const FriendReqElement = ({
   img,

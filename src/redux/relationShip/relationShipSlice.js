@@ -59,7 +59,7 @@ export const handleSendReqRet = (data) => {
   return (dispatch, getState) => {
     const { message, request } = data;
     dispatch(showSnackbar({ severity: "success", message }));
-    dispatch(fetchUsers());
+    // dispatch(fetchUsers()); //TODO
   };
 };
 
@@ -74,7 +74,7 @@ export const handleFriendReqAcceptedRet = (data) => {
         show: request.senderId === userId,
       })
     );
-    dispatch(fetchFriendRequests());
+    // dispatch(fetchFriendRequests()); //TODO
   };
 };
 
@@ -93,7 +93,7 @@ export const handleFriendReqDeclineRet = (data) => {
         })
       );
     }
-    dispatch(fetchFriendRequests());
+    // dispatch(fetchFriendRequests()); //TODO
   };
 };
 
@@ -102,6 +102,6 @@ export const handleWithdrawFriendReqRet = (data) => {
     const { message } = data;
 
     dispatch(showSnackbar({ severity: "success", message }));
-    dispatch(fetchFriendRequests());
+    // dispatch(fetchFriendRequests()); //TODO
   };
 };

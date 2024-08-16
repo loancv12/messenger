@@ -10,7 +10,7 @@ import {
 } from "@mui/material";
 import { styled, useTheme } from "@mui/material/styles";
 // import { socket } from "../../socket";
-import StyledBadge from "../StyledBadge";
+import StyledBadge from "../common/StyledBadge";
 import { Chat } from "phosphor-react";
 
 const FriendElement = ({

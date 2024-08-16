@@ -1,14 +1,15 @@
 import { Avatar, Badge, Box, Stack, Typography, useTheme } from "@mui/material";
-import StyledBadge from "../components/StyledBadge";
+import StyledBadge from "../common/StyledBadge";
 import { faker } from "@faker-js/faker";
 import { useDispatch, useSelector } from "react-redux";
-import { selectChatType, updateShowCvsComp } from "../redux/app/appSlice";
+import { selectChatType, updateShowCvsComp } from "../../redux/app/appSlice";
 import {
-  setCurrentCvs,
+  selectCurrCvsId,
+  setCurrentCvsId,
   updateConversation,
-} from "../redux/conversation/conversationSlice";
+} from "../../redux/conversation/conversationSlice";
 import { memo } from "react";
-import { fRelativeDate } from "../utils/formatTime";
+import { fRelativeDate } from "../../utils/formatTime";
 import { useNavigate } from "react-router-dom";
 
 const ChatElement = memo(
@@ -16,12 +17,13 @@ const ChatElement = memo(
     const navigate = useNavigate();
     const theme = useTheme();
     const chatType = useSelector(selectChatType);
+    const currentCvsId = useSelector(selectCurrCvsId);
     const dispatch = useDispatch();
 
     const handleClick = async () => {
       dispatch(updateShowCvsComp({ open: true }));
 
-      dispatch(setCurrentCvs({ type: chatType, conversationId: id }));
+      dispatch(setCurrentCvsId({ type: chatType, conversationId: id }));
       dispatch(
         updateConversation({
           type: chatType,
@@ -39,18 +41,21 @@ const ChatElement = memo(
           width: "100%",
           borderRadius: 1,
           backgroundColor:
-            theme.palette.mode === "light"
-              ? "#fff"
-              : theme.palette.background.default,
+            currentCvsId === id
+              ? theme.palette.action.focus
+              : theme.palette.mode === "light"
+              ? theme.palette.background.default
+              : theme.palette.background.paper,
           "&:hover": {
             cursor: "pointer",
           },
+          position: "relative",
         }}
         p={1}
       >
         <Stack
           direction="row"
-          alignItems="center"
+          alignItems="flex-start"
           justifyContent="space-between"
         >
           <Stack direction={"row"} spacing={2}>
@@ -86,17 +91,22 @@ const ChatElement = memo(
             <Typography sx={{ fontWeight: 600 }} variant="caption">
               {fRelativeDate(updatedAt)}
             </Typography>
-            <Badge
-              color="primary"
-              badgeContent={unread ? unread : "0"}
-              sx={{
-                width: "20px",
-                height: "20px",
-                "& span": {
-                  transform: "none",
-                },
-              }}
-            ></Badge>
+            {unread ? (
+              <Badge
+                color="primary"
+                badgeContent={unread ? unread : "0"}
+                sx={{
+                  width: "20px",
+                  height: "20px",
+                  position: "absolute",
+                  right: "8px",
+                  bottom: "8px",
+                  "& span": {
+                    transform: "none",
+                  },
+                }}
+              />
+            ) : null}
           </Stack>
         </Stack>
       </Box>

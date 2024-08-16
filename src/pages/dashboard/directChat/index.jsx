@@ -4,7 +4,7 @@ import LeftAsideLayout from "../../../layouts/leftAside";
 import Chats from "./Chats";
 import {
   selectSidebar,
-  selectTypeOfCvs,
+  setChatType,
   updateShowCvsComp,
 } from "../../../redux/app/appSlice";
 import Contact from "../../../components/sidebar/Contact";
@@ -13,16 +13,13 @@ import StarredMessages from "../../../components/sidebar/StarredMessages";
 import { useCallback, useEffect, useRef, useState } from "react";
 import { chatTypes } from "../../../redux/config";
 import { Outlet, useNavigate, useParams } from "react-router-dom";
-import {
-  selectCurrCvsId,
-  setCurrentCvs,
-} from "../../../redux/conversation/conversationSlice";
+import { selectCurrCvsIdDefinedChatType } from "../../../redux/conversation/conversationSlice";
 
 const DirectChat = () => {
   const dispatch = useDispatch();
   const sidebar = useSelector(selectSidebar);
   const currentCvsId = useSelector((state) =>
-    selectCurrCvsId(state, chatTypes.DIRECT_CHAT)
+    selectCurrCvsIdDefinedChatType(state, chatTypes.DIRECT_CHAT)
   );
 
   const navigate = useNavigate();
@@ -32,7 +29,7 @@ const DirectChat = () => {
   };
 
   useEffect(() => {
-    dispatch(selectTypeOfCvs({ chatType: chatTypes.DIRECT_CHAT }));
+    dispatch(setChatType({ chatType: chatTypes.DIRECT_CHAT }));
     if (currentCvsId) {
       navigate(currentCvsId);
     }
