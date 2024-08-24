@@ -43,16 +43,17 @@ import useLocales from "../../hooks/useLocales";
 import toCamelCase from "../../utils/toCamelCase";
 import useAuth from "../../hooks/useAuth";
 import useAxios from "../../hooks/useAxios";
+import { generalPath } from "../../routes/paths";
 
-const Profile_Menu = [
+export const Profile_Menu = [
   {
     title: "Profile",
-    path: "/profile",
+    path: generalPath.profile,
     icon: <User />,
   },
   {
     title: "Settings",
-    path: "/settings",
+    path: generalPath.setting,
     icon: <Gear />,
   },
   {
@@ -62,18 +63,18 @@ const Profile_Menu = [
   },
 ];
 
-const Nav_Buttons = [
+export const Nav_Buttons = [
   {
     index: 0,
     title: "Direct chats",
-    path: "/direct-chat",
+    path: generalPath[chatTypes.DIRECT_CHAT],
     icon: <ChatCircleDots />,
     noticeType: noticeTypes[chatTypes.DIRECT_CHAT],
   },
   {
     index: 1,
     title: "Groups",
-    path: "/group-chat",
+    path: generalPath[chatTypes.GROUP_CHAT],
     icon: <Users />,
     noticeType: noticeTypes[chatTypes.GROUP_CHAT],
   },

@@ -10,6 +10,12 @@ import { store, persistor } from "./redux/store.js";
 import { Provider as ReduxProvider } from "react-redux";
 import { Helmet, HelmetProvider } from "react-helmet-async";
 
+import * as process from "process";
+
+window.global = window;
+window.process = process;
+window.Buffer = [];
+
 ReactDOM.createRoot(document.getElementById("root")).render(
   <React.StrictMode>
     <HelmetProvider>

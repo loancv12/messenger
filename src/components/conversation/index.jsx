@@ -11,22 +11,33 @@ import {
 import { CaretLeft, ChatCircle, ChatsCircle } from "phosphor-react";
 import Messages from "./Messages";
 import { useEffect } from "react";
-import { useParams } from "react-router-dom";
+import { useNavigate, useOutletContext, useParams } from "react-router-dom";
 import { createImmutableStateInvariantMiddleware } from "@reduxjs/toolkit";
 import { setCurrentCvsId } from "../../redux/conversation/conversationSlice";
 import { useDispatch, useSelector } from "react-redux";
-import { selectChatType } from "../../redux/app/appSlice";
+import { selectChatType, updateShowCvsComp } from "../../redux/app/appSlice";
+import { chatTypes } from "../../redux/config";
+import { NAVBAR } from "../../config";
+import { Nav_Buttons } from "../../layouts/dashboard/Sidebar";
+import { generalPath } from "../../routes/paths";
 
-function Conversation({ handleBack }) {
+function Conversation() {
+  // i tried to use selectChatType get it chatType,
+  // but it have some problem with useEffect when useEffect updating chatType run after useEffect calling get msg
+  const { chatType } = useOutletContext();
   const theme = useTheme();
-  console.log(theme);
+  const navigate = useNavigate();
   const dispatch = useDispatch();
   const { cvsId } = useParams();
-  const chatType = useSelector(selectChatType);
 
   useEffect(() => {
     dispatch(setCurrentCvsId({ type: chatType, conversationId: cvsId }));
   }, [cvsId]);
+
+  const handleBack = () => {
+    dispatch(updateShowCvsComp({ open: false }));
+    navigate(generalPath[chatType]);
+  };
 
   return (
     <Stack
@@ -60,13 +71,13 @@ function Conversation({ handleBack }) {
           >
             <CaretLeft size={24} color="#1a4858" />
           </IconButton>
-          <Header />
+          <Header chatType={chatType} />
         </Stack>
       </Box>
       {/* MsG */}
       {/* <SimpleBarStyle> */}
 
-      <Messages menu={true} />
+      <Messages menu={true} chatType={chatType} />
 
       <Footer />
     </Stack>

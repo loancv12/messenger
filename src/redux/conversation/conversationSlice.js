@@ -119,6 +119,15 @@ export const selectNumOfParticipants = createSelector(
   }
 );
 
+export const selectPeopleInCvs = createSelector([selectCurrCvs], (currCvs) => {
+  const currUser = localStorage.getItem("userId");
+  return (
+    currCvs?.userIds?.filter((userId) => {
+      return userId !== currUser;
+    }) ?? [currCvs?.userId]
+  );
+});
+
 export const selectJoinGroupReqs = (state) => state.conversation.joinGroupReqs;
 
 // Extract the action creators object and the reducer

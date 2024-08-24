@@ -11,7 +11,9 @@ import {
   Menu,
   MenuItem,
   Skeleton,
+  Slide,
   Stack,
+  styled,
   Typography,
   useTheme,
 } from "@mui/material";
@@ -48,56 +50,83 @@ export const DocMsg = memo(
     fromUserIds,
   }) => {
     const theme = useTheme();
+    function download({ files }) {
+      const { link: url, alt: name } = files[0];
+      console.log("downlod, el");
+      // let link = document.createElement("a");
+      // link.download = name;
+      // link.href = url;
+      // link.style.display = "none";
+      // link.click();
+    }
+
     return (
       <Box data-ref={el.id} sx={{ scrollMarginTop: "20px" }}>
         {el?.isStartMsg ? <Timeline time={el?.timeOfStartMsg} /> : null}
-        <Stack
-          data-ref={el.id}
-          direction="row"
-          justifyContent={el.incoming ? "start" : "end"}
-          sx={{ position: "relative" }}
-        >
-          {el?.isReply ? (
-            <ReplyMsg
-              replyMsg={el.replyMsg}
-              handleGetToRepMsg={handleGetToRepMsg}
-            />
+        <Stack direction={"row"} alignItems={"center"} spacing={1}>
+          {el.incoming ? (
+            fromUserIds[el.id] && fromUserIds[el.id].length ? (
+              <Avatar
+                alt={fromUserIds[el.id]}
+                src={faker.image.avatar()}
+                // src={faker.image.avatar()}
+                sx={{
+                  width: 28,
+                  height: 28,
+                }}
+              />
+            ) : (
+              <div style={{ width: "28px" }}></div>
+            )
           ) : null}
-          {el?.isDeleted ? (
-            <DeletedMsg el={el} />
-          ) : (
-            <Box
-              sx={{
-                backgroundColor: el.incoming
-                  ? theme.palette.background.default
-                  : theme.palette.primary.main,
-                borderRadius: 1.5,
-                width: "max-content",
-              }}
-              p={1}
-            >
-              <Stack spacing={2}>
-                <Stack
-                  p={1}
-                  direction="row"
-                  spacing={3}
-                  alignItems={"center"}
-                  sx={{
-                    backgroundColor: theme.palette.background.paper,
-                    borderRadius: 1.5,
-                  }}
-                >
-                  <Image size={48} />
-                  <Typography variant="caption">{el.files[0].alt}</Typography>
-                  <IconButton>
-                    <DownloadSimple />
-                  </IconButton>
+          <Stack
+            data-ref={el.id}
+            direction="row"
+            justifyContent={el.incoming ? "start" : "end"}
+            sx={{ position: "relative", width: "100%" }}
+          >
+            {el?.isReply ? (
+              <ReplyMsg
+                replyMsg={el.replyMsg}
+                handleGetToRepMsg={handleGetToRepMsg}
+              />
+            ) : null}
+            {el?.isDeleted ? (
+              <DeletedMsg el={el} />
+            ) : (
+              <Box
+                sx={{
+                  backgroundColor: el.incoming
+                    ? theme.palette.background.default
+                    : theme.palette.primary.main,
+                  borderRadius: 1.5,
+                  width: "max-content",
+                }}
+                p={1}
+              >
+                <Stack spacing={2}>
+                  <Stack
+                    p={1}
+                    direction="row"
+                    spacing={3}
+                    alignItems={"center"}
+                    sx={{
+                      backgroundColor: theme.palette.background.paper,
+                      borderRadius: 1.5,
+                    }}
+                  >
+                    <Image size={48} />
+                    <Typography variant="caption">{el.files[0].alt}</Typography>
+                    <IconButton onClick={() => download(el)}>
+                      <DownloadSimple />
+                    </IconButton>
+                  </Stack>
                 </Stack>
-              </Stack>
-            </Box>
-          )}
-          {menu && <MessageOptions msg={el} />}
-          <BadgeSign {...{ lastReadUserIds, el, isLastMsg }} />
+              </Box>
+            )}
+            {menu && <MessageOptions msg={el} />}
+            <BadgeSign {...{ lastReadUserIds, el, isLastMsg }} />
+          </Stack>
         </Stack>
       </Box>
     );
@@ -118,61 +147,78 @@ export const LinkMsg = memo(
     return (
       <Box data-ref={el.id} sx={{ scrollMarginTop: "20px" }}>
         {el?.isStartMsg ? <Timeline time={el?.timeOfStartMsg} /> : null}
-        <Stack
-          data-ref={el.id}
-          direction="row"
-          justifyContent={el.incoming ? "start" : "end"}
-          sx={{ position: "relative" }}
-        >
-          {el?.isReply ? (
-            <ReplyMsg
-              replyMsg={el.replyMsg}
-              handleGetToRepMsg={handleGetToRepMsg}
-            />
-          ) : null}
-          {el?.isDeleted ? (
-            <DeletedMsg el={el} />
-          ) : (
-            <Box
-              sx={{
-                backgroundColor: el.incoming
-                  ? theme.palette.background.default
-                  : theme.palette.primary.main,
-                borderRadius: 1.5,
-                width: "max-content",
-              }}
-              p={1}
-            >
-              <Stack
-                p={1}
-                spacing={2}
+        <Stack direction={"row"} alignItems={"center"} spacing={1}>
+          {el.incoming ? (
+            fromUserIds[el.id] && fromUserIds[el.id].length ? (
+              <Avatar
+                alt={fromUserIds[el.id]}
+                src={faker.image.avatar()}
+                // src={faker.image.avatar()}
                 sx={{
-                  backgroundColor: theme.palette.background.paper,
+                  width: 28,
+                  height: 28,
+                }}
+              />
+            ) : (
+              <div style={{ width: "28px" }}></div>
+            )
+          ) : null}
+          <Stack
+            data-ref={el.id}
+            direction="row"
+            justifyContent={el.incoming ? "start" : "end"}
+            sx={{ position: "relative", width: "100%" }}
+          >
+            {el?.isReply ? (
+              <ReplyMsg
+                replyMsg={el.replyMsg}
+                handleGetToRepMsg={handleGetToRepMsg}
+              />
+            ) : null}
+            {el?.isDeleted ? (
+              <DeletedMsg el={el} />
+            ) : (
+              <Box
+                sx={{
+                  backgroundColor: el.incoming
+                    ? theme.palette.background.default
+                    : theme.palette.primary.main,
                   borderRadius: 1.5,
+                  width: "max-content",
                 }}
+                p={1}
               >
-                sdda
-                {/* <img
-                src={el?.file}
-                alt={el.text}
-                style={{
-                  maxHeight: 210,
-                  borderRadius: "10px",
-                }}
-              /> */}
-                <Typography
-                  variant="body2"
-                  to="//https://www.youtobe.com"
-                  color={el.incoming ? theme.palette.text : "#fff"}
-                  component={Link}
+                <Stack
+                  p={1}
+                  spacing={2}
+                  sx={{
+                    backgroundColor: theme.palette.background.paper,
+                    borderRadius: 1.5,
+                  }}
                 >
-                  {el.text}
-                </Typography>
-              </Stack>
-            </Box>
-          )}
-          {menu && <MessageOptions msg={el} />}
-          <BadgeSign {...{ lastReadUserIds, el, isLastMsg }} />
+                  sdda
+                  {/* <img
+                  src={el?.file}
+                  alt={el.text}
+                  style={{
+                    maxHeight: 210,
+                    borderRadius: "10px",
+                  }}
+                /> */}
+                  <Typography
+                    variant="body2"
+                    to="//https://www.youtobe.com"
+                    color={el.incoming ? theme.palette.text : "#fff"}
+                    component={Link}
+                  >
+                    {el.text}
+                  </Typography>
+                </Stack>
+              </Box>
+            )}
+            {menu && <MessageOptions msg={el} />}
+            <BadgeSign {...{ lastReadUserIds, el, isLastMsg }} />
+          </Stack>
         </Stack>
       </Box>
     );
@@ -195,9 +241,13 @@ export const MediaMsg = memo(
       const col = el.files.length;
       imgs = (
         <ImageList
-          sx={{ width: 200, height: 200, margin: 0 }}
+          sx={{
+            width: 200 + (col - 1) * 4,
+            height: col === 2 ? 100 : 200,
+            margin: 0,
+          }}
           cols={col}
-          rowHeight={200}
+          rowHeight={col === 2 ? 100 : 200}
         >
           {el.files.map((file, i) => (
             <ImageListItem key={i}>
@@ -277,34 +327,50 @@ export const MediaMsg = memo(
     return (
       <Box data-ref={el.id} sx={{ scrollMarginTop: "20px" }}>
         {el?.isStartMsg ? <Timeline time={el?.timeOfStartMsg} /> : null}
-        <Stack
-          data-ref={el.id}
-          direction="row"
-          justifyContent={el.incoming ? "start" : "end"}
-          sx={{ position: "relative" }}
-        >
-          {el?.isReply ? (
-            <ReplyMsg
-              replyMsg={el.replyMsg}
-              handleGetToRepMsg={handleGetToRepMsg}
-            />
+        <Stack direction={"row"} alignItems={"center"} spacing={1}>
+          {el.incoming ? (
+            fromUserIds[el.id] && fromUserIds[el.id].length ? (
+              <Avatar
+                alt={fromUserIds[el.id]}
+                src={faker.image.avatar()}
+                // src={faker.image.avatar()}
+                sx={{
+                  width: 28,
+                  height: 28,
+                }}
+              />
+            ) : (
+              <div style={{ width: "28px" }}></div>
+            )
           ) : null}
-          {el?.isDeleted ? (
-            <DeletedMsg el={el} />
-          ) : (
-            <Box
-              sx={{
-                backgroundColor: el.incoming
-                  ? theme.palette.background.default
-                  : theme.palette.primary.main,
-                borderRadius: 1.5,
-                width: "max-content",
-                maxWidth: "70%",
-              }}
-              p={1}
-            >
-              {imgs}
-              {/* <a href={el.file} target="_blank" rel="noopener">
+          <Stack
+            data-ref={el.id}
+            direction="row"
+            justifyContent={el.incoming ? "start" : "end"}
+            sx={{ position: "relative", width: "100%" }}
+          >
+            {el?.isReply ? (
+              <ReplyMsg
+                replyMsg={el.replyMsg}
+                handleGetToRepMsg={handleGetToRepMsg}
+              />
+            ) : null}
+            {el?.isDeleted ? (
+              <DeletedMsg el={el} />
+            ) : (
+              <Box
+                sx={{
+                  backgroundColor: el.incoming
+                    ? theme.palette.background.default
+                    : theme.palette.primary.main,
+                  borderRadius: 1.5,
+                  width: "max-content",
+                  maxWidth: "70%",
+                }}
+                p={1}
+              >
+                {imgs}
+                {/* <a href={el.file} target="_blank" rel="noopener">
               <img
                 src={el.file}
                 alt={el.text}
@@ -319,10 +385,11 @@ export const MediaMsg = memo(
                 loading="lazy"
               />
             </a> */}
-            </Box>
-          )}
-          {menu && <MessageOptions msg={el} />}
-          <BadgeSign {...{ lastReadUserIds, el, isLastMsg }} />
+              </Box>
+            )}
+            {menu && <MessageOptions msg={el} />}
+            <BadgeSign {...{ lastReadUserIds, el, isLastMsg }} />
+          </Stack>
         </Stack>
       </Box>
     );
@@ -348,6 +415,7 @@ export const TextMsg = memo(
               <Avatar
                 alt={fromUserIds[el.id]}
                 src={faker.image.avatar()}
+                // src={faker.image.avatar()}
                 sx={{
                   width: 28,
                   height: 28,
@@ -620,12 +688,45 @@ export const MessageOptions = memo(({ msg }) => {
   );
 });
 
+const Keyframes = styled("div")({
+  "@keyframes pulsate": {
+    from: {
+      opacity: 1,
+      transform: "scale(1)",
+    },
+    to: {
+      opacity: 0,
+      transform: "scale(2)",
+    },
+  },
+  animation: "pulsate 1s infinite ease",
+  position: "absolute",
+});
+
+const StyledAvatar = styled(Avatar)(({ theme }) => ({
+  "@keyframes slideIn": {
+    from: {
+      transform: "translateY(-100px)",
+      opacity: 0,
+    },
+    50: {
+      opacity: 0.75,
+    },
+    to: {
+      transform: "translateY(0)",
+      opacity: 1,
+    },
+  },
+
+  animation: "1s ease-in 0s  forwards slideIn",
+}));
+
 export const BadgeSign = ({ lastReadUserIds, el, isLastMsg }) => {
   const content =
     lastReadUserIds[el.id] && lastReadUserIds[el.id].length ? ( // lastReadUserIds can not loop over very old msg and msg can have [] user seen due to this user seen msg later
       <AvatarGroup max={4}>
         {lastReadUserIds[el.id].map((userId, i) => (
-          <Avatar
+          <StyledAvatar
             key={i}
             alt={userId}
             src={faker.image.avatar()}

@@ -7,6 +7,12 @@ const initialState = {
     type: sidebarTypes.CONTACT, //can be CONTACT, STARRED, SHARED
   },
 
+  callConfirm: {
+    open: false,
+    roomId: "",
+    senderId: null,
+  },
+
   snackbar: {
     open: false,
     message: null,
@@ -50,6 +56,12 @@ const slice = createSlice({
     updateSidebar(state, action) {
       console.log("updateSidebar", action.payload);
       state.sidebar.type = action.payload.type;
+    },
+
+    updateCallConfirm(state, action) {
+      console.log("updateCallConfirm", action.payload);
+      const { open, roomId, senderId } = action.payload;
+      state.callConfirm = { open, roomId, senderId };
     },
 
     updateShowCvsComp(state, action) {
@@ -96,6 +108,7 @@ const slice = createSlice({
 
 // selectos
 export const selectSidebar = (state) => state.app.sidebar;
+export const selectCallConfirm = (state) => state.app.callConfirm;
 export const selectShowCvsComp = (state) => state.app.showConversationComp;
 
 export const selectClientId = (state) => state.app.clientId;
@@ -113,6 +126,7 @@ const { actions, reducer } = slice;
 export const {
   toggleSidebar,
   updateSidebar,
+  updateCallConfirm,
   updateShowCvsComp,
   openSnackbar,
   closeSnackbar,

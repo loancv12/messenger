@@ -2,22 +2,38 @@
 import Router from "./routes";
 import ThemeSettings from "./components/settings";
 import ThemeProvider from "./theme";
-import { Alert, Snackbar } from "@mui/material";
+import {
+  Alert,
+  Dialog,
+  DialogContent,
+  DialogContentText,
+  DialogTitle,
+  Snackbar,
+} from "@mui/material";
 import { useDispatch, useSelector } from "react-redux";
-import { closeSnackbar } from "./redux/app/appSlice";
+import { closeSnackbar, selectCallConfirm } from "./redux/app/appSlice";
 import SocketProvider from "./contexts/SocketProvider";
 import { Suspense, useEffect } from "react";
 import LoadingScreen from "./components/common/LoadingScreen";
 import askNotificationPermission from "./services/notification";
 import AuthProvider from "./contexts/AuthProvider";
+import CallConfirm from "./components/call/CallConfirm";
 
 const vertical = "bottom";
 const horizontal = "center";
 
 function App() {
-  const { open, message, severity } = useSelector(
-    (state) => state.app.snackbar
-  );
+  const {
+    open: snackbarOpen,
+    message,
+    severity,
+  } = useSelector((state) => state.app.snackbar);
+
+  const {
+    open: callConfirmOpen,
+    roomId,
+    senderId,
+  } = useSelector(selectCallConfirm);
   const dispatch = useDispatch();
   useEffect(() => {
     askNotificationPermission();
@@ -36,10 +52,10 @@ function App() {
           </ThemeSettings>
         </ThemeProvider>
       </Suspense>
-      {message && open ? (
+      {message && snackbarOpen ? (
         <Snackbar
           anchorOrigin={{ vertical, horizontal }}
-          open={open}
+          open={snackbarOpen}
           autoHideDuration={4000}
           key={vertical + horizontal}
           onClose={(e) => {
@@ -57,9 +73,10 @@ function App() {
             {message}
           </Alert>
         </Snackbar>
-      ) : (
-        <></>
-      )}
+      ) : null}
+      {callConfirmOpen && roomId && senderId ? (
+        <CallConfirm {...{ callConfirmOpen, roomId, senderId }} />
+      ) : null}
     </>
   );
 }

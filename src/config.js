@@ -2,7 +2,7 @@
 import { enUS, frFR, zhCN, viVN, arSD } from "@mui/material/locale";
 
 // routes
-import { PATH_DASHBOARD } from "./routes/paths";
+import { generalPath } from "./routes/paths";
 
 export const BASE_URL = import.meta.env.VITE_API_URL;
 
@@ -74,4 +74,4 @@ export const msgsLimit = 20;
 export const defaultLang = allLangs[0]; // English
 
 // DEFAULT ROOT PATH
-export const DEFAULT_PATH = PATH_DASHBOARD.general.app; // as '/app'
+export const DEFAULT_PATH = generalPath.app; // as '/app'

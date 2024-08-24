@@ -41,7 +41,50 @@ class SocketIOService {
   }
 }
 
+class CallSocket {
+  static #socket;
+  static #instance;
+
+  constructor() {
+    // Private constructor ensures singleton instance
+    if (!CallSocket.#instance) {
+      CallSocket.#instance = this;
+    }
+    return CallSocket.#instance;
+  }
+  initSocket() {
+    const namespace = "/call";
+    const host = `${BASE_URL}${namespace}`;
+    const options = {
+      autoConnect: false,
+    };
+
+    CallSocket.#socket = io(host, options);
+    return CallSocket.#socket;
+  }
+
+  connect(userId, roomId) {
+    console.log(userId, roomId);
+    const auth = { userId, roomId };
+    CallSocket.#socket.auth = auth;
+    CallSocket.#socket.connect();
+  }
+
+  ready() {
+    return CallSocket.#socket !== null;
+  }
+
+  getSocket() {
+    if (!CallSocket.#socket) {
+      throw new Error("Socket not initialization");
+    }
+    return CallSocket.#socket;
+  }
+}
+
 const instance = new SocketIOService();
 Object.freeze(instance);
+
+export const callInstance = new CallSocket();
 
 export default instance;

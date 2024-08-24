@@ -1,28 +1,20 @@
-const { createContext } = require("react");
+import { createContext } from "react";
 
-const CacheContext = createContext();
+export const CacheContext = createContext();
 
 export default function CacheProvider({ children }) {
   const map = new Map();
 
-  function getCache(key) {
+  async function getCache(key) {
     const cacheValue = map.get(key);
 
     if (!cacheValue) return undefined;
-    if (new Date().getTime() > cacheValue.expiry.getTime()) {
-      map.delete(key);
-      return undefined;
-    }
 
     return cacheValue.data;
   }
 
-  function setCache(key, value, ttl = 10) {
-    //10s
-    var t = new Date();
-    t.setSeconds(t.getSeconds() + ttl);
+  function setCache(key, value) {
     map.set(key, {
-      expiry: t,
       data: value,
     });
   }

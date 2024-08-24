@@ -12,6 +12,13 @@ import RequiredAuth from "../components/auth/RequiredAuth";
 import SocketProvider from "../contexts/SocketProvider";
 import PersistLogin from "../components/auth/PersistLogin";
 import NoCvs from "../components/conversation/NoCvs";
+import { dynamics, generalPath, path, specificPath } from "./paths";
+import { chatTypes } from "../redux/config";
+import CacheProvider from "../contexts/CacheProvider";
+import CallRoom from "../components/call/CallRoom";
+import { FullScreen } from "../components/call/FullScreen";
+import WaitRoom from "../components/call/WaitRoom";
+import Test from "../components/call/Test";
 
 const Loadable = (Component) => (props) => {
   return (
@@ -58,9 +65,11 @@ export default function Router() {
           children: [
             {
               element: (
-                <SocketProvider>
-                  <DashboardLayout />
-                </SocketProvider>
+                <CacheProvider>
+                  <SocketProvider>
+                    <DashboardLayout />
+                  </SocketProvider>
+                </CacheProvider>
               ),
               children: [
                 {
@@ -68,25 +77,42 @@ export default function Router() {
                   index: true,
                 },
                 {
-                  path: "direct-chat",
+                  path: generalPath[chatTypes.DIRECT_CHAT],
                   element: <DirectChatPage />,
                   children: [
                     { index: true, element: <NoCvs /> },
 
-                    { path: ":cvsId", element: <Conversation /> },
+                    { path: dynamics.cvs, element: <Conversation /> },
                   ],
                 },
                 {
-                  path: "group-chat",
+                  path: generalPath[chatTypes.GROUP_CHAT],
                   element: <GroupPage />,
                   children: [
                     { index: true, element: <NoCvs /> },
 
-                    { path: ":cvsId", element: <Conversation /> },
+                    { path: dynamics.cvs, element: <Conversation /> },
                   ],
                 },
-                { path: "settings", element: <Settings /> },
-                { path: "profile", element: <ProfilePage /> },
+                {
+                  path: generalPath.call,
+                  element: <FullScreen />,
+                  children: [
+                    {
+                      path: path(dynamics.call, specificPath.waitRoom),
+                      element: <WaitRoom />,
+                    },
+                    {
+                      path: path(dynamics.call, specificPath.callRoom),
+                      element: <CallRoom />,
+                    },
+                  ],
+                },
+                { path: generalPath.setting, element: <Settings /> },
+                {
+                  path: generalPath.profile,
+                  element: <ProfilePage />,
+                },
                 // { path: "*", element: <Navigate to="/404" replace /> },
               ],
             },

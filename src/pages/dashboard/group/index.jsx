@@ -25,12 +25,7 @@ const GroupChat = () => {
   );
   const navigate = useNavigate();
 
-  const handleBack = () => {
-    dispatch(updateShowCvsComp({ open: false }));
-  };
-
   useEffect(() => {
-    dispatch(setChatType({ chatType: chatTypes.GROUP_CHAT }));
     if (currentCvsId) {
       navigate(currentCvsId);
     }
@@ -39,7 +34,8 @@ const GroupChat = () => {
   return (
     <LeftAsideLayout isShowRightAside={sidebar.open}>
       <Group />
-      <Outlet handleBack={handleBack} />
+      <Outlet context={{ chatType: chatTypes.GROUP_CHAT }} />
+
       {(() => {
         switch (sidebar.type) {
           case "CONTACT":

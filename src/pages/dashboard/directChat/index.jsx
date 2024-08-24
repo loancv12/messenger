@@ -24,12 +24,7 @@ const DirectChat = () => {
 
   const navigate = useNavigate();
 
-  const handleBack = () => {
-    dispatch(updateShowCvsComp({ open: false }));
-  };
-
   useEffect(() => {
-    dispatch(setChatType({ chatType: chatTypes.DIRECT_CHAT }));
     if (currentCvsId) {
       navigate(currentCvsId);
     }
@@ -39,7 +34,7 @@ const DirectChat = () => {
     <LeftAsideLayout isShowRightAside={sidebar.open}>
       <Chats />
       {/* <DirectMsgs /> */}
-      <Outlet handleBack={handleBack} />
+      <Outlet context={{ chatType: chatTypes.DIRECT_CHAT }} />
       {(() => {
         switch (sidebar.type) {
           case "CONTACT":

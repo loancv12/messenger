@@ -4,6 +4,7 @@ import {
   selectClientId,
   setClientId,
   showSnackbar,
+  updateCallConfirm,
 } from "../redux/app/appSlice";
 import {
   handleCreateGroupRet,
@@ -29,11 +30,14 @@ import useAuth from "../hooks/useAuth";
 import instance from "../socket";
 import { axiosPrivate } from "../services/axios/axiosClient";
 import { v4 as uuidv4 } from "uuid";
+import { Navigate, useNavigate } from "react-router-dom";
+import { generalPath, path, specificPath } from "../routes/paths";
 
 const socket = instance.initSocket();
 
 const SocketWrapper = ({ children }) => {
   const dispatch = useDispatch();
+  const navigate = useNavigate();
   const { userId } = useAuth();
   const isFirstMount = useRef(true);
 
@@ -242,6 +246,11 @@ const SocketWrapper = ({ children }) => {
       dispatch(handleUpdateReadUsers(data));
     });
 
+    // call
+    socket.on("call_invite", ({ roomId, senderId }) => {
+      dispatch(updateCallConfirm({ open: true, roomId, senderId }));
+    });
+
     // socket.onAny((event, ...args) => {
     //   console.log(event, args);
     // })  ;
@@ -277,6 +286,7 @@ const SocketWrapper = ({ children }) => {
       socket.off("delete_message_ret");
       socket.off("update_sent_success");
       socket.off("update_read_users");
+      socket.off("call_invite");
       socket.disconnect();
     };
   }, []);

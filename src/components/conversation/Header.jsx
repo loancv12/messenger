@@ -20,23 +20,24 @@ import { toggleSidebar, selectChatType } from "../../redux/app/appSlice";
 import { useDispatch, useSelector } from "react-redux";
 import { selectCurrCvs } from "../../redux/conversation/conversationSlice";
 import { chatTypes } from "../../redux/config";
-import { Navigate, useNavigate } from "react-router-dom";
-import CallDialog from "./CallDialog";
+import { useLocation, useNavigate } from "react-router-dom";
 import { useState } from "react";
+import { v4 as uuidv4 } from "uuid";
+import { generalPath, path, specificPath } from "../../routes/paths";
 
-function Header() {
+function Header({ chatType }) {
   const dispatch = useDispatch();
-  const chatType = useSelector(selectChatType);
-  const currentCvs = useSelector((state) => selectCurrCvs(state, chatType));
-
-  const [open, setOpen] = useState(false);
-
-  const handleClose = (value) => {
-    setOpen(false);
-  };
+  const navigate = useNavigate();
+  const location = useLocation();
+  const currentCvs = useSelector(selectCurrCvs);
 
   const handleCallVideo = () => {
-    setOpen(true);
+    const roomId = uuidv4();
+    navigate(path(generalPath.call, roomId, "/", specificPath.callRoom), {
+      state: {
+        prevPath: location.pathname,
+      },
+    });
   };
 
   return (
@@ -63,7 +64,7 @@ function Header() {
                 {currentCvs?.userIds?.map((userId, index) => {
                   return (
                     <Avatar
-                      key={index}
+                      key={userId}
                       alt={faker.person.fullName()}
                       src={faker.image.avatar()}
                     />
@@ -119,7 +120,6 @@ function Header() {
           </IconButton>
         </Stack>
       </Stack>
-      {open ? <CallDialog open={open} onClose={handleClose} /> : null}
     </>
   );
 }

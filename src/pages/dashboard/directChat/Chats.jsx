@@ -37,13 +37,18 @@ import LoadingScreen from "../../../components/common/LoadingScreen";
 import { useSelector } from "react-redux";
 import { dispatch } from "../../../redux/store";
 import { chatTypes, noticeTypes } from "../../../redux/config";
-import { selectNotice, updateNotice } from "../../../redux/app/appSlice";
+import {
+  selectNotice,
+  setChatType,
+  updateNotice,
+} from "../../../redux/app/appSlice";
 import toCamelCase from "../../../utils/toCamelCase";
 import useLocales from "../../../hooks/useLocales";
 import { fetchConversations } from "../../../redux/conversation/conversationApi";
 import useAxios from "../../../hooks/useAxios";
 import ChatSkeleton from "../../../components/chat/ChatSkeleton";
 import { selectCvssDefinedChatType } from "../../../redux/conversation/conversationSlice";
+import useDebounceFilter from "../../../hooks/useDebounceFilter";
 
 const Chats = memo(() => {
   const [openDialog, setOpenDialog] = useState(false);
@@ -56,6 +61,10 @@ const Chats = memo(() => {
   const conversations = useSelector((state) =>
     selectCvssDefinedChatType(state, chatTypes.DIRECT_CHAT)
   );
+
+  const { query, setFilteredList, handleChange, filteredList } =
+    useDebounceFilter(conversations, "msg");
+
   const { translate } = useLocales();
 
   const handleOpenDialog = () => {
@@ -73,6 +82,8 @@ const Chats = memo(() => {
   };
 
   useEffect(() => {
+    dispatch(setChatType({ chatType: chatTypes.DIRECT_CHAT }));
+
     const fetchCvs = async () => {
       await callAction(fetchConversations({ type: chatTypes.DIRECT_CHAT }));
     };
@@ -84,14 +95,18 @@ const Chats = memo(() => {
     };
   }, []);
 
+  useEffect(() => {
+    setFilteredList(conversations);
+  }, [conversations]);
+
   let cvsContent;
   if (isLoading) {
     cvsContent = [...Array(6).keys()].map((_, i) => <ChatSkeleton key={i} />);
   } else if (isError) {
     cvsContent = <Typography>Something wrong</Typography>;
   } else {
-    cvsContent = conversations.map((el, i) => {
-      return <ChatElement key={i} {...el} />;
+    cvsContent = filteredList.map((el, i) => {
+      return <ChatElement key={el.id} {...el} />;
     });
   }
 
@@ -144,7 +159,11 @@ const Chats = memo(() => {
             <SearchIconWrapper>
               <MagnifyingGlass color="#704324" />
             </SearchIconWrapper>
-            <StyledInputBase placeholder="Search" />
+            <StyledInputBase
+              value={query}
+              onChange={handleChange}
+              placeholder="Search"
+            />
           </Search>
         </Stack>
 

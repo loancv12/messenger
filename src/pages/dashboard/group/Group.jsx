@@ -41,6 +41,8 @@ import useLocales from "../../../hooks/useLocales";
 import { fetchConversations } from "../../../redux/conversation/conversationApi";
 import useAxios from "../../../hooks/useAxios";
 import ChatSkeleton from "../../../components/chat/ChatSkeleton";
+import { debounce } from "../../../utils/debounce";
+import useDebounceFilter from "../../../hooks/useDebounceFilter";
 
 const Group = () => {
   const theme = useTheme();
@@ -51,13 +53,16 @@ const Group = () => {
 
   const [open, setOpen] = useState(false);
   const [openDialog, setOpenDialog] = useState(false);
+  const conversations = useSelector((state) =>
+    selectCvssDefinedChatType(state, chatTypes.GROUP_CHAT)
+  );
+
+  const { query, setFilteredList, handleChange, filteredList } =
+    useDebounceFilter(conversations, "msg");
 
   const dispatch = useDispatch();
   const joinGroupReqNotice = useSelector((state) =>
     selectNotice(state, noticeTypes.JOIN_GROUP_REQ)
-  );
-  const conversations = useSelector((state) =>
-    selectCvssDefinedChatType(state, chatTypes.GROUP_CHAT)
   );
 
   const handleClose = () => {
@@ -74,16 +79,23 @@ const Group = () => {
   };
 
   useEffect(() => {
+    dispatch(setChatType({ chatType: chatTypes.GROUP_CHAT }));
+
     const fetchCvs = async () => {
       await callAction(fetchConversations({ type: chatTypes.GROUP_CHAT }));
     };
     if (!isFirstMount.current || process.env.NODE_ENV !== "development") {
       fetchCvs();
     }
+
     return () => {
       isFirstMount.current = false;
     };
   }, []);
+
+  useEffect(() => {
+    setFilteredList(conversations);
+  }, [conversations]);
 
   let cvsContent;
   if (isLoading) {
@@ -91,8 +103,8 @@ const Group = () => {
   } else if (isError) {
     cvsContent = <Typography>Something wrong</Typography>;
   } else {
-    cvsContent = conversations.map((el, i) => {
-      return <ChatElement key={i} {...el} />;
+    cvsContent = filteredList.map((el, i) => {
+      return <ChatElement key={el.id} {...el} />;
     });
   }
 
@@ -149,7 +161,11 @@ const Group = () => {
                 <SearchIconWrapper>
                   <MagnifyingGlass color="#704324" />
                 </SearchIconWrapper>
-                <StyledInputBase placeholder="Search" />
+                <StyledInputBase
+                  value={query}
+                  onChange={handleChange}
+                  placeholder="Search"
+                />
               </Search>
             </Stack>
             <Stack

@@ -48,7 +48,7 @@ import useAxios from "../../hooks/useAxios";
 import { useGetTestMutation } from "../../redux/app/api";
 import { ArrowCircleDown } from "phosphor-react";
 import { chatTypes } from "../../redux/config";
-import { useParams } from "react-router-dom";
+import { useLocation, useParams } from "react-router-dom";
 import instance from "../../socket";
 
 function transformMessages(rawMsg, userId) {
@@ -98,13 +98,17 @@ const findAndScrollToView = (msgId) => {
   }
 };
 
-const getLastReadUserIds = (currentMsgs, numOfParticipants, curUserId) => {
+const getLastReadUserIds = (
+  currentMsgs,
+  numOfParticipants,
+  curUserId,
+  lastMsgId
+) => {
   let lastReadUserIds = {};
   let haveLastReadMsgUser = [];
   for (let i = currentMsgs.length - 1; i >= 0; i--) {
     const currMsg = currentMsgs[i];
     const { readUserIds: currMsgReadUserIds } = currMsg;
-
     // if all user have their last read msg, break
     if (haveLastReadMsgUser.length === numOfParticipants) {
       break;
@@ -148,13 +152,19 @@ const getFromUserIds = (currentMsgs, userId) => {
   return list;
 };
 
-function Messages({ menu }) {
+function Messages({ menu, chatType }) {
   const socket = instance.getSocket();
 
   const [showArrScrollBtm, setShowArrScrollBtm] = useState(false);
   const deferredShow = useDeferredValue(showArrScrollBtm);
 
   const { cvsId } = useParams();
+  // due to useEffect to update chatType is run after this comp,
+  // so to get msg attach to correct chatType,
+  // i must use location to get chatType
+  // i cannot update chatType in here cause  direct and group chat comp both use this component
+  // i can put chatType to useEffect that call get msg, but it will make another call
+  // other solution is setTimeout to call get msg, but my app already slow :<<
   const { userId } = useAuth();
   const dispatch = useDispatch();
 
@@ -175,7 +185,6 @@ function Messages({ menu }) {
     isError: isErrorGetRep,
   } = useAxios("get rep");
 
-  const chatType = useSelector(selectChatType);
   const currentCvsId = useSelector(selectCurrCvsId);
   const currentMsgs = useSelector(selectCurrentMsgs);
   const numOfParticipants = useSelector(selectNumOfParticipants);
@@ -187,6 +196,7 @@ function Messages({ menu }) {
   const outerScrollBox = useRef();
   const topTargetRef = useRef();
   const bottomTargetRef = useRef();
+  const middleTargetRef = useRef();
 
   // set Number.MAX_SAFE_INTEGER value to prevent 'scroll up enter' of target element
   // of intersection observer during the first invoke callback
@@ -300,12 +310,14 @@ function Messages({ menu }) {
     entries.forEach((entry) => {
       const isIntersecting = entry.isIntersecting;
       intersectRelateRef.current.isVeryBottom = isIntersecting;
+    });
+  };
 
-      // actually, first i use useEffect with dep is intersectRelateRef.current.isVeryBottom,it not work cause
-      // dependencies in useEffect is The list of all reactive values referenced inside of the setup code.
-      // Reactive values include props, state, and all the variables and functions declared directly inside your component body
-      // ofcourse value of refObject is not that
-      setShowArrScrollBtm(!isIntersecting);
+  // show scroll to bottom based on middle target
+  const handleMiddleIntersect = (entries) => {
+    entries.forEach((entry) => {
+      const isIntersecting = entry.isIntersecting;
+      setShowArrScrollBtm(isIntersecting);
     });
   };
 
@@ -326,22 +338,18 @@ function Messages({ menu }) {
       root: outerScrollBox.current,
     });
 
+    const observerMiddle = new IntersectionObserver(handleMiddleIntersect, {
+      root: outerScrollBox.current,
+    });
+
     observerTop.observe(topTargetRef.current);
     observerBottom.observe(bottomTargetRef.current);
-
-    // const lastMsgCreated = currentMsgs[currentMsgs.length - 1].createdAt;
-    // const conversationId = currentMsgs[currentMsgs.length - 1].conversationId;
-    const intervalId = setInterval(function () {
-      // socket.emit("seen-msg", {
-      //   lastMsgCreated,
-      //   chatType,
-      // });
-    }, 1000);
+    observerMiddle.observe(middleTargetRef.current);
 
     return () => {
       observerTop.disconnect();
       observerBottom.disconnect();
-      clearInterval(intervalId);
+      observerMiddle.disconnect();
     };
   }, []);
 
@@ -391,9 +399,10 @@ function Messages({ menu }) {
   // 2 case for change currentMsg: after call setMessage, call addMsg.
   useEffect(() => {
     const isMsgAddedRet = isMsgAdded();
-    // we can comfirm that to user seen msg by emit a event when isMsgAdded (to user of msg added is this user), this event will emit to from user to update unseen
     const latestMsg = currentMsgs[currentMsgs.length - 1];
 
+    // we can comfirm that to user seen msg by emit a event
+    // when isMsgAdded (to user of msg added is this user), this event will emit to from user to update unseen
     const isAllMsgRead = latestMsg?.readUserIds?.includes(userId);
     if (
       isMsgAddedRet &&
@@ -418,7 +427,8 @@ function Messages({ menu }) {
     }
 
     let timeId;
-    // when msg add and isVeryBottom, incase not isVeryBottom( we scroll to up before) and isMsgAddedRet, not scroll again to bottom
+
+    // incase not isVeryBottom( we scroll to up before) and isMsgAddedRet, not scroll again to bottom
     if (intersectRelateRef.current.isVeryBottom && isMsgAddedRet) {
       // make sure that scroll to btm after all UI is render
       timeId = setTimeout(function () {
@@ -426,12 +436,14 @@ function Messages({ menu }) {
       }, 0);
     }
 
+    // scroll to old pos after run get next msg
     if (intersectRelateRef.current.runGetNext) {
       findAndScrollToView(intersectRelateRef.current.oldestMsgId);
       intersectRelateRef.current.runGetNext = false;
     }
 
     // findAndScrollToView MUST before setting oldestMsgId
+    // update latestMsgId and oldestMsgId
     if (currentMsgs?.length) {
       intersectRelateRef.current.lastMsgId = latestMsg?.id;
       intersectRelateRef.current.oldestMsgId = currentMsgs[0]?.id;
@@ -473,17 +485,22 @@ function Messages({ menu }) {
   } else if (isErrorMsgs) {
     msgs = <Typography>Some thing wrong</Typography>;
   } else {
+    // get obj that key is msgId and value is list of userId Whose last read msgId is key
     const lastReadUserIds = getLastReadUserIds(
       currentMsgs,
       numOfParticipants,
-      userId
+      userId,
+      intersectRelateRef // cause of useEffect run after
     );
+
+    // get obj that key is msgId and value is userId,
+    // msgId have value if this msgId is the latest msg among a chunk of same from user msgs
     const fromUserIds = getFromUserIds(currentMsgs, userId);
 
     msgs = currentMsgs?.map((el, i) => {
       const props = {
         el: transformMessages(el, userId),
-        key: i,
+        key: el.id,
         menu,
         isLastMsg: i === currentMsgs.length - 1,
         handleGetToRepMsg,
@@ -572,6 +589,17 @@ function Messages({ menu }) {
           ></Typography>
 
           {msgs}
+          <Typography
+            ref={middleTargetRef}
+            sx={{
+              position: "absolute",
+              bottom: "200px",
+              left: 0,
+              marginTop: "0 !important",
+              height: "1px",
+              width: "1px",
+            }}
+          ></Typography>
           <Typography
             ref={bottomTargetRef}
             sx={{ marginTop: "0 !important", height: "1px" }}

@@ -1,7 +1,6 @@
 import { IconButton, Stack, useTheme } from "@mui/material";
 import { Smiley } from "phosphor-react";
 import { useDeferredValue, useEffect, useLayoutEffect, useState } from "react";
-import throttle from "../../utils/throttle";
 
 const MIN_TEXTAREA_HEIGHT = 49;
 const ChatInput = ({ setOpenPicker, textRef }) => {
