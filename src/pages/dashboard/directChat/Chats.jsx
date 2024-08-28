@@ -45,7 +45,7 @@ import {
 import toCamelCase from "../../../utils/toCamelCase";
 import useLocales from "../../../hooks/useLocales";
 import { fetchConversations } from "../../../redux/conversation/conversationApi";
-import useAxios from "../../../hooks/useAxios";
+import useAxiosPrivate from "../../../hooks/useAxiosPrivate";
 import ChatSkeleton from "../../../components/chat/ChatSkeleton";
 import { selectCvssDefinedChatType } from "../../../redux/conversation/conversationSlice";
 import useDebounceFilter from "../../../hooks/useDebounceFilter";
@@ -53,7 +53,7 @@ import useDebounceFilter from "../../../hooks/useDebounceFilter";
 const Chats = memo(() => {
   const [openDialog, setOpenDialog] = useState(false);
   const isFirstMount = useRef(true);
-  const { callAction, isLoading, isError } = useAxios("direct chat");
+  const { callAction, isLoading, isError } = useAxiosPrivate();
 
   const friendReqNotice = useSelector((state) =>
     selectNotice(state, noticeTypes.FRIEND_REQ)
@@ -88,7 +88,9 @@ const Chats = memo(() => {
       await callAction(fetchConversations({ type: chatTypes.DIRECT_CHAT }));
     };
     if (!isFirstMount.current || process.env.NODE_ENV !== "development") {
-      fetchCvs();
+      if (!conversations.length) {
+        fetchCvs();
+      }
     }
     return () => {
       isFirstMount.current = false;

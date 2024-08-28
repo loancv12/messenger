@@ -6,13 +6,13 @@ const Video = ({ peer, setNumOfUserJoin }) => {
   const isFirstMount = useRef(true);
 
   useEffect(() => {
-    console.log("peer", peer);
-    if (isFirstMount.current === false) {
+    if (
+      isFirstMount.current === false ||
+      process.env.NODE_ENV !== "development"
+    ) {
       peer.on("stream", (stream) => {
         setNumOfUserJoin((prev) => prev + 1);
-        console.log("stream event of video fires", stream);
         ref.current.srcObject = stream;
-        // ref.current.play();
       });
       peer.on("close", () => {
         console.log("peer close");

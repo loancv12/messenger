@@ -19,6 +19,21 @@ export const logInUser = (formValues) =>
     },
   });
 
+export const logInWithGg = () =>
+  apiAction({
+    url: "/auth/login/google",
+    method: "GET",
+    onSuccess: (res) => {
+      const { data: token, message } = res.data;
+      console.log("set token", token);
+      dispatch(
+        setCredentials({
+          token,
+        })
+      );
+    },
+  });
+
 export const refresh = () =>
   apiAction({
     url: "/auth/refresh",
@@ -38,7 +53,8 @@ export const logOutUser = (clientId) =>
     data: { clientId },
     onSuccess: (res) => {
       dispatch(logout());
-      window.localStorage.removeItem("userId");
+      localStorage.removeItem("isAuthenticated", true);
+      localStorage.removeItem("userId");
       persistor.purge().then(() => {
         dispatch({ type: "reset" });
         console.log("Persisted state has been cleared.");

@@ -19,9 +19,7 @@ import { logInUser } from "../../redux/auth/authApi";
 import { useDispatch } from "react-redux";
 import transform from "../../utils/transform";
 import usePersist from "../../hooks/usePersist";
-import useAxios from "../../hooks/useAxios";
 import useAxiosPublic from "../../hooks/useAxiosPublic";
-import { DEFAULT_PATH } from "../../config";
 
 const LoginForm = () => {
   const [showPwd, setShowPwd] = useState(false);

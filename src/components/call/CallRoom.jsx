@@ -24,27 +24,32 @@ import {
 } from "phosphor-react";
 import { faker } from "@faker-js/faker";
 
+const initialSocket = (userId, roomId) => {
+  return callInstance.initAndConnect(userId, roomId);
+};
 function CallRoom() {
   const defaultSettings = {
     video: true,
     audio: true,
   };
 
-  const callSocket = callInstance.initSocket();
   const socket = instance.getSocket();
   const isFirstMount = useRef(true);
   const location = useLocation();
   const navigate = useNavigate();
 
-  const otherUserIdsInCvs = useSelector(selectPeopleInCvs);
-
   const { userId } = useAuth();
   const { roomId } = useParams();
+  // const callSocket = callInstance.initAndConnect(userId, roomId);
+  const [callSocket, _] = useState(initialSocket);
+  console.log(
+    "check ref of socket 1",
+    Object.is(callSocket, callInstance.getSocket())
+  );
 
+  const otherUserIdsInCvs = useSelector(selectPeopleInCvs);
   const streamRef = useRef();
   const userIdsJoinBeforeRef = useRef();
-
-  const [numOfUserJoin, setNumOfUserJoin] = useState(0);
 
   const [btnsStatus, setBtnsStatus] = useState({
     video: "disable", // on off
@@ -63,42 +68,15 @@ function CallRoom() {
   });
 
   const [peerObjs, setPeerObjs] = useState([]); // handle state issue
+  const peerObjsRef = useRef([]); // handle ref issue, use in callback in event
+
+  const [numOfUserJoin, setNumOfUserJoin] = useState(0);
+  const numOfUserJoinRef = useRef(0); // use in callback in event
 
   const currentUserVideoRef = useRef(null);
 
-  // TODO: destroy all peer of other user, handle audio volumn..., handle call off=> emit event to notice a user call off
-  //  stopTracksAndDeletePeers and setCallStatus: callOff, setPeerObjs=null, numOfUserJoin=0
-  // other user will listen event user_leave, if no one there, stopTracksAndDeletePeers, setCallStatus: callOff, setPeerObjs=null, numOfUserJoin=0
-
-  // handle refresh page
-  const stopTracksAndDeletePeers = () => {
-    console.log("stopTracksAndDeletePeers");
-    if (currentUserVideoRef.current?.srcObject) {
-      stopStreamedVideo(currentUserVideoRef.current);
-    }
-
-    if (peerObjs.length) {
-      peerObjs.forEach((peerObj) => {
-        console.log("peerObj in handleUpCall", peerObj);
-        peerObj.peer.destroy();
-      });
-    }
-  };
-  const handleCallOff = () => {
-    stopTracksAndDeletePeers();
-    setCallStatus("callOff");
-    callSocket.emit("leave_room", {
-      roomId,
-      userId,
-    });
-  };
-
-  const handleCallAgain = () => {
-    // TODO
-    console.log(handleCallAgain);
-  };
-
   const handleInviteOtherUser = (otherUserIdsInCvs) => {
+    console.log("instance.getSocket()", instance.getSocket(), socket);
     instance.getSocket().emit("make_invite_call", {
       roomId,
       senderId: userId,
@@ -109,6 +87,60 @@ function CallRoom() {
   const handleInvitationDenied = () => {
     stopTracksAndDeletePeers();
     setCallStatus("callDenied");
+  };
+
+  // handle refresh page
+  const stopTracksAndDeletePeers = () => {
+    console.log("stopTracksAndDeletePeers");
+    if (currentUserVideoRef.current?.srcObject) {
+      stopStreamedVideo(currentUserVideoRef.current);
+    }
+
+    peerObjsRef.current = [];
+    if (peerObjs.length) {
+      peerObjs.forEach((peerObj) => {
+        console.log("peerObj in handleUpCall", peerObj);
+        peerObj.peer.destroy();
+      });
+    }
+  };
+  const handleCallOff = () => {
+    console.log(
+      "check ref of socket 2",
+      Object.is(callSocket, callInstance.getSocket())
+    );
+    setCallStatus("callOff");
+    setPeerObjs([]);
+    peerObjsRef.current = [];
+    setNumOfUserJoin(0);
+    numOfUserJoinRef.current = 0;
+
+    callInstance.getSocket().emit("leave_room", {
+      userId,
+      roomId,
+      otherUserIdsInCvs,
+    });
+    stopTracksAndDeletePeers();
+  };
+
+  const handleUserLeave = (userIdOfOtherSide) => {
+    console.log("run handleUserLeave", userIdOfOtherSide);
+    const stillSomeOneInRoom =
+      otherUserIdsInCvs.length !== numOfUserJoinRef.current &&
+      numOfUserJoinRef.current !== 0;
+
+    if (!stillSomeOneInRoom) {
+      handleCallOff();
+    } else {
+      const otherPeerObj = peerObjsRef.current.filter(
+        (peerObj) => peerObj.userIdOfOtherSide === userIdOfOtherSide
+      );
+
+      setPeerObjs(otherPeerObj);
+      peerObjsRef.current = otherPeerObj;
+      setNumOfUserJoin(numOfUserJoinRef.current - 1);
+      numOfUserJoinRef.current = numOfUserJoinRef.current - 1;
+    }
   };
 
   // join later will call this
@@ -135,11 +167,10 @@ function CallRoom() {
     });
 
     peer.on("close", () => {
-      console.log("peer close");
+      console.log("peer close on create room");
     });
     peer.on("connect", () => {
       console.log("CONNECT");
-      peer.send("whatever" + Math.random()); // Or Files
     });
 
     return peer;
@@ -164,7 +195,7 @@ function CallRoom() {
     });
 
     peer.on("close", () => {
-      console.log("peer close");
+      console.log("peer close at add peer");
     });
     peer.on("connect", () => {
       console.log("CONNECT");
@@ -172,6 +203,10 @@ function CallRoom() {
     });
 
     return peer;
+  };
+
+  const handleCallAgain = () => {
+    // TODO
   };
 
   const handleClose = () => {
@@ -203,9 +238,6 @@ function CallRoom() {
             currentUserVideoRef.current.onloadedmetadata = resolve;
           });
         })
-        .then(() => {
-          // getCurrentSettings();
-        })
         .catch((error) => {
           console.log(error);
           if (error.toString() === "NotAllowedError: Permission denied") {
@@ -228,9 +260,7 @@ function CallRoom() {
         .enumerateDevices()
         .then((devices) => {
           devices.forEach((device) => {
-            console.log(
-              `${device.kind}: ${device.label} id = ${device.deviceId}`
-            );
+            //
           });
 
           // check access
@@ -269,52 +299,61 @@ function CallRoom() {
           userIdJoinBefore,
           userId
         );
-        return {
+
+        const newPeerObj = {
           userIdOfOtherSide: userIdJoinBefore,
           peer,
         };
-      });
-
-      // join before will get it
-      callSocket.on("signal_of_join_later", (data) => {
-        console.log("join before get signal of join later", data);
-
-        const { signal: joinLaterSignal, userIdJoinLater } = data;
-        const peer = addPeer(userId, userIdJoinLater);
-        const newPeerObj = {
-          userIdOfOtherSide: userIdJoinLater,
-          peer,
-        };
-        setPeerObjs((prev) => [...prev, newPeerObj]);
-        // not until video element was add to DOM that peer of join before answer peer of join after
-        setWaitForVideoElement({
-          isWait: true,
-          userIdOfOtherSide: userIdJoinLater,
-          signal: joinLaterSignal,
-        });
-      });
-
-      // join later will get it
-      callSocket.on("signal_of_join_before", (data) => {
-        console.log("join later get signal of join before", data);
-        const { signal: joinLaterBefore, userIdJoinBefore } = data;
-        const foundPeerObj = peerObjs.find(
-          (peerObjs) => peerObjs.userIdOfOtherSide === userIdJoinBefore
-        );
-        foundPeerObj.peer.signal(joinLaterBefore);
+        peerObjsRef.current.push(newPeerObj);
+        return newPeerObj;
       });
 
       setPeerObjs(peerObjs);
+    });
+
+    // join before will get it
+    callSocket.on("signal_of_join_later", (data) => {
+      const { signal: joinLaterSignal, userIdJoinLater } = data;
+      const peer = addPeer(userId, userIdJoinLater);
+      const newPeerObj = {
+        userIdOfOtherSide: userIdJoinLater,
+        peer,
+      };
+      peerObjsRef.current.push(newPeerObj);
+      setPeerObjs((prev) => [...prev, newPeerObj]);
+      // not until video element was add to DOM that peer of join before answer peer of join after
+      setWaitForVideoElement({
+        isWait: true,
+        userIdOfOtherSide: userIdJoinLater,
+        signal: joinLaterSignal,
+      });
+    });
+
+    // join later will get it
+    callSocket.on("signal_of_join_before", (data) => {
+      const { signal: joinLaterBefore, userIdJoinBefore } = data;
+      const foundPeerObj = peerObjsRef.current.find(
+        (peerObjs) => peerObjs.userIdOfOtherSide === userIdJoinBefore
+      );
+      foundPeerObj.peer.signal(joinLaterBefore);
+    });
+
+    callSocket.on("a_user_leave_room", (data) => {
+      console.log("a_user_leave_room", data);
+      handleUserLeave(data.userId);
     });
   };
 
   useEffect(() => {
     if (!callSocket.connected) {
-      console.log(userId, roomId);
       callInstance.connect(userId, roomId);
     }
+    console.log(
+      "check ref of socket",
+      Object.is(callSocket, callInstance.getSocket())
+    );
     callSocket.on("connect", () => {
-      console.log("connect to call socket");
+      console.log("callSocket connect");
     });
     callSocket.on("disconnect", (reason, details) => {
       console.log("onDisconnect", reason, callSocket);
@@ -343,7 +382,10 @@ function CallRoom() {
       }
     });
 
-    if (isFirstMount.current === false) {
+    if (
+      isFirstMount.current === false ||
+      process.env.NODE_ENV !== "development"
+    ) {
       checkDeviceSupport(checkAccess, startVideo);
     }
 
@@ -363,6 +405,7 @@ function CallRoom() {
       setBtnsStatus({ video: "on", audio: "on" });
       setCallStatus("calling");
     }
+    numOfUserJoinRef.current = numOfUserJoin;
   }, [numOfUserJoin]);
 
   useEffect(() => {
@@ -468,7 +511,6 @@ function CallRoom() {
       </Box>
     );
   } else {
-    console.log(callStatus);
     content = (
       <>
         {/* other user video  */}

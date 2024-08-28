@@ -6,7 +6,7 @@ import { fetchUsers } from "../../redux/relationShip/relationShipApi";
 import { Box, Typography } from "@mui/material";
 import { selectUsers } from "../../redux/relationShip/relationShipSlice";
 import useAuth from "../../hooks/useAuth";
-import useAxios from "../../hooks/useAxios";
+import useAxiosPrivate from "../../hooks/useAxiosPrivate";
 import instance from "../../socket";
 
 const Users = () => {
@@ -20,7 +20,7 @@ const Users = () => {
     socket.emit("make_friend_request", { to: id, from: userId });
   };
 
-  const { callAction, isLoading, isError, error } = useAxios("Users");
+  const { callAction, isLoading, isError, error } = useAxiosPrivate();
   const isFirstMount = useRef(true);
 
   useEffect(() => {

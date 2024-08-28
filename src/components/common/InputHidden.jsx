@@ -74,6 +74,9 @@ function InputHidden({ setFiles, name }) {
     }
 
     setFiles(filteredFiles);
+
+    // 👇️ reset the file input
+    e.target.value = null;
   };
 
   return (

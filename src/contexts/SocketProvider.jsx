@@ -41,11 +41,8 @@ const SocketWrapper = ({ children }) => {
   const { userId } = useAuth();
   const isFirstMount = useRef(true);
 
-  console.log("socket providers rerender", socket);
-
   useEffect(() => {
     let clientId = sessionStorage.getItem("mess_clientId") || "";
-    console.log("socket  connected", socket.connected);
     if (!socket.connected) {
       // when user login, no clientId in there => create one in fe=> send to server =>create a in db, connect to socket by it
       // when user reload, there a clientId there => no create one in fe=> send to server =>
@@ -62,21 +59,25 @@ const SocketWrapper = ({ children }) => {
       }
 
       const sendClient = async () => {
-        const ret = await axiosPrivate({
-          url: "/client/create-client",
-          method: "POST",
-          data: { clientId, userId },
-        });
+        try {
+          const ret = await axiosPrivate({
+            url: "/client/create-client",
+            method: "POST",
+            data: { clientId, userId },
+          });
 
-        if (ret.data.message === "Duplicate clientId") {
-          clientId = ret.data.data;
-          sessionStorage.setItem("mess_clientId", clientId);
+          if (ret.data.message === "Duplicate clientId") {
+            clientId = ret.data.data;
+            sessionStorage.setItem("mess_clientId", clientId);
+          }
+
+          dispatch(setClientId({ clientId }));
+          instance.connect(userId, clientId);
+        } catch (error) {
+          dispatch(
+            showSnackbar({ severity: "error", message: "something wrong" })
+          );
         }
-
-        dispatch(setClientId({ clientId }));
-        instance.connect(userId, clientId);
-
-        console.log("ret of create client", ret);
       };
       if (
         isFirstMount.current === false ||
@@ -85,10 +86,6 @@ const SocketWrapper = ({ children }) => {
         sendClient();
       }
     }
-
-    socket.on("ping", (value) => {
-      console.log("ping", value);
-    });
 
     // upon connection or reconnection
     socket.on("connect", () => {
@@ -172,7 +169,7 @@ const SocketWrapper = ({ children }) => {
       console.log(userId, "Is Offline!"); // update offline status
     });
 
-    // only sender receive this
+    // make friend
     socket.on("send_req_ret", (data) => {
       dispatch(handleSendReqRet(data));
     });
@@ -250,10 +247,6 @@ const SocketWrapper = ({ children }) => {
     socket.on("call_invite", ({ roomId, senderId }) => {
       dispatch(updateCallConfirm({ open: true, roomId, senderId }));
     });
-
-    // socket.onAny((event, ...args) => {
-    //   console.log(event, args);
-    // })  ;
 
     return () => {
       isFirstMount.current = false;

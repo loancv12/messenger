@@ -19,6 +19,7 @@ import CallRoom from "../components/call/CallRoom";
 import { FullScreen } from "../components/call/FullScreen";
 import WaitRoom from "../components/call/WaitRoom";
 import Test from "../components/call/Test";
+import PreventLoginAgain from "../components/auth/PreventLoginAgain";
 
 const Loadable = (Component) => (props) => {
   return (
@@ -35,24 +36,29 @@ export default function Router() {
       element: <CenterScreenLayout />,
       children: [
         {
-          element: <LoginPage />,
-          path: "login",
-        },
-        {
-          element: <RegisterPage />,
-          path: "register",
-        },
-        {
-          element: <VerifyPage />,
-          path: "verify",
-        },
-        {
-          element: <ResetPasswordPage />,
-          path: "reset-password",
-        },
-        {
-          element: <NewPasswordPage />,
-          path: "new-password",
+          element: <PreventLoginAgain />,
+          children: [
+            {
+              element: <LoginPage />,
+              path: "login",
+            },
+            {
+              element: <RegisterPage />,
+              path: "register",
+            },
+            {
+              element: <VerifyPage />,
+              path: "verify",
+            },
+            {
+              element: <ResetPasswordPage />,
+              path: "reset-password",
+            },
+            {
+              element: <NewPasswordPage />,
+              path: "new-password",
+            },
+          ],
         },
       ],
     },

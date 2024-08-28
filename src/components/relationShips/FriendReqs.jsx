@@ -6,14 +6,14 @@ import { FriendReqElement } from "../relationShipElement";
 import { Box, Typography } from "@mui/material";
 import { selectFriendRequests } from "../../redux/relationShip/relationShipSlice";
 import useAuth from "../../hooks/useAuth";
-import useAxios from "../../hooks/useAxios";
+import useAxiosPrivate from "../../hooks/useAxiosPrivate";
 import instance from "../../socket";
 
 const FriendReqs = () => {
   const friendRequests = useSelector(selectFriendRequests);
   const socket = instance.getSocket();
 
-  const { callAction, isLoading, isError, error } = useAxios("FriendReqs");
+  const { callAction, isLoading, isError, error } = useAxiosPrivate();
   const isFirstMount = useRef(true);
 
   const handleAccept = (id) => {

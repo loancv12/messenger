@@ -5,7 +5,7 @@ import { FriendElement } from "../relationShipElement";
 import { Box, Typography } from "@mui/material";
 import { selectFriends } from "../../redux/relationShip/relationShipSlice";
 import useAuth from "../../hooks/useAuth";
-import useAxios from "../../hooks/useAxios";
+import useAxiosPrivate from "../../hooks/useAxiosPrivate";
 import instance from "../../socket";
 
 const Friends = ({ handleClose }) => {
@@ -19,7 +19,7 @@ const Friends = ({ handleClose }) => {
     socket.emit("start_conversation", { to: id, from: userId });
   };
 
-  const { callAction, isLoading, isError, error } = useAxios("Friend");
+  const { callAction, isLoading, isError, error } = useAxiosPrivate();
   const isFirstMount = useRef(true);
 
   useEffect(() => {

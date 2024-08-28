@@ -2,6 +2,7 @@ import { createSlice } from "@reduxjs/toolkit";
 import { fetchFriendRequests, fetchUsers } from "./relationShipApi";
 import { showSnackbar, updateNotice } from "../app/appSlice";
 import { noticeTypes } from "../config";
+import { selectCurrUserId } from "../auth/authSlice";
 
 const initialState = {
   users: [],
@@ -67,7 +68,7 @@ export const handleFriendReqAcceptedRet = (data) => {
   return (dispatch, getState) => {
     const { message, request } = data;
     dispatch(showSnackbar({ severity: "success", message }));
-    const userId = localStorage.getItem("userId");
+    const userId = selectCurrUserId(getState());
     dispatch(
       updateNotice({
         type: noticeTypes.FRIEND_REQ,
@@ -82,7 +83,6 @@ export const handleFriendReqDeclineRet = (data) => {
   return (dispatch, getState) => {
     const { message, request } = data;
     dispatch(showSnackbar({ severity: "success", message }));
-    const userId = localStorage.getItem("userId");
 
     // only sender of friend req receive request field
     if (request) {

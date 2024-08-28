@@ -39,7 +39,7 @@ import JoinGroupReqs from "../../../components/group/JoinGroupReqs";
 import toCamelCase from "../../../utils/toCamelCase";
 import useLocales from "../../../hooks/useLocales";
 import { fetchConversations } from "../../../redux/conversation/conversationApi";
-import useAxios from "../../../hooks/useAxios";
+import useAxiosPrivate from "../../../hooks/useAxiosPrivate";
 import ChatSkeleton from "../../../components/chat/ChatSkeleton";
 import { debounce } from "../../../utils/debounce";
 import useDebounceFilter from "../../../hooks/useDebounceFilter";
@@ -49,7 +49,7 @@ const Group = () => {
   const { translate } = useLocales();
 
   const isFirstMount = useRef(true);
-  const { callAction, isLoading, isError } = useAxios("group chat");
+  const { callAction, isLoading, isError } = useAxiosPrivate();
 
   const [open, setOpen] = useState(false);
   const [openDialog, setOpenDialog] = useState(false);
@@ -85,7 +85,9 @@ const Group = () => {
       await callAction(fetchConversations({ type: chatTypes.GROUP_CHAT }));
     };
     if (!isFirstMount.current || process.env.NODE_ENV !== "development") {
-      fetchCvs();
+      if (!conversations.length) {
+        fetchCvs();
+      }
     }
 
     return () => {

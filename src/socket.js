@@ -23,7 +23,6 @@ class SocketIOService {
   }
 
   connect(userId, clientId) {
-    console.log(userId, SocketIOService.#socket);
     const auth = { userId, clientId };
     SocketIOService.#socket.auth = auth;
     SocketIOService.#socket.connect();
@@ -63,8 +62,18 @@ class CallSocket {
     return CallSocket.#socket;
   }
 
+  initAndConnect(userId, roomId) {
+    const namespace = "/call";
+    const host = `${BASE_URL}${namespace}`;
+    const options = {
+      auth: { userId, roomId },
+    };
+
+    CallSocket.#socket = io(host, options);
+    return CallSocket.#socket;
+  }
+
   connect(userId, roomId) {
-    console.log(userId, roomId);
     const auth = { userId, roomId };
     CallSocket.#socket.auth = auth;
     CallSocket.#socket.connect();

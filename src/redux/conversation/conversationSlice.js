@@ -3,6 +3,7 @@ import { createSelector, createSlice } from "@reduxjs/toolkit";
 import { faker } from "@faker-js/faker";
 import { selectChatType, showSnackbar, updateNotice } from "../app/appSlice";
 import { chatTypes, noticeTypes } from "../config";
+import { selectCurrUserId } from "../auth/authSlice";
 
 const initialState = {
   [chatTypes.DIRECT_CHAT]: {
@@ -119,14 +120,16 @@ export const selectNumOfParticipants = createSelector(
   }
 );
 
-export const selectPeopleInCvs = createSelector([selectCurrCvs], (currCvs) => {
-  const currUser = localStorage.getItem("userId");
-  return (
-    currCvs?.userIds?.filter((userId) => {
-      return userId !== currUser;
-    }) ?? [currCvs?.userId]
-  );
-});
+export const selectPeopleInCvs = createSelector(
+  [selectCurrCvs, selectCurrUserId],
+  (currCvs, currUser) => {
+    return (
+      currCvs?.userIds?.filter((userId) => {
+        return userId !== currUser;
+      }) ?? [currCvs?.userId]
+    );
+  }
+);
 
 export const selectJoinGroupReqs = (state) => state.conversation.joinGroupReqs;
 
@@ -230,13 +233,13 @@ export const handleAcceptJoinGroup = (data) => {
 
 export const handleNewMember = (data) => {
   console.log("handleNewMember", data);
-  const userId = localStorage.getItem("userId");
 
   return (dispatch, getState) => {
+    const currUserId = selectCurrUserId(getState());
     const { message, updatedGroupCvs, newMemberId } = data;
     dispatch(showSnackbar({ severity: "success", message }));
 
-    if (userId !== newMemberId) {
+    if (currUserId !== newMemberId) {
       dispatch(
         updateConversation({
           type: chatTypes.GROUP_CHAT,

@@ -11,6 +11,7 @@ import {
 } from "../conversation/conversationSlice";
 import { showNotification } from "../../services/notification";
 import instance from "../../socket";
+import { selectCurrUserId } from "../auth/authSlice";
 
 const initialState = {
   [chatTypes.DIRECT_CHAT]: {},
@@ -148,7 +149,7 @@ export const handleNewMessages = ({ chatType, messages, conversationId }) => {
 
     // update conversation
     const latestMsg = messages[messages.length - 1];
-    const userId = localStorage.getItem("userId");
+    const userId = selectCurrUserId(getState());
     const isFromUser = latestMsg.from === userId;
 
     const conversations = getState().conversation[chatType].conversations;

@@ -8,7 +8,7 @@ import GridItem from "../common/GridItem";
 import toCamelCase from "../../utils/toCamelCase";
 import useLocales from "../../hooks/useLocales";
 import { fetchJoinGroupReqs } from "../../redux/conversation/conversationApi";
-import useAxios from "../../hooks/useAxios";
+import useAxiosPrivate from "../../hooks/useAxiosPrivate";
 import instance from "../../socket";
 
 const JoinGroupReqs = ({ open, handleClose }) => {
@@ -18,7 +18,7 @@ const JoinGroupReqs = ({ open, handleClose }) => {
   const joinGroupReqs = useSelector(selectJoinGroupReqs);
   const socket = instance.getSocket();
 
-  const { callAction, isLoading, isError, error } = useAxios();
+  const { callAction, isLoading, isError, error } = useAxiosPrivate();
 
   useEffect(() => {
     console.log("use effect at chat");
@@ -37,7 +37,6 @@ const JoinGroupReqs = ({ open, handleClose }) => {
     return () => {
       isFirstMount.current = false;
     };
-    fetchCvs();
   }, []);
 
   const handleAccept = (id) => {

@@ -4,7 +4,10 @@ import { enUS, frFR, zhCN, viVN, arSD } from "@mui/material/locale";
 // routes
 import { generalPath } from "./routes/paths";
 
-export const BASE_URL = import.meta.env.VITE_API_URL;
+export const BASE_URL =
+  process.env.NODE_ENV === "development"
+    ? "http://localhost:3000"
+    : "https://messenger-api-5sq8.onrender.com";
 
 export const defaultSettings = {
   themeMode: "light",

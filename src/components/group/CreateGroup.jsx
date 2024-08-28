@@ -5,7 +5,8 @@ import { useDispatch } from "react-redux";
 import { fetchFriends } from "../../redux/relationShip/relationShipApi";
 import useLocales from "../../hooks/useLocales";
 import toCamelCase from "../../utils/toCamelCase";
-import useAxios from "../../hooks/useAxios";
+import useAxiosPrivate from "../../hooks/useAxiosPrivate";
+import LoadingScreen from "../common/LoadingScreen";
 
 const Transition = React.forwardRef(function Transition(props, ref) {
   return <Slide direction="up" ref={ref} {...props} />;
@@ -14,7 +15,7 @@ const CreateGroup = ({ open, handleClose }) => {
   const isFirstMount = useRef(true);
 
   const { translate } = useLocales();
-  const { callAction, isLoading, isError } = useAxios("create group");
+  const { callAction, isLoading, isError } = useAxiosPrivate();
 
   useEffect(() => {
     const fetchFr = async () => {
@@ -28,6 +29,15 @@ const CreateGroup = ({ open, handleClose }) => {
       isFirstMount.current = false;
     };
   }, []);
+
+  let content;
+  if (isLoading) {
+    content = <LoadingScreen />;
+  } else if (isError) {
+    content = <TypeError>Something wrong</TypeError>;
+  } else {
+    content = <CreateGroupForm handleClose={handleClose} />;
+  }
   return (
     <Dialog
       fullWidth
@@ -40,9 +50,7 @@ const CreateGroup = ({ open, handleClose }) => {
       <DialogTitle>
         {translate(`groupCvs.${toCamelCase("Create New Group")}`)}
       </DialogTitle>
-      <DialogContent>
-        <CreateGroupForm handleClose={handleClose} />
-      </DialogContent>
+      <DialogContent>{content}</DialogContent>
     </Dialog>
   );
 };

@@ -30,7 +30,7 @@ import Logo from "../../assets/Images/logo.ico";
 import { faker } from "@faker-js/faker";
 import useSettings from "../../hooks/useSettings";
 import AntSwitch from "../../components/common/AntSwitch";
-import { NavLink, useNavigate } from "react-router-dom";
+import { NavLink, useLocation, useNavigate } from "react-router-dom";
 import { logOutUser } from "../../redux/auth/authApi";
 import { useDispatch, useSelector } from "react-redux";
 import {
@@ -42,7 +42,7 @@ import { chatTypes, noticeTypes } from "../../redux/config";
 import useLocales from "../../hooks/useLocales";
 import toCamelCase from "../../utils/toCamelCase";
 import useAuth from "../../hooks/useAuth";
-import useAxios from "../../hooks/useAxios";
+import useAxiosPrivate from "../../hooks/useAxiosPrivate";
 import { generalPath } from "../../routes/paths";
 
 export const Profile_Menu = [
@@ -83,6 +83,8 @@ export const Nav_Buttons = [
 const Sidebar = () => {
   const theme = useTheme();
   const { userId } = useAuth();
+  const location = useLocation();
+  const isActive = (path) => location.pathname.startsWith(path);
   const { translate } = useLocales();
   const navigate = useNavigate();
   const { onToggleMode } = useSettings();
@@ -103,7 +105,7 @@ const Sidebar = () => {
   const handleClick = (event) => {
     setAnchorEl(event.currentTarget);
   };
-  const { callAction, isLoading, isError, error } = useAxios();
+  const { callAction, isLoading, isError, error } = useAxiosPrivate();
 
   const clientId = useSelector(selectClientId);
 
@@ -288,36 +290,34 @@ const Sidebar = () => {
               {Nav_Buttons.map((el, i) => {
                 return (
                   <NavLink key={i} to={el.path}>
-                    {({ isActive, isPending, isTransitioning }) => (
-                      <Box
+                    <Box
+                      sx={{
+                        backgroundColor: isActive(el.path)
+                          ? theme.palette.primary.main
+                          : "transparent",
+                        borderRadius: 1.5,
+                      }}
+                    >
+                      <IconButton
                         sx={{
-                          backgroundColor: isActive
-                            ? theme.palette.primary.main
-                            : "transparent",
-                          borderRadius: 1.5,
+                          width: "max-content",
+                          color: isActive(el.path)
+                            ? "#fff"
+                            : theme.palette.mode === "light"
+                            ? "#000"
+                            : theme.palette.text.primary,
                         }}
+                        onClick={() => hideNotice(el)}
                       >
-                        <IconButton
-                          sx={{
-                            width: "max-content",
-                            color: isActive
-                              ? "#fff"
-                              : theme.palette.mode === "light"
-                              ? "#000"
-                              : theme.palette.text.primary,
-                          }}
-                          onClick={() => hideNotice(el)}
+                        <Badge
+                          variant="dot"
+                          color="primary"
+                          invisible={!isShowNotice(el)}
                         >
-                          <Badge
-                            variant="dot"
-                            color="primary"
-                            invisible={!isShowNotice(el)}
-                          >
-                            {el.icon}
-                          </Badge>
-                        </IconButton>
-                      </Box>
-                    )}
+                          {el.icon}
+                        </Badge>
+                      </IconButton>
+                    </Box>
                   </NavLink>
                 );
               })}

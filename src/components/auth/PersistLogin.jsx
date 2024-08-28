@@ -64,10 +64,14 @@ const PersistLogin = () => {
         content = <LoadingScreen />;
       } else if (isError) {
         console.log("error");
-
-        content = <Navigate to="/auth/login" />;
+        // state to prevent circular from PersistLogin to PreventLoginAgain
+        content = (
+          <Navigate to="/auth/login" state={{ cannotPersistLogin: true }} />
+        );
       } else if (usedToHaveToken.current) {
-        content = <Navigate to="/auth/login" />;
+        content = (
+          <Navigate to="/auth/login" state={{ cannotPersistLogin: true }} />
+        );
       }
     }
   }

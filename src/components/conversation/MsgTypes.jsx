@@ -36,7 +36,7 @@ import {
   deleteMessage,
 } from "../../redux/message/messageSlice";
 import { faker } from "@faker-js/faker";
-import useAxios from "../../hooks/useAxios";
+import useAxiosPrivate from "../../hooks/useAxiosPrivate";
 import ShowImage from "./ShowImage";
 
 // msg types component
@@ -236,9 +236,14 @@ export const MediaMsg = memo(
   }) => {
     const theme = useTheme();
 
+    const topLeft = (i) => i === 1 - 1;
+    const topRight = (i, col) => i === col - 1;
+    const bottomLeft = (i, col, row) => i === col * (row - 1) + 1 - 1;
+    const bottomRight = (i, col, row) => i === col * row - 1;
     let imgs;
     if (el.files.length <= 2) {
       const col = el.files.length;
+      const row = 1;
       imgs = (
         <ImageList
           sx={{
@@ -262,6 +267,18 @@ export const MediaMsg = memo(
                     display: "block",
                     borderRadius: "10px",
                     objectFit: "cover",
+
+                    borderTopLeftRadius: topLeft(i) ? "10px" : "4px",
+
+                    borderTopRightRadius: topRight(i, col) ? "10px" : "4px",
+
+                    borderBottomLeftRadius: bottomLeft(i, col, row)
+                      ? "10px"
+                      : "4px",
+
+                    borderBottomRightRadius: bottomRight(i, col, row)
+                      ? "10px"
+                      : "4px",
                   }}
                 />
               </ShowImage>
@@ -272,14 +289,10 @@ export const MediaMsg = memo(
     } else {
       const row = Math.ceil(el.files.length / 3);
       const col = 3;
-      const topLeft = (i) => i === 1 - 1;
-      const topRight = (i) => i === 3 - 1;
-      const bottomLeft = (i) => i === col * (row - 1) + 1 - 1;
-      const bottomRight = (i) => i === col * row - 1;
       imgs = (
         <ImageList
           sx={{
-            width: 300,
+            width: 300 + 4 * 2,
             height: row * 100 + (row - 1) * 4, //4px for gap
             margin: 0,
             overflow: "hidden",
@@ -301,16 +314,14 @@ export const MediaMsg = memo(
                       height: "100px",
                       maxHeight: 100,
                       borderTopLeftRadius: topLeft(i) ? "10px" : "4px",
-                      MozBorderRadiusTopleft: topLeft(i) ? "10px" : "4px",
 
-                      borderTopRightRadius: topRight(i) ? "10px" : "4px",
-                      MozBorderRadiusTopright: topRight(i) ? "10px" : "4px",
+                      borderTopRightRadius: topRight(i, col) ? "10px" : "4px",
 
-                      borderBottomLeftRadius: bottomLeft(i) ? "10px" : "4px",
-                      MozBorderRadiusBottomleft: bottomLeft(i) ? "10px" : "4px",
+                      borderBottomLeftRadius: bottomLeft(i, col, row)
+                        ? "10px"
+                        : "4px",
 
-                      borderBottomRightRadius: bottomRight(i) ? "10px" : "4px",
-                      MozBorderRadiusBottomright: bottomRight(i)
+                      borderBottomRightRadius: bottomRight(i, col, row)
                         ? "10px"
                         : "4px",
 
@@ -365,7 +376,7 @@ export const MediaMsg = memo(
                     : theme.palette.primary.main,
                   borderRadius: 1.5,
                   width: "max-content",
-                  maxWidth: "70%",
+                  maxWidth: { xs: "100%", md: "70%" },
                 }}
                 p={1}
               >

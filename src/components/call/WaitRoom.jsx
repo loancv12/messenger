@@ -48,7 +48,10 @@ const WaitRoom = () => {
   };
 
   useEffect(() => {
-    if (isFirstMount.current === false) {
+    if (
+      isFirstMount.current === false ||
+      process.env.NODE_ENV !== "development"
+    ) {
       navigator.mediaDevices.getUserMedia(settings).then((stream) => {
         showCallContent(currentUserVideoRef.current, stream);
       });

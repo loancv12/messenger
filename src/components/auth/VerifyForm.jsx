@@ -10,7 +10,7 @@ import transform from "../../utils/transform";
 import { verifyEmail } from "../../redux/auth/authApi";
 import useAuth from "../../hooks/useAuth";
 import { selectEmail } from "../../redux/auth/authSlice";
-import useAxios from "../../hooks/useAxios";
+import useAxiosPrivate from "../../hooks/useAxiosPrivate";
 
 // {code1: value, code2: value...}
 const makeCodeObj = (valueOfKey, otpLength, keyName) => {
@@ -44,7 +44,7 @@ const VerifyForm = () => {
 
   const { handleSubmit, formState } = methods;
 
-  const { callAction, isLoading, isError, error } = useAxios();
+  const { callAction, isLoading, isError, error } = useAxiosPrivate();
 
   const onSubmit = async (data) => {
     const otp = Object.values(data).join("");

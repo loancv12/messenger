@@ -49,7 +49,7 @@ import ChatInput from "./ChatInput";
 import { selectChatType, showSnackbar } from "../../redux/app/appSlice";
 import { selectCurrCvs } from "../../redux/conversation/conversationSlice";
 import useAuth from "../../hooks/useAuth";
-import useAxios from "../../hooks/useAxios";
+import useAxiosPrivate from "../../hooks/useAxiosPrivate";
 import AddSticker from "./AddSticker";
 import HandleCamera from "./HandleCamera";
 import instance from "../../socket";
@@ -103,7 +103,7 @@ const makeFormData = ({
 function Footer() {
   const theme = useTheme();
   const { userId } = useAuth();
-  const { callAction, isLoading, isError, error } = useAxios("Footer");
+  const { callAction, isLoading, isError, error } = useAxiosPrivate();
 
   const [openActions, setOpenActions] = useState(false);
   const [openPicker, setOpenPicker] = useState(false);
@@ -133,6 +133,7 @@ function Footer() {
   const onSuccess = (res) => {
     setFiles([]);
     setVariant("determinate");
+    setOpenActions((prev) => !prev);
   };
   const onFailure = (err) => {
     console.log("upload file err", err, files);
@@ -147,7 +148,6 @@ function Footer() {
   };
 
   const handleSubmit = async (e) => {
-    // console.log(socket);
     e.preventDefault();
     const textMsg = textRef.current.textContent.trim();
 
@@ -186,6 +186,7 @@ function Footer() {
         to: currentCvs?.userId,
         files,
       });
+      console.log("files at submit", files, formData.get("files"));
       setVariant("indeterminate");
       await callAction(uploadFile(formData, onSuccess, onFailure));
     }
@@ -360,40 +361,6 @@ function Footer() {
           >
             <IconButton type="submit">
               <PaperPlaneTilt color="#fff" />
-            </IconButton>
-          </Stack>
-        </Box>
-
-        <Box
-          sx={{
-            height: 48,
-            width: 48,
-            borderRadius: 1.5,
-            backgroundColor: theme.palette.primary.main,
-          }}
-        >
-          <Stack
-            sx={{
-              height: "100%",
-              width: "100%",
-              alignItems: "center",
-              justifyContent: "center",
-            }}
-          >
-            <IconButton
-              onClick={() => {
-                console.log("socket.connected", socket.connected);
-                if (socket.connected) {
-                  console.log("make disconnect");
-                  socket.disconnect();
-                } else {
-                  console.log("make connect");
-
-                  socket.connect();
-                }
-              }}
-            >
-              <ClosedCaptioning color="#fff" />
             </IconButton>
           </Stack>
         </Box>

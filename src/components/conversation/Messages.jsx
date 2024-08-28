@@ -35,7 +35,6 @@ import {
 } from "../../redux/message/messageSlice";
 import { fetchMessages } from "../../redux/message/messageApi";
 
-import { selectChatType } from "../../redux/app/appSlice";
 import {
   selectCurrCvsId,
   selectNumOfParticipants,
@@ -44,12 +43,11 @@ import {
 } from "../../redux/conversation/conversationSlice";
 import useAuth from "../../hooks/useAuth";
 import { fDateFromNow } from "../../utils/formatTime";
-import useAxios from "../../hooks/useAxios";
-import { useGetTestMutation } from "../../redux/app/api";
-import { ArrowCircleDown } from "phosphor-react";
-import { chatTypes } from "../../redux/config";
+import useAxiosPrivate from "../../hooks/useAxiosPrivate";
 import { useLocation, useParams } from "react-router-dom";
 import instance from "../../socket";
+import { debounce } from "../../utils/debounce";
+import ScrollToBottomBtn from "./ScrollToBottomBtn";
 
 function transformMessages(rawMsg, userId) {
   let timeOfStartMsg = "",
@@ -79,7 +77,8 @@ function transformMessages(rawMsg, userId) {
   return solveMsg;
 }
 
-const scrollToBottom = (el) => {
+export const scrollToBottom = (el) => {
+  console.log("run scroll to btm");
   if (el) {
     el.scrollTo({
       top: el.scrollHeight,
@@ -98,19 +97,18 @@ const findAndScrollToView = (msgId) => {
   }
 };
 
-const getLastReadUserIds = (
-  currentMsgs,
-  numOfParticipants,
-  curUserId,
-  lastMsgId
-) => {
+let prevLastReadUserIds;
+
+const getLastReadUserIds = (currentMsgs, numOfParticipants, curUserId) => {
   let lastReadUserIds = {};
   let haveLastReadMsgUser = [];
+
   for (let i = currentMsgs.length - 1; i >= 0; i--) {
     const currMsg = currentMsgs[i];
+
     const { readUserIds: currMsgReadUserIds } = currMsg;
     // if all user have their last read msg, break
-    if (haveLastReadMsgUser.length === numOfParticipants) {
+    if (haveLastReadMsgUser.length === numOfParticipants - 1) {
       break;
     }
     // get all the user that read msg, except the currUser ( i dont want to show current user)
@@ -138,9 +136,11 @@ const getLastReadUserIds = (
 const getFromUserIds = (currentMsgs, userId) => {
   let currUser;
   let list = {};
+
   // 1fo, 2o6, 3fo, 4fo 5de
   for (let i = currentMsgs.length - 1; i >= 0; i--) {
     const currMsg = currentMsgs[i];
+
     if (currMsg.from === currUser || currMsg.from === userId) {
       currUser = currMsg.from;
       continue;
@@ -155,16 +155,8 @@ const getFromUserIds = (currentMsgs, userId) => {
 function Messages({ menu, chatType }) {
   const socket = instance.getSocket();
 
-  const [showArrScrollBtm, setShowArrScrollBtm] = useState(false);
-  const deferredShow = useDeferredValue(showArrScrollBtm);
-
   const { cvsId } = useParams();
-  // due to useEffect to update chatType is run after this comp,
-  // so to get msg attach to correct chatType,
-  // i must use location to get chatType
-  // i cannot update chatType in here cause  direct and group chat comp both use this component
-  // i can put chatType to useEffect that call get msg, but it will make another call
-  // other solution is setTimeout to call get msg, but my app already slow :<<
+
   const { userId } = useAuth();
   const dispatch = useDispatch();
 
@@ -172,20 +164,19 @@ function Messages({ menu, chatType }) {
     callAction: callMsgs,
     isLoading: isLdMsgs,
     isError: isErrorMsgs,
-  } = useAxios("msg list");
+  } = useAxiosPrivate();
   const {
     callAction: callGetNext,
     isLoading: isLdGetNext,
     isError: isErrorGetNext,
-  } = useAxios("get next");
+  } = useAxiosPrivate();
 
   const {
     callAction: callGetRep,
     isLoading: isLdGetRep,
     isError: isErrorGetRep,
-  } = useAxios("get rep");
+  } = useAxiosPrivate();
 
-  const currentCvsId = useSelector(selectCurrCvsId);
   const currentMsgs = useSelector(selectCurrentMsgs);
   const numOfParticipants = useSelector(selectNumOfParticipants);
   // cause of currentCvsId is defined at mounted in useEffect with no dep, rerender not update it, so currentCvsId in handleGetNextMsgs is defined there
@@ -196,7 +187,6 @@ function Messages({ menu, chatType }) {
   const outerScrollBox = useRef();
   const topTargetRef = useRef();
   const bottomTargetRef = useRef();
-  const middleTargetRef = useRef();
 
   // set Number.MAX_SAFE_INTEGER value to prevent 'scroll up enter' of target element
   // of intersection observer during the first invoke callback
@@ -231,11 +221,22 @@ function Messages({ menu, chatType }) {
       dispatch(
         concatMessages({
           type: chatType,
-          conversationId: currentCvsId,
+          conversationId: currentCvsIdRef.current,
           newMessages: res.data.data,
         })
       );
     };
+
+    // console.log(
+    //   "isLdMsgs, isLdGetNext, isLdGetRep,currentCvsIdRef",
+    //   isLdMsgs,
+    //   isLdGetNext,
+    //   isLdGetRep,
+    //   isLdGetNext,
+    //   isLdGetRep,
+    //   JSON.stringify(currentCvsIdRef),
+    //   JSON.stringify(currentCvsIdRef.current)
+    // );
 
     await callGetNext(
       fetchMessages({
@@ -293,7 +294,7 @@ function Messages({ menu, chatType }) {
         isIntersecting &&
         currentRatio >= previousRatio
       ) {
-        console.log("Scrolling very up enter", currentCvsIdRef);
+        console.log("Scrolling very up enter", currentCvsIdRef, cursorRef);
         if (cursorRef.current.isHaveMoreMsg) {
           handleGetNextMsgs();
         }
@@ -310,14 +311,6 @@ function Messages({ menu, chatType }) {
     entries.forEach((entry) => {
       const isIntersecting = entry.isIntersecting;
       intersectRelateRef.current.isVeryBottom = isIntersecting;
-    });
-  };
-
-  // show scroll to bottom based on middle target
-  const handleMiddleIntersect = (entries) => {
-    entries.forEach((entry) => {
-      const isIntersecting = entry.isIntersecting;
-      setShowArrScrollBtm(isIntersecting);
     });
   };
 
@@ -338,18 +331,12 @@ function Messages({ menu, chatType }) {
       root: outerScrollBox.current,
     });
 
-    const observerMiddle = new IntersectionObserver(handleMiddleIntersect, {
-      root: outerScrollBox.current,
-    });
-
     observerTop.observe(topTargetRef.current);
     observerBottom.observe(bottomTargetRef.current);
-    observerMiddle.observe(middleTargetRef.current);
 
     return () => {
       observerTop.disconnect();
       observerBottom.disconnect();
-      observerMiddle.disconnect();
     };
   }, []);
 
@@ -371,6 +358,7 @@ function Messages({ menu, chatType }) {
         })
       );
 
+      // wait for set Message run
       timeId = setTimeout(function () {
         scrollToBottom(outerScrollBox.current);
       }, 100);
@@ -389,7 +377,19 @@ function Messages({ menu, chatType }) {
       );
     };
 
+    console.log("currentMsgs before get msg", currentMsgs);
     fetchMsgs();
+    // if (!currentMsgs.length) {
+    // } else {
+    //   // make under useEffect run
+    //   dispatch(
+    //     setMessages({
+    //       type: chatType,
+    //       conversationId: cvsId,
+    //       messages: currentMsgs,
+    //     })
+    //   );
+    // }
 
     return () => {
       clearTimeout(timeId);
@@ -398,6 +398,7 @@ function Messages({ menu, chatType }) {
 
   // 2 case for change currentMsg: after call setMessage, call addMsg.
   useEffect(() => {
+    console.log("run useEffect ò ");
     const isMsgAddedRet = isMsgAdded();
     const latestMsg = currentMsgs[currentMsgs.length - 1];
 
@@ -426,20 +427,15 @@ function Messages({ menu, chatType }) {
       );
     }
 
-    let timeId;
-
-    // incase not isVeryBottom( we scroll to up before) and isMsgAddedRet, not scroll again to bottom
     if (intersectRelateRef.current.isVeryBottom && isMsgAddedRet) {
-      // make sure that scroll to btm after all UI is render
-      timeId = setTimeout(function () {
-        scrollToBottom(outerScrollBox.current);
-      }, 0);
+      scrollToBottom(outerScrollBox.current);
     }
 
     // scroll to old pos after run get next msg
     if (intersectRelateRef.current.runGetNext) {
-      findAndScrollToView(intersectRelateRef.current.oldestMsgId);
+      // update runGetNext MUST before findAndScrollToView,
       intersectRelateRef.current.runGetNext = false;
+      findAndScrollToView(intersectRelateRef.current.oldestMsgId);
     }
 
     // findAndScrollToView MUST before setting oldestMsgId
@@ -449,9 +445,7 @@ function Messages({ menu, chatType }) {
       intersectRelateRef.current.oldestMsgId = currentMsgs[0]?.id;
     }
 
-    return () => {
-      clearTimeout(timeId);
-    };
+    return () => {};
   }, [currentMsgs]);
 
   let repMsgs;
@@ -489,14 +483,14 @@ function Messages({ menu, chatType }) {
     const lastReadUserIds = getLastReadUserIds(
       currentMsgs,
       numOfParticipants,
-      userId,
-      intersectRelateRef // cause of useEffect run after
+      userId
     );
+    prevLastReadUserIds = JSON.parse(JSON.stringify(lastReadUserIds)); // care for circular structure
 
     // get obj that key is msgId and value is userId,
     // msgId have value if this msgId is the latest msg among a chunk of same from user msgs
     const fromUserIds = getFromUserIds(currentMsgs, userId);
-
+    console.log("getLastReadUserIds", lastReadUserIds);
     msgs = currentMsgs?.map((el, i) => {
       const props = {
         el: transformMessages(el, userId),
@@ -525,22 +519,8 @@ function Messages({ menu, chatType }) {
       {repMsgs}
       {nextMsgs}
 
-      <Slide direction="up" in={deferredShow} mountOnEnter unmountOnExit>
-        <IconButton
-          sx={{
-            position: "absolute",
-            bottom: "71px",
-            right: "13px",
-            zIndex: 1,
-          }}
-          onClick={() => scrollToBottom(outerScrollBox.current)}
-        >
-          <ArrowCircleDown size={32} color="#b80000" weight="fill" />
-        </IconButton>
-      </Slide>
-
       <Box
-        className="outerScrollBox"
+        className="outer_scroll_box"
         ref={outerScrollBox}
         width="100%"
         height={"100%"}
@@ -580,7 +560,7 @@ function Messages({ menu, chatType }) {
             ref={topTargetRef}
             sx={{
               position: "absolute",
-              top: "200px",
+              top: "100px",
               left: 0,
               marginTop: "0 !important",
               height: "1px",
@@ -589,17 +569,7 @@ function Messages({ menu, chatType }) {
           ></Typography>
 
           {msgs}
-          <Typography
-            ref={middleTargetRef}
-            sx={{
-              position: "absolute",
-              bottom: "200px",
-              left: 0,
-              marginTop: "0 !important",
-              height: "1px",
-              width: "1px",
-            }}
-          ></Typography>
+          <ScrollToBottomBtn outerScrollBox={outerScrollBox} />
           <Typography
             ref={bottomTargetRef}
             sx={{ marginTop: "0 !important", height: "1px" }}

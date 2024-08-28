@@ -32,7 +32,6 @@ const CallConfirm = ({ callConfirmOpen, roomId, senderId }) => {
     dispatch(updateCallConfirm({ open: false, roomId: "", senderId: null }));
   };
   const acceptCall = () => {
-    console.log("acceptCall");
     dispatch(updateCallConfirm({ open: false, roomId: "", senderId: null }));
     setTimeout(function () {
       navigate(path(generalPath.call, roomId, "/", specificPath.callRoom));
