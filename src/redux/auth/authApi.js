@@ -19,13 +19,14 @@ export const logInUser = (formValues) =>
     },
   });
 
-export const logInWithGg = () =>
+export const logInWithGg = (formValues) =>
   apiAction({
     url: "/auth/login/google",
-    method: "GET",
+    method: "POST",
+    data: { ...formValues },
     onSuccess: (res) => {
+      console.log("set token", res);
       const { data: token, message } = res.data;
-      console.log("set token", token);
       dispatch(
         setCredentials({
           token,

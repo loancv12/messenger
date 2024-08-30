@@ -94,7 +94,7 @@ const SocketWrapper = ({ children }) => {
         // any event missed during the disconnection period will be received now
       } else {
         console.log(" new or unrecoverable session", socket.recovered);
-        // new or unrecoverable session
+
         const callback = (groupMsgs) => {
           console.log("callback", groupMsgs);
           groupMsgs?.map((groupMsg) => dispatch(handleNewMessages(groupMsg)));
@@ -171,6 +171,7 @@ const SocketWrapper = ({ children }) => {
 
     // make friend
     socket.on("send_req_ret", (data) => {
+      console.log("send_req_ret", data);
       dispatch(handleSendReqRet(data));
     });
 
@@ -225,10 +226,6 @@ const SocketWrapper = ({ children }) => {
       if (data.messages[0].from !== userId) {
         socket.emit("receive_new_msgs", data);
       }
-    });
-
-    socket.on("some-event", (callback) => {
-      callback({ status: "scucfff," });
     });
 
     socket.on("delete_message_ret", (data) => {

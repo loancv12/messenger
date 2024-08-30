@@ -37,15 +37,16 @@ function App() {
   useEffect(() => {
     askNotificationPermission();
   }, []);
-  // const clientId = import.meta.env.VITE_CLIENTID;
+
+  const clientId = import.meta.env.VITE_CLIENTID;
   return (
     <>
       <Suspense fallback={<LoadingScreen />}>
         <ThemeProvider>
           <ThemeSettings>
-            {/* <GoogleOAuthProvider clientId={clientId}> */}
-            <Router />
-            {/* </GoogleOAuthProvider> */}
+            <GoogleOAuthProvider clientId={clientId}>
+              <Router />
+            </GoogleOAuthProvider>
           </ThemeSettings>
         </ThemeProvider>
       </Suspense>

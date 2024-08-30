@@ -1,7 +1,11 @@
 import React, { useCallback, useEffect, useRef, useState } from "react";
 import { axiosPrivate } from "../services/axios/axiosClient";
 
-function useAxiosPrivate({ plainPromise = false }) {
+function useAxiosPrivate(customConfig = {}) {
+  const axiosConfig = {
+    plainPromise: false,
+    ...customConfig,
+  };
   const defaultState = {
     isLoading: false,
     isError: false,
@@ -51,7 +55,9 @@ function useAxiosPrivate({ plainPromise = false }) {
         });
         onSuccess(res);
       };
-      const callApi = plainPromise ? callNoWrapper : callWithWrapper;
+      const callApi = axiosConfig.plainPromise
+        ? callNoWrapper
+        : callWithWrapper;
       return callApi();
     },
     [axiosPrivate]

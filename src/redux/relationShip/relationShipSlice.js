@@ -13,17 +13,50 @@ const slice = createSlice({
   name: "relationShip",
   initialState,
   reducers: {
-    updateUsers(state, action) {
-      console.log("updateUsers", action.payload);
+    setUsers(state, action) {
+      console.log("setUsers", action.payload);
       state.users = action.payload.users;
     },
-    updateFriends(state, action) {
-      console.log("updateFriends", action.payload);
+    setFriends(state, action) {
+      console.log("setFriends", action.payload);
       state.friends = action.payload.friends;
     },
-    updateFriendRequests(state, action) {
-      console.log("updateFriendRequests", action.payload);
+    setFriendRequests(state, action) {
+      console.log("setFriendRequests", action.payload);
       state.friendRequests = action.payload.friendRequests;
+    },
+    addUser(state, action) {
+      const { newUser } = action.payload;
+      state.users.push(newUser);
+    },
+    addFriend(state, action) {
+      const { newFriend } = action.payload;
+      state.friends.push(newFriend);
+    },
+    addFriendReqs(state, action) {
+      const { newFriendReq } = action.payload;
+      state.friendRequests.push(newFriendReq);
+    },
+    removeUser(state, action) {
+      const { removedUserId } = action.payload;
+      const otherUsers = state.users.filter((user) => {
+        return user.id !== removedUserId;
+      });
+      state.users = otherUsers;
+    },
+    removeFriend(state, action) {
+      const { removedFriendId } = action.payload;
+      const otherFriend = state.friends.filter((user) => {
+        return user.id !== removedFriendId;
+      });
+      state.friends = otherFriend;
+    },
+    removeFriendReqs(state, action) {
+      const { removedFriendReqId } = action.payload;
+      const otherFriendReqs = state.friendRequests.filter((friendReq) => {
+        return friendReq.id !== removedFriendReqId;
+      });
+      state.friendRequests = otherFriendReqs;
     },
   },
 });
@@ -35,7 +68,7 @@ export const selectFriendRequests = (state) =>
 
 const { reducer, actions } = slice;
 
-export const { updateUsers, updateFriends, updateFriendRequests } = actions;
+export const { setUsers, setFriends, setFriendRequests } = actions;
 
 export default reducer;
 
@@ -60,7 +93,8 @@ export const handleSendReqRet = (data) => {
   return (dispatch, getState) => {
     const { message, request } = data;
     dispatch(showSnackbar({ severity: "success", message }));
-    // dispatch(fetchUsers()); //TODO
+
+    dispatch(removeUser({ removedUserId: data.recipient.id }));
   };
 };
 
@@ -75,7 +109,11 @@ export const handleFriendReqAcceptedRet = (data) => {
         show: request.senderId === userId,
       })
     );
-    // dispatch(fetchFriendRequests()); //TODO
+
+    if (request.senderId === userId) {
+      dispatch(removeFriendReqs({ removedFriendReqId: request.id }));
+      dispatch(addF({ removedFriendReqId: request.id }));
+    }
   };
 };
 
