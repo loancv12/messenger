@@ -13,6 +13,7 @@ const ScrollToBottomBtn = ({ outerScrollBox }) => {
   const handleMiddleIntersect = (entries) => {
     entries.forEach((entry) => {
       const isIntersecting = entry.isIntersecting;
+      console.log("isIntersecting", isIntersecting);
       setShowArrScrollBtm(!isIntersecting);
     });
   };
@@ -59,13 +60,13 @@ const ScrollToBottomBtn = ({ outerScrollBox }) => {
       <Typography
         ref={middleTargetRef}
         sx={{
-          position: "relative",
+          position: "absolute",
           bottom: { xs: "450px", md: "500px" },
           left: 0,
           marginTop: "0 !important",
           height: "1px",
-          width: "100px",
-          backgroundColor: "red",
+          width: "1px",
+          // backgroundColor: "red",
         }}
       ></Typography>
     </>

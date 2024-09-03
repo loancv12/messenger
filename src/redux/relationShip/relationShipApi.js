@@ -1,4 +1,5 @@
 import {
+  setCurrUser,
   setFriendRequests,
   setFriends,
   setUsers,
@@ -7,6 +8,12 @@ import { dispatch } from "../store";
 import { apiAction } from "../../utils/apiAction";
 
 // users, friends, friendRequets
+export const fetchCurrUser = () =>
+  apiAction({
+    url: "/user/get-me",
+    onSuccess: (res) => dispatch(setCurrUser({ currUser: res.data.data })),
+  });
+
 export const fetchUsers = () =>
   apiAction({
     url: "/user/get-users",
@@ -23,6 +30,7 @@ export const fetchFriends = () => {
 export const fetchFriendRequests = () =>
   apiAction({
     url: "/user/get-friend-requests",
-    onSuccess: (res) =>
-      dispatch(setFriendRequests({ friendRequests: res.data.data })),
+    onSuccess: (res) => {
+      dispatch(setFriendRequests({ friendRequests: res.data.data }));
+    },
   });

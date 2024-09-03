@@ -4,6 +4,8 @@ import { faker } from "@faker-js/faker";
 import { selectChatType, showSnackbar, updateNotice } from "../app/appSlice";
 import { chatTypes, noticeTypes } from "../config";
 import { selectCurrUserId } from "../auth/authSlice";
+import { history } from "../../utils/history";
+import { generalPath, path } from "../../routes/paths";
 
 const initialState = {
   [chatTypes.DIRECT_CHAT]: {
@@ -96,14 +98,25 @@ export const selectCurrCvsIdDefinedChatType = (
   chatType // ONLY for chatType is defined
 ) => state.conversation[chatType].currentCvsId;
 
-const selectCvs = (state) => state.conversation;
+const selectCvss = (state) => state.conversation;
 export const selectCurrCvsId = createSelector(
-  [selectCvs, selectChatType],
+  [selectCvss, selectChatType],
   (conversations, chatType) => conversations[chatType].currentCvsId
 );
 
 export const selectCurrCvs = createSelector(
-  [selectCvs, selectChatType, selectCurrCvsId],
+  [selectCvss, selectChatType, selectCurrCvsId],
+  (conversations, chatType, cvsID) => {
+    return (
+      conversations[chatType].conversations.find((cvs) => cvs.id === cvsID) ??
+      null
+    );
+  }
+);
+
+const selectCvsId = (_, cvsId) => cvsId;
+export const selectCvs = createSelector(
+  [selectCvss, selectChatType, selectCvsId],
   (conversations, chatType, cvsID) => {
     return (
       conversations[chatType].conversations.find((cvs) => cvs.id === cvsID) ??
@@ -150,34 +163,36 @@ export default reducer;
 // thunk
 export const startChat = (data) => {
   console.log("startChat", data);
+
   return (dispatch, getState) => {
-    console.log("start chat", data);
-    const chatType = getState().app.chatType;
-    const existCvs = getState().conversation[chatType].conversations.find(
-      (el) => el.id === data.id
-    );
+    const { conversation } = data;
+
+    const existCvs = selectCvs(getState(), conversation.id);
+
     if (existCvs) {
       dispatch(
         updateConversation({
           type: chatTypes.DIRECT_CHAT,
-          conversationId: data.id,
-          updatedContent: data,
+          conversationId: conversation.id,
+          updatedContent: conversation,
         })
       );
     } else {
       dispatch(
         addConversation({
           type: chatTypes.DIRECT_CHAT,
-          newConversation: data,
+          newConversation: conversation,
         })
       );
     }
-    dispatch(
-      setCurrentCvsId({
-        type: chatTypes.DIRECT_CHAT,
-        conversationId: data.id,
-      })
-    );
+
+    const currUser = selectCurrUserId(getState());
+
+    if (currUser !== conversation.userId) {
+      history.navigate(
+        path(generalPath[chatTypes.DIRECT_CHAT], conversation.id)
+      );
+    }
   };
 };
 

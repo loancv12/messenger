@@ -110,9 +110,23 @@ export const selectReplyMsgId = (state) => state.message.replyMsgId;
 
 export const selectReplyMsg = createSelector(
   [selectReplyMsgId, selectCurrentMsgs],
+  (id, msgs) => msgs.find((msg) => msg.id === id) ?? null
+);
+
+const targetMsgId = (_, msgId) => msgId;
+export const selectSentSuccess = createSelector(
+  [targetMsgId, selectCurrentMsgs],
   (id, msgs) => {
-    console.log("selectCurrentMsgs ret", msgs);
-    return msgs.find((msg) => msg.id === id) ?? null;
+    const foundMsg = msgs.find((msg) => msg.id === id);
+    return foundMsg?.sentSuccess;
+  }
+);
+
+export const selectReadUserIds = createSelector(
+  [targetMsgId, selectCurrentMsgs],
+  (id, msgs) => {
+    const foundMsg = msgs.find((msg) => msg.id === id);
+    return foundMsg?.readUserIds;
   }
 );
 
@@ -142,7 +156,7 @@ export const handleNewMessages = ({ chatType, messages, conversationId }) => {
       dispatch(updateNotice({ type: noticeTypes[chatType], show: true }));
     }
 
-    // add new msgs (comment here stupid but it visually look good to separate logic)
+    // add new msgs
     dispatch(
       addMessages({ type: chatType, newMessages: messages, conversationId })
     );
@@ -157,18 +171,22 @@ export const handleNewMessages = ({ chatType, messages, conversationId }) => {
       (conversation) => conversation.id === conversationId
     );
 
-    const updatedContent = {
-      msg: latestMsg.text,
-      updatedAt: latestMsg.updatedAt,
-      unread: isFromUser ? 0 : Number(updatedCvs.unread) + messages.length,
-    };
-    dispatch(
-      updateConversation({
-        type: chatType,
-        conversationId,
-        updatedContent,
-      })
-    );
+    console.log("updatedCvs", updatedCvs, chatType);
+
+    if (updatedCvs) {
+      const updatedContent = {
+        msg: latestMsg.text,
+        updatedAt: latestMsg.updatedAt,
+        unread: isFromUser ? 0 : Number(updatedCvs.unread) + messages.length,
+      };
+      dispatch(
+        updateConversation({
+          type: chatType,
+          conversationId,
+          updatedContent,
+        })
+      );
+    }
 
     if (!isFromUser) {
       // update title of to user
@@ -185,14 +203,8 @@ export const handleNewMessages = ({ chatType, messages, conversationId }) => {
 };
 
 export const updateSentSuccessMsgs = (data) => {
+  console.log("updateSentSuccessMsgs", data);
   const { chatType, messages, conversationId, sentSuccess } = data;
-  console.log(
-    "updateSentSuccessMsgs",
-    chatType,
-    messages,
-    conversationId,
-    sentSuccess
-  );
   return (dispatch, getState) => {
     dispatch(
       updateMessages({
@@ -206,6 +218,7 @@ export const updateSentSuccessMsgs = (data) => {
 };
 
 export const handleUpdateReadUsers = (data) => {
+  console.log("handleUpdateReadUsers", data);
   return (dispatch, getState) => {
     const { newSeenUserId, conversationId, chatType } = data;
 

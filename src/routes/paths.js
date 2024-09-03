@@ -18,9 +18,12 @@ export const generalPath = {
   [chatTypes.DIRECT_CHAT]: path(ROOTS_DASHBOARD, "direct-chat/"),
   [chatTypes.GROUP_CHAT]: path(ROOTS_DASHBOARD, "group-chat/"),
   call: path(ROOTS_DASHBOARD, "call/"),
+  notFound: path(ROOTS_DASHBOARD, "404/"),
 };
 
 export const specificPath = {
   waitRoom: "wait-room/",
   callRoom: "call-room/",
+  adjustTheme: "adjust-theme/",
+  shortcuts: "shortcuts/",
 };

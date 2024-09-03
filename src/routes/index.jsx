@@ -114,7 +114,20 @@ export default function Router() {
                     },
                   ],
                 },
-                { path: generalPath.setting, element: <Settings /> },
+                {
+                  path: generalPath.setting,
+                  element: <Settings />,
+                  children: [
+                    {
+                      path: specificPath.adjustTheme,
+                      element: <AdjustTheme />,
+                    },
+                    {
+                      path: specificPath.shortcuts,
+                      element: <Shortcuts />,
+                    },
+                  ],
+                },
                 {
                   path: generalPath.profile,
                   element: <ProfilePage />,
@@ -132,6 +145,13 @@ export default function Router() {
 }
 
 const Settings = Loadable(lazy(() => import("../pages/dashboard/setting")));
+const AdjustTheme = Loadable(
+  lazy(() => import("../components/settingParts/AdjustTheme"))
+);
+const Shortcuts = Loadable(
+  lazy(() => import("../components/settingParts/Shortcuts"))
+);
+
 const GroupPage = Loadable(lazy(() => import("../pages/dashboard/group")));
 const DirectChatPage = Loadable(
   lazy(() => import("../pages/dashboard/directChat"))

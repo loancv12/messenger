@@ -186,7 +186,12 @@ function Footer() {
         to: currentCvs?.userId,
         files,
       });
-      console.log("files at submit", files, formData.get("files"));
+      console.log(
+        "files at submit",
+        files,
+        ...formData,
+        formData.get("message-files")
+      );
       setVariant("indeterminate");
       await callAction(uploadFile(formData, onSuccess, onFailure));
     }

@@ -12,6 +12,7 @@ import instance from "../../socket";
 const FriendReqs = () => {
   const friendRequests = useSelector(selectFriendRequests);
   const socket = instance.getSocket();
+  const { userId } = useAuth();
 
   const { callAction, isLoading, isError, error } = useAxiosPrivate();
   const isFirstMount = useRef(true);
@@ -45,11 +46,13 @@ const FriendReqs = () => {
     <Box p={1}>
       {friendRequests.length ? (
         friendRequests.map((request, i) => {
+          const isSender = request.sender.id === userId;
+          const otherUser = isSender ? request.recipient : request.sender;
           return (
             <FriendReqElement
-              key={i}
-              {...request.user}
-              isSender={request.isSender}
+              key={request.id}
+              {...otherUser}
+              isSender={isSender}
               id={request.id}
               handleAccept={handleAccept}
               handleDecline={handleDecline}

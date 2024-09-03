@@ -44,33 +44,46 @@ export const allLangs = [
     locale: "vi-VN",
     icon: "/assets/icons/flags/ic_flag_vn.svg",
   },
+];
+
+// https://toolsfairy.com/tools/image-test/sample-xbm-files#
+export const imageFileTypesWithMIME = [
+  { extension: ".heic", mimeType: "image/heic", notWideSp: true }, // =>not show not type
+  { extension: ".heif", mimeType: "image/heif", notWideSp: true }, // 5m not show not type
+  { extension: ".jp2", mimeType: "image/jp2", notWideSp: true }, // not show not type
   {
-    label: "Chinese",
-    value: "cn",
-    systemValue: zhCN,
-    locale: "zh-CN",
-    icon: "/assets/icons/flags/ic_flag_cn.svg",
-  },
+    extension: ".psd",
+    mimeType: "image/vnd.adobe.photoshop",
+    notWideSp: true,
+  }, // not show not type
+  { extension: ".tiff", mimeType: "image/tiff", notWideSp: true }, // not show, have type
+  //
+  { extension: ".webp", mimeType: "image/webp", notWideSp: true }, //
+  { extension: ".jfif", mimeType: "image/jpeg" }, //
+  { extension: ".jpeg", mimeType: "image/jpeg" }, //
+  { extension: ".jpg", mimeType: "image/jpeg" },
+  { extension: ".png", mimeType: "image/png" }, //
+];
+
+export const wordFileTypesWithMIME = [
+  { extension: ".doc", mimeType: "application/msword" },
   {
-    label: "Arabic (Sudan)",
-    value: "ar",
-    systemValue: arSD,
-    locale: "ar-SD",
-    icon: "/assets/icons/flags/ic_flag_sa.svg",
+    extension: ".docx",
+    mimeType:
+      "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
   },
 ];
 
 export const allowFileTypes = [
-  "image/jpg",
-  "image/jpeg",
-  "image/png",
-  "application/msword",
-  "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
+  ...imageFileTypesWithMIME,
+  ...wordFileTypesWithMIME,
 ];
-export const allowFileExts = [".png", ".jpg", ".jpeg", ".doc", ".docx"];
+
+// export const allowFileExts = [, ".doc", ".docx"];
+// const imageMimeType = ["image/jpg", "image/jpeg", "image/png", "image/bmp"];
 
 export const maxSize = 1024 * 1024 * 1; // 1e6 (1 MB-1024kB)
-export const maxNumberOfFiles = 10;
+export const maxNumberOfFiles = 6;
 
 export const msgsLimit = 20;
 

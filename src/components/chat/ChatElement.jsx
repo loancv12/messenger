@@ -70,12 +70,25 @@ const ChatElement = memo(
             ) : (
               <Avatar alt="Remy Sharp" src={faker.image.avatar()} />
             )}
-            <Stack spacing={0.3}>
-              <Typography variant="subtitle2">{name}</Typography>
+            <Stack spacing={0.3} maxWidth={"140px"}>
               <Typography
-                variant="caption"
+                variant="h3"
                 sx={{
-                  width: "150px",
+                  fontSize: "0.775rem !important",
+                  overflow: "hidden",
+                  display: "-webkit-box",
+                  // WebkitAppearance: "slider-vertical",
+                  WebkitLineClamp: 1,
+                  WebkitBoxOrient: "vertical",
+                }}
+              >
+                {name}
+              </Typography>
+              <Typography
+                variant="body1"
+                sx={{
+                  fontSize: "0.65rem !important",
+                  fontWeight: 600,
                   overflow: "hidden",
                   display: "-webkit-box",
                   // WebkitAppearance: "slider-vertical",
@@ -88,7 +101,10 @@ const ChatElement = memo(
             </Stack>
           </Stack>
           <Stack spacing={2} alignItems={"center"} sx={{ minWidth: "24px" }}>
-            <Typography sx={{ fontWeight: 600 }} variant="caption">
+            <Typography
+              sx={{ fontWeight: 500, fontSize: "0.65rem !important" }}
+              variant="caption"
+            >
               {fRelativeDate(updatedAt)}
             </Typography>
             {unread ? (

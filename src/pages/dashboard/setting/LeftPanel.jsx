@@ -21,47 +21,56 @@ import {
 import React, { useState } from "react";
 import useLocales from "../../../hooks/useLocales";
 import toCamelCase from "../../../utils/toCamelCase";
+import { specificPath } from "../../../routes/paths";
 
 const Setting_Opts = [
   {
     key: 0,
     icon: <Bell size={20} />,
     title: "Notifications",
+    path: "",
   },
   {
     key: 1,
     icon: <Lock size={20} />,
     title: "Privacy",
+    path: "",
   },
   {
     key: 2,
     icon: <Key size={20} />,
     title: "Security",
+    path: "",
   },
   {
     key: 3,
     icon: <PencilCircle size={20} />,
     title: "Theme",
+    path: specificPath.adjustTheme,
   },
   {
     key: 4,
     icon: <Image size={20} />,
     title: "Chat Wallpaper",
+    path: "",
   },
   {
     key: 5,
     icon: <Note size={20} />,
     title: "Request Account Info",
+    path: "",
   },
   {
     key: 6,
     icon: <Keyboard size={20} />,
     title: "Keyboard Shortcuts",
+    path: specificPath.shortcuts,
   },
   {
     key: 7,
     icon: <Info size={20} />,
     title: "Help",
+    path: "",
   },
 ];
 
@@ -96,13 +105,13 @@ const LeftPanel = ({ handleSelect }) => {
         {/* List option */}
         <Stack spacing={3}>
           {Setting_Opts.map((option) => {
-            const { key, icon, title } = option;
+            const { key, icon, title, path } = option;
             return (
               <Box key={key}>
                 <Stack
                   spacing={2}
                   sx={{ cursor: "pointer" }}
-                  onClick={() => handleSelect(key)}
+                  onClick={() => handleSelect(path)}
                 >
                   <Stack direction="row" spacing={2} alignItems="center">
                     {icon}

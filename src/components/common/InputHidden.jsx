@@ -11,12 +11,7 @@ import React, { useEffect, useState } from "react";
 import { useDispatch } from "react-redux";
 import { showSnackbar } from "../../redux/app/appSlice";
 import { getFileFormat } from "../../utils/getFileFormat";
-import {
-  allowFileExts,
-  allowFileTypes,
-  maxNumberOfFiles,
-  maxSize,
-} from "../../config";
+import { allowFileTypes, maxNumberOfFiles, maxSize } from "../../config";
 
 const VisuallyHiddenInput = styled("input")(({ theme }) => ({
   "& .MuiInputBase-input, fieldset": {
@@ -45,15 +40,24 @@ const VisuallyHiddenInput = styled("input")(({ theme }) => ({
 
 function classifyFile(files) {
   return Array.from(files).filter((file, i) => {
-    const isValidType = allowFileTypes.includes(file.type);
+    const extension = file.name.substring(file.name.lastIndexOf("."));
+    const mimeType = file.type;
+    console.log(file);
 
-    const ext = file.name.substring(file.name.lastIndexOf("."));
-    const isVAlidExt = allowFileExts.includes(ext);
+    const validExt = allowFileTypes.find(
+      (allowType) => allowType.extension === extension
+    );
+
+    const isValidType =
+      validExt && (validExt.mimeType === mimeType || validExt?.notWideSp);
+
+    console.log(isValidType);
+
     const isValidSize = file.size <= maxSize;
     // Forgive for this stupid naming, couldn't find a better name
     const isSingleFileAllowed = i <= maxNumberOfFiles;
 
-    return isValidSize && isValidType && isVAlidExt && isSingleFileAllowed;
+    return isValidSize && isValidType && isSingleFileAllowed;
   });
 }
 

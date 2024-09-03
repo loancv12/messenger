@@ -111,7 +111,7 @@ const Shortcuts = ({ open, handleClose }) => {
       <Box
         sx={{
           // 24px for marginLeft: -24px of grid
-          width: "calc(100vw - 420px - 24px)",
+          width: "calc(100% - 24px)",
           padding: 2,
         }}
       >
@@ -120,9 +120,9 @@ const Shortcuts = ({ open, handleClose }) => {
           <Grid container spacing={3}>
             {list.map(({ key, title, combination }) => {
               return (
-                <Grid item xs={6} key={key}>
+                <Grid item xs={12} md={6} key={key}>
                   <Stack
-                    spacing={3}
+                    spacing={{ sx: 1, md: 2 }}
                     direction="row"
                     alignItems="center"
                     sx={{ width: "100%" }}

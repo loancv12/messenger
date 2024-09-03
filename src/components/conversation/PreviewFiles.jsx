@@ -12,6 +12,8 @@ import {
 } from "@mui/material";
 import React, { useEffect, useState } from "react";
 import { getFileFormat } from "../../utils/getFileFormat";
+import { imageFileTypesWithMIME } from "../../config";
+import { File } from "phosphor-react";
 
 const PreviewFiles = ({ variant, files, handleDelete }) => {
   const theme = useTheme();
@@ -22,7 +24,14 @@ const PreviewFiles = ({ variant, files, handleDelete }) => {
     let imgUrls = [];
     if (files?.length) {
       const formatFiles = Array.from(files).reduce((formatFiles, file) => {
-        if (getFileFormat(file.name) === "image") {
+        const extension = file.name.substring(file.name.lastIndexOf("."));
+        let isValidImgType = imageFileTypesWithMIME.find(
+          (type) => type.extension === extension && type.mimeType === file.type
+        );
+        if (file.type === "image/tiff") {
+          isValidImgType = false;
+        }
+        if (isValidImgType) {
           const imgUrl = URL.createObjectURL(file);
           imgUrls.push(imgUrl);
           formatFiles.push({
@@ -38,9 +47,9 @@ const PreviewFiles = ({ variant, files, handleDelete }) => {
             title: file.name,
           });
         }
+
         return formatFiles;
       }, []);
-
       setFormattedFile(formatFiles);
     }
 
@@ -108,23 +117,33 @@ const PreviewFiles = ({ variant, files, handleDelete }) => {
                     loading="lazy"
                   />
                 ) : (
-                  <Typography
-                    variant="body2"
+                  <Stack
+                    direction={"row"}
+                    spacing={1}
+                    alignItems={"center"}
                     sx={{
-                      fontSize: "0.625rem",
-                      padding: "5px 0",
-                      maxWidth: "100px",
                       height: "56px",
-                      wordBreak: "break-word",
-                      overflow: "hidden",
-                      display: "-webkit-box",
-                      // WebkitAppearance: "slider-vertical",
-                      WebkitLineClamp: 3,
-                      WebkitBoxOrient: "vertical",
+                      p: "4px",
                     }}
                   >
-                    {item.title}
-                  </Typography>
+                    <File size={20} />
+                    <Typography
+                      variant="body2"
+                      sx={{
+                        fontSize: "0.625rem",
+                        padding: "5px 0",
+                        maxWidth: "80px",
+                        wordBreak: "break-word",
+                        overflow: "hidden",
+                        display: "-webkit-box",
+                        // WebkitAppearance: "slider-vertical",
+                        WebkitLineClamp: 3,
+                        WebkitBoxOrient: "vertical",
+                      }}
+                    >
+                      {item.title}
+                    </Typography>
+                  </Stack>
                 )}
               </Badge>
               <LinearProgress variant={variant} color="primary" value={0} />

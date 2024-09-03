@@ -17,6 +17,8 @@ import LoadingScreen from "./components/common/LoadingScreen";
 import askNotificationPermission from "./services/notification";
 import CallConfirm from "./components/call/CallConfirm";
 import { GoogleOAuthProvider } from "@react-oauth/google";
+import { useLocation, useNavigate } from "react-router-dom";
+import { history } from "./utils/history";
 
 const vertical = "bottom";
 const horizontal = "center";
@@ -38,7 +40,10 @@ function App() {
     askNotificationPermission();
   }, []);
 
-  const clientId = import.meta.env.VITE_CLIENTID;
+  const clientId = import.meta.env.VITE_CLIENT_ID;
+
+  history.navigate = useNavigate();
+  history.location = useLocation();
   return (
     <>
       <Suspense fallback={<LoadingScreen />}>

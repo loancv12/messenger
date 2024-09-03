@@ -16,8 +16,8 @@ const Users = () => {
   const users = useSelector(selectUsers);
   const socket = instance.getSocket();
 
-  const handleSendReq = (id) => {
-    socket.emit("make_friend_request", { to: id, from: userId });
+  const handleSendReq = (recipientId) => {
+    socket.emit("make_friend_request", { recipientId, senderId: userId });
   };
 
   const { callAction, isLoading, isError, error } = useAxiosPrivate();

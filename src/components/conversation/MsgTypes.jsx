@@ -15,6 +15,7 @@ import {
   Stack,
   styled,
   Typography,
+  useMediaQuery,
   useTheme,
 } from "@mui/material";
 import {
@@ -26,7 +27,6 @@ import {
 } from "phosphor-react";
 import React, { useState, useRef, memo, useContext } from "react";
 import { useDispatch, useSelector } from "react-redux";
-import { fDateFromNow } from "../../utils/formatTime";
 import {
   setReplyMessage,
   reactMessage,
@@ -34,6 +34,8 @@ import {
   starMessage,
   reportMessage,
   deleteMessage,
+  selectSentSuccess,
+  selectReadUserIds,
 } from "../../redux/message/messageSlice";
 import { faker } from "@faker-js/faker";
 import useAxiosPrivate from "../../hooks/useAxiosPrivate";
@@ -46,8 +48,10 @@ export const DocMsg = memo(
     menu,
     isLastMsg,
     handleGetToRepMsg,
-    lastReadUserIds,
-    fromUserIds,
+    lastReadUserIdsOfMsg,
+    prevLastReadMsgIds,
+    fromUserIdsOfMsg,
+    getMap,
   }) => {
     const theme = useTheme();
     function download({ files }) {
@@ -61,13 +65,27 @@ export const DocMsg = memo(
     }
 
     return (
-      <Box data-ref={el.id} sx={{ scrollMarginTop: "20px" }}>
+      <Box
+        data-ref={el.id}
+        sx={{ scrollMarginTop: "20px" }}
+        ref={(node) => {
+          const map = getMap();
+          // Add to the Map
+          if (node) {
+            // Add to the Map
+            map.set(el.id, node);
+          } else {
+            // Remove from the Map
+            map.delete(el.id);
+          }
+        }}
+      >
         {el?.isStartMsg ? <Timeline time={el?.timeOfStartMsg} /> : null}
         <Stack direction={"row"} alignItems={"center"} spacing={1}>
           {el.incoming ? (
-            fromUserIds[el.id] && fromUserIds[el.id].length ? (
+            fromUserIdsOfMsg && fromUserIdsOfMsg.length ? (
               <Avatar
-                alt={fromUserIds[el.id]}
+                alt={fromUserIdsOfMsg}
                 src={faker.image.avatar()}
                 // src={faker.image.avatar()}
                 sx={{
@@ -125,7 +143,15 @@ export const DocMsg = memo(
               </Box>
             )}
             {menu && <MessageOptions msg={el} />}
-            <BadgeSign {...{ lastReadUserIds, el, isLastMsg }} />
+            <BadgeSign
+              {...{
+                lastReadUserIdsOfMsg,
+                el,
+                isLastMsg,
+                prevLastReadMsgIds,
+                getMap,
+              }}
+            />
           </Stack>
         </Stack>
       </Box>
@@ -139,19 +165,35 @@ export const LinkMsg = memo(
     menu,
     isLastMsg,
     handleGetToRepMsg,
-    lastReadUserIds,
-    fromUserIds,
+    lastReadUserIdsOfMsg,
+    prevLastReadMsgIds,
+    fromUserIdsOfMsg,
+    getMap,
   }) => {
     const theme = useTheme();
 
     return (
-      <Box data-ref={el.id} sx={{ scrollMarginTop: "20px" }}>
+      <Box
+        data-ref={el.id}
+        sx={{ scrollMarginTop: "20px" }}
+        ref={(node) => {
+          const map = getMap();
+          // Add to the Map
+          if (node) {
+            // Add to the Map
+            map.set(el.id, node);
+          } else {
+            // Remove from the Map
+            map.delete(el.id);
+          }
+        }}
+      >
         {el?.isStartMsg ? <Timeline time={el?.timeOfStartMsg} /> : null}
         <Stack direction={"row"} alignItems={"center"} spacing={1}>
           {el.incoming ? (
-            fromUserIds[el.id] && fromUserIds[el.id].length ? (
+            fromUserIdsOfMsg && fromUserIdsOfMsg.length ? (
               <Avatar
-                alt={fromUserIds[el.id]}
+                alt={fromUserIdsOfMsg}
                 src={faker.image.avatar()}
                 // src={faker.image.avatar()}
                 sx={{
@@ -217,7 +259,15 @@ export const LinkMsg = memo(
               </Box>
             )}
             {menu && <MessageOptions msg={el} />}
-            <BadgeSign {...{ lastReadUserIds, el, isLastMsg }} />
+            <BadgeSign
+              {...{
+                lastReadUserIdsOfMsg,
+                el,
+                isLastMsg,
+                prevLastReadMsgIds,
+                getMap,
+              }}
+            />
           </Stack>
         </Stack>
       </Box>
@@ -225,124 +275,137 @@ export const LinkMsg = memo(
   }
 );
 
+const topLeft = (i) => i === 1 - 1;
+const topRight = (i, col) => i === col - 1;
+const bottomLeft = (i, col, row) => i === col * (row - 1) + 1 - 1;
+const bottomRight = (i, col, row) => i === col * row - 1;
+const calculateCss = (numOfFile, matchDownMd) => {
+  const col = numOfFile <= 2 ? numOfFile : 3;
+  const row = numOfFile <= 2 ? 1 : Math.ceil(numOfFile / 3);
+
+  const rowHeight =
+    numOfFile <= 2 ? (col === 2 ? 100 : 200) : matchDownMd ? 80 : 100;
+  const imageListWidth =
+    numOfFile <= 2
+      ? 200 + (col - 1) * 4
+      : matchDownMd
+      ? 80 * 3 + 4 * 2
+      : 100 * 3 + 4 * 2;
+  const imageListHeight =
+    numOfFile <= 2
+      ? rowHeight
+      : matchDownMd
+      ? row * 80 + (row - 1) * 4
+      : row * 100 + (row - 1) * 4;
+  const imgWidth = rowHeight;
+  const imgHeight = rowHeight;
+
+  return {
+    row,
+    col,
+    rowHeight,
+    imageListWidth,
+    imageListHeight,
+    imgWidth,
+    imgHeight,
+  };
+};
 export const MediaMsg = memo(
   ({
     el,
     menu,
     isLastMsg,
     handleGetToRepMsg,
-    lastReadUserIds,
-    fromUserIds,
+    lastReadUserIdsOfMsg,
+    prevLastReadMsgIds,
+    fromUserIdsOfMsg,
+    getMap,
   }) => {
     const theme = useTheme();
 
-    const topLeft = (i) => i === 1 - 1;
-    const topRight = (i, col) => i === col - 1;
-    const bottomLeft = (i, col, row) => i === col * (row - 1) + 1 - 1;
-    const bottomRight = (i, col, row) => i === col * row - 1;
     let imgs;
-    if (el.files.length <= 2) {
-      const col = el.files.length;
-      const row = 1;
-      imgs = (
-        <ImageList
-          sx={{
-            width: 200 + (col - 1) * 4,
-            height: col === 2 ? 100 : 200,
-            margin: 0,
-          }}
-          cols={col}
-          rowHeight={col === 2 ? 100 : 200}
-        >
-          {el.files.map((file, i) => (
-            <ImageListItem key={i}>
-              <ShowImage link={file.link} alt={file.alt}>
+    const numOfFile = el.files.length;
+    const matchDownMd = useMediaQuery(theme.breakpoints.down("md"));
+    const {
+      row,
+      col,
+      rowHeight,
+      imageListWidth,
+      imageListHeight,
+      imgWidth,
+      imgHeight,
+    } = calculateCss(numOfFile, matchDownMd);
+
+    imgs = (
+      <ImageList
+        sx={{
+          width: imageListWidth,
+          height: imageListHeight,
+          margin: 0,
+          overflow: "hidden",
+        }}
+        cols={col}
+        rowHeight={rowHeight}
+      >
+        {el.files.map((file, i) => {
+          return (
+            <ImageListItem
+              key={file._id}
+              sx={{
+                width: imgWidth,
+                height: imgHeight,
+                maxHeight: imgHeight,
+              }}
+            >
+              <ShowImage link={file.link} alt={file.alt} type>
                 <img
                   src={file.link}
                   alt={file.alt}
                   loading="lazy"
                   style={{
-                    width: col === 2 ? "100px" : "200px",
-                    height: col === 2 ? "100px" : "200px",
                     display: "block",
-                    borderRadius: "10px",
-                    objectFit: "cover",
-
+                    width: "100%",
+                    height: "100%",
+                    maxHeight: "100%",
                     borderTopLeftRadius: topLeft(i) ? "10px" : "4px",
-
                     borderTopRightRadius: topRight(i, col) ? "10px" : "4px",
-
                     borderBottomLeftRadius: bottomLeft(i, col, row)
                       ? "10px"
                       : "4px",
-
                     borderBottomRightRadius: bottomRight(i, col, row)
                       ? "10px"
                       : "4px",
+                    objectFit: "cover",
                   }}
                 />
               </ShowImage>
             </ImageListItem>
-          ))}
-        </ImageList>
-      );
-    } else {
-      const row = Math.ceil(el.files.length / 3);
-      const col = 3;
-      imgs = (
-        <ImageList
-          sx={{
-            width: 300 + 4 * 2,
-            height: row * 100 + (row - 1) * 4, //4px for gap
-            margin: 0,
-            overflow: "hidden",
-          }}
-          cols={col}
-          rowHeight={100}
-        >
-          {el.files.map((file, i) => {
-            return (
-              <ImageListItem key={i}>
-                <ShowImage link={file.link} alt={file.alt}>
-                  <img
-                    src={file.link}
-                    alt={file.alt}
-                    loading="lazy"
-                    style={{
-                      display: "block",
-                      width: "100px",
-                      height: "100px",
-                      maxHeight: 100,
-                      borderTopLeftRadius: topLeft(i) ? "10px" : "4px",
-
-                      borderTopRightRadius: topRight(i, col) ? "10px" : "4px",
-
-                      borderBottomLeftRadius: bottomLeft(i, col, row)
-                        ? "10px"
-                        : "4px",
-
-                      borderBottomRightRadius: bottomRight(i, col, row)
-                        ? "10px"
-                        : "4px",
-
-                      objectFit: "cover",
-                    }}
-                  />
-                </ShowImage>
-              </ImageListItem>
-            );
-          })}
-        </ImageList>
-      );
-    }
+          );
+        })}
+      </ImageList>
+    );
     return (
-      <Box data-ref={el.id} sx={{ scrollMarginTop: "20px" }}>
+      <Box
+        data-ref={el.id}
+        sx={{ scrollMarginTop: "20px" }}
+        ref={(node) => {
+          const map = getMap();
+          // Add to the Map
+          if (node) {
+            // Add to the Map
+            map.set(el.id, node);
+          } else {
+            // Remove from the Map
+            map.delete(el.id);
+          }
+        }}
+      >
         {el?.isStartMsg ? <Timeline time={el?.timeOfStartMsg} /> : null}
         <Stack direction={"row"} alignItems={"center"} spacing={1}>
           {el.incoming ? (
-            fromUserIds[el.id] && fromUserIds[el.id].length ? (
+            fromUserIdsOfMsg && fromUserIdsOfMsg.length ? (
               <Avatar
-                alt={fromUserIds[el.id]}
+                alt={fromUserIdsOfMsg}
                 src={faker.image.avatar()}
                 // src={faker.image.avatar()}
                 sx={{
@@ -399,7 +462,15 @@ export const MediaMsg = memo(
               </Box>
             )}
             {menu && <MessageOptions msg={el} />}
-            <BadgeSign {...{ lastReadUserIds, el, isLastMsg }} />
+            <BadgeSign
+              {...{
+                lastReadUserIdsOfMsg,
+                el,
+                isLastMsg,
+                prevLastReadMsgIds,
+                getMap,
+              }}
+            />
           </Stack>
         </Stack>
       </Box>
@@ -413,18 +484,34 @@ export const TextMsg = memo(
     menu,
     isLastMsg,
     handleGetToRepMsg,
-    lastReadUserIds,
-    fromUserIds,
+    lastReadUserIdsOfMsg,
+    prevLastReadMsgIds,
+    fromUserIdsOfMsg,
+    getMap,
   }) => {
     const theme = useTheme();
     return (
-      <Box data-ref={el.id} sx={{ scrollMarginTop: "20px" }}>
+      <Box
+        data-ref={el.id}
+        sx={{ scrollMarginTop: "20px" }}
+        ref={(node) => {
+          const map = getMap();
+          // Add to the Map
+          if (node) {
+            // Add to the Map
+            map.set(el.id, node);
+          } else {
+            // Remove from the Map
+            map.delete(el.id);
+          }
+        }}
+      >
         {el?.isStartMsg ? <Timeline time={el?.timeOfStartMsg} /> : null}
         <Stack direction={"row"} alignItems={"center"} spacing={1}>
           {el.incoming ? (
-            fromUserIds[el.id] && fromUserIds[el.id].length ? (
+            fromUserIdsOfMsg && fromUserIdsOfMsg.length ? (
               <Avatar
-                alt={fromUserIds[el.id]}
+                alt={fromUserIdsOfMsg}
                 src={faker.image.avatar()}
                 // src={faker.image.avatar()}
                 sx={{
@@ -474,7 +561,15 @@ export const TextMsg = memo(
             )}
 
             {menu && <MessageOptions msg={el} />}
-            <BadgeSign {...{ lastReadUserIds, el, isLastMsg }} />
+            <BadgeSign
+              {...{
+                lastReadUserIdsOfMsg,
+                el,
+                isLastMsg,
+                prevLastReadMsgIds,
+                getMap,
+              }}
+            />
           </Stack>
         </Stack>
       </Box>
@@ -699,66 +794,148 @@ export const MessageOptions = memo(({ msg }) => {
   );
 });
 
-const Keyframes = styled("div")({
-  "@keyframes pulsate": {
-    from: {
-      opacity: 1,
-      transform: "scale(1)",
-    },
-    to: {
-      opacity: 0,
-      transform: "scale(2)",
-    },
-  },
-  animation: "pulsate 1s infinite ease",
-  position: "absolute",
-});
-
-const StyledAvatar = styled(Avatar)(({ theme }) => ({
+const SlideAvatar = styled(Avatar, {
+  shouldForwardProp: (prop) => prop !== "distance",
+  name: "SlideAvatar",
+})(({ theme, distance = 0 }) => ({
   "@keyframes slideIn": {
     from: {
-      transform: "translateY(-100px)",
-      opacity: 0,
-    },
-    50: {
-      opacity: 0.75,
+      opacity: 1,
+      bottom: `${distance - 16}px`,
     },
     to: {
-      transform: "translateY(0)",
       opacity: 1,
+      bottom: "-16px",
     },
   },
-
-  animation: "1s ease-in 0s  forwards slideIn",
+  animation: "3s linear 0s forwards slideIn ",
 }));
 
-export const BadgeSign = ({ lastReadUserIds, el, isLastMsg }) => {
-  const content =
-    lastReadUserIds[el.id] && lastReadUserIds[el.id].length ? ( // lastReadUserIds can not loop over very old msg and msg can have [] user seen due to this user seen msg later
+const slideInMixin = (theme, distance) => ({
+  transition: theme.transitions.create(["bottom", "opacity"], {
+    easing: theme.transitions.easing.easeInOut,
+    duration: theme.transitions.duration.enteringScreen,
+  }),
+  bottom: `${distance}px`,
+  opacity: 1,
+});
+
+const slideOutMixin = (theme) => ({
+  transition: theme.transitions.create(["bottom", "opacity"], {
+    easing: theme.transitions.easing.easeInOut,
+    duration: theme.transitions.duration.enteringScreen,
+  }),
+  bottom: "-16px",
+  opacity: 0,
+});
+
+export const SlideDiv = styled(Box, {
+  shouldForwardProp: (prop) => prop !== "distance",
+})(({ theme, distance }) => ({
+  ...(distance && {
+    "&": slideInMixin(theme, distance),
+  }),
+  ...(!distance && {
+    "&": slideOutMixin(theme),
+  }),
+}));
+
+export const SentSuccessSign = memo(({ sentSuccess }) => {
+  return (
+    <CheckCircle
+      size={12}
+      color="#5e5e5e"
+      style={{ position: "absolute", bottom: "4px", right: "4px" }}
+      weight={sentSuccess ? "fill" : undefined}
+    />
+  );
+});
+
+// prevent update sentSuccess run this component
+export const ReadUserIdsSign = memo(
+  ({ lastReadUserIdsOfMsg, elId, prevLastReadMsgIds, getMap }) => {
+    console.log(
+      "run ReadUserIdsSign",
+      lastReadUserIdsOfMsg,
+      elId,
+      prevLastReadMsgIds
+    );
+    return (
       <AvatarGroup max={4}>
-        {lastReadUserIds[el.id].map((userId, i) => (
-          <StyledAvatar
-            key={i}
-            alt={userId}
-            src={faker.image.avatar()}
-            sx={{
-              width: 14,
-              height: 14,
-              position: "absolute",
-              right: `${0 + 20 * i}px`,
-              bottom: "-16px",
-            }}
-          />
-          // <span key={i}>{userId}</span>
-        ))}
+        {lastReadUserIdsOfMsg.map((userId, i) => {
+          if (
+            prevLastReadMsgIds?.[userId] &&
+            prevLastReadMsgIds?.[userId] !== elId
+          ) {
+            const map = getMap();
+            const nodeOfPrevMsg = map.get(prevLastReadMsgIds?.[userId]);
+            console.log(
+              prevLastReadMsgIds?.[userId] &&
+                prevLastReadMsgIds?.[userId] !== elId
+                ? nodeOfPrevMsg
+                : ""
+            );
+            const distance =
+              nodeOfPrevMsg?.offsetParent?.clientHeight -
+              (nodeOfPrevMsg?.offsetTop + nodeOfPrevMsg?.offsetHeight + 16); //16 for margin top
+            console.log(
+              nodeOfPrevMsg?.offsetParent?.clientHeight,
+              nodeOfPrevMsg?.offsetTop,
+              nodeOfPrevMsg?.offsetHeight
+            );
+            return (
+              <SlideAvatar
+                key={i}
+                alt={userId}
+                distance={distance}
+                src={faker.image.avatar()}
+                sx={{
+                  width: 14,
+                  height: 14,
+                  position: "absolute",
+                  right: `${0 + 20 * i}px`,
+                }}
+              />
+            );
+          } else {
+            return (
+              <Avatar
+                key={i}
+                alt={userId}
+                src={faker.image.avatar()}
+                sx={{
+                  width: 14,
+                  height: 14,
+                  position: "absolute",
+                  right: `${0 + 20 * i}px`,
+                  bottom: "-16px",
+                }}
+              />
+            );
+          }
+        })}
       </AvatarGroup>
-    ) : isLastMsg && !el.incoming ? (
-      <CheckCircle
-        size={12}
-        color="#5e5e5e"
-        style={{ position: "absolute", bottom: "4px", right: "4px" }}
-        weight={el.sentSuccess === "success" ? "fill" : undefined}
+    );
+  }
+);
+
+export const BadgeSign = ({
+  lastReadUserIdsOfMsg,
+  el,
+  isLastMsg,
+  prevLastReadMsgIds,
+  getMap,
+}) => {
+  const content =
+    lastReadUserIdsOfMsg && lastReadUserIdsOfMsg.length ? (
+      <ReadUserIdsSign
+        lastReadUserIdsOfMsg={lastReadUserIdsOfMsg}
+        elId={el.id}
+        prevLastReadMsgIds={prevLastReadMsgIds}
+        getMap={getMap}
       />
+    ) : isLastMsg && !el.incoming ? (
+      <SentSuccessSign sentSuccess={el.sentSuccess} />
     ) : null;
   return content;
 };

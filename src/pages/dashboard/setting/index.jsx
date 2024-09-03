@@ -3,30 +3,19 @@ import Shortcuts from "../../../components/settingParts/Shortcuts";
 import AdjustTheme from "../../../components/settingParts/AdjustTheme";
 import LeftAsideLayout from "../../../layouts/leftAside";
 import LeftPanel from "./LeftPanel";
+import { Outlet, useNavigate } from "react-router-dom";
 
 const Settings = () => {
-  const [selected, setSelected] = useState(0);
+  const navigate = useNavigate();
 
-  const handleSelect = (key) => {
-    setSelected(key);
+  const handleSelect = (path) => {
+    navigate(path);
   };
 
   return (
     <LeftAsideLayout isShowRightAside={false}>
       <LeftPanel handleSelect={handleSelect} />
-      {(() => {
-        switch (selected) {
-          case 3:
-            return <AdjustTheme />;
-            break;
-          case 6:
-            return <Shortcuts />;
-            break;
-
-          default:
-            break;
-        }
-      })()}
+      <Outlet />
     </LeftAsideLayout>
   );
 };
