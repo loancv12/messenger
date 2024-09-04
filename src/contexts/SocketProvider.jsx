@@ -18,6 +18,7 @@ import {
   handleNewMessages,
   handleUpdateReadUsers,
   updateSentSuccessMsgs,
+  updateTempMessage,
 } from "../redux/message/messageSlice";
 import {
   handleFriendReqAcceptedRet,
@@ -32,6 +33,7 @@ import { axiosPrivate } from "../services/axios/axiosClient";
 import { v4 as uuidv4 } from "uuid";
 import { Navigate, useNavigate } from "react-router-dom";
 import { generalPath, path, specificPath } from "../routes/paths";
+import { chatTypes } from "../redux/config";
 
 const socket = instance.initSocket();
 
@@ -219,7 +221,11 @@ const SocketWrapper = ({ children }) => {
     // message
     socket.on("new_messages", (data) => {
       console.log("new_messages", data);
-      dispatch(handleNewMessages(data));
+      if (data.tempId && data.chatType === chatTypes.DIRECT_CHAT) {
+        dispatch(updateTempMessage(data));
+      } else {
+        dispatch(handleNewMessages(data));
+      }
 
       // when receiver receiver msg, emit event tp update msgs to sentSuccess to 'success'
       // AVOID using to

@@ -130,6 +130,17 @@ export const selectReadUserIds = createSelector(
   }
 );
 
+export const selectLastMsgCreatedTime = createSelector(
+  [selectCurrentMsgs],
+  (currentMsgs) => {
+    const latestMsg = currentMsgs[currentMsgs.length - 1];
+    if (latestMsg) {
+      return latestMsg.createdAt;
+    }
+    return "";
+  }
+);
+
 // Extract the action creators object and the reducer
 const { actions, reducer } = slice;
 // Extract and export each action creator by name
@@ -198,6 +209,32 @@ export const handleNewMessages = ({ chatType, messages, conversationId }) => {
         body: latestMsg.text,
         tag: chatType,
       });
+    }
+  };
+};
+
+export const updateTempMessage = ({
+  chatType,
+  messages,
+  conversationId,
+  tempId,
+}) => {
+  console.log("updateTempMessage", chatType, messages, conversationId, tempId);
+  return (dispatch, getState) => {
+    const foundMsg = selectMsgs(getState())[chatType][conversationId].find(
+      (msg) => msg.id === tempId
+    );
+
+    if (foundMsg) {
+      //single text msg
+      dispatch(
+        updateMessage({
+          type: chatType,
+          msgId: tempId,
+          updatedContent: { ...messages[0] },
+          conversationId,
+        })
+      );
     }
   };
 };

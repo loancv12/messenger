@@ -66,6 +66,7 @@ class CallSocket {
     const namespace = "/call";
     const host = `${BASE_URL}${namespace}`;
     const options = {
+      retries: 3,
       auth: { userId, roomId },
     };
 

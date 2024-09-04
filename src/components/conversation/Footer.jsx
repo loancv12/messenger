@@ -41,6 +41,8 @@ import PreviewFiles from "./PreviewFiles";
 import { useDispatch, useSelector } from "react-redux";
 import {
   clearReplyMessage,
+  handleNewMessages,
+  selectLastMsgCreatedTime,
   selectReplyMsg,
 } from "../../redux/message/messageSlice";
 import { uploadFile } from "../../redux/message/messageApi";
@@ -53,6 +55,9 @@ import useAxiosPrivate from "../../hooks/useAxiosPrivate";
 import AddSticker from "./AddSticker";
 import HandleCamera from "./HandleCamera";
 import instance from "../../socket";
+import { add } from "date-fns";
+import { v4 as uuidv4 } from "uuid";
+import { msgInterval } from "../../config";
 
 const Actions = [
   {
@@ -114,6 +119,7 @@ function Footer() {
 
   const chatType = useSelector(selectChatType);
   const currentCvs = useSelector((state) => selectCurrCvs(state, chatType));
+  const lastMsgCreatedTime = useSelector(selectLastMsgCreatedTime);
   const replyMsg = useSelector(selectReplyMsg);
   const dispatch = useDispatch();
 
@@ -150,23 +156,48 @@ function Footer() {
   const handleSubmit = async (e) => {
     e.preventDefault();
     const textMsg = textRef.current.textContent.trim();
-
+    const isStartMsg =
+      add(lastMsgCreatedTime, { minutes: msgInterval }) < new Date();
     if (textMsg) {
-      // meo no that su, khi ma thay doi nho o SocketProvider khien comp nay unmount va mount lai,
-      //  socket, neu defined nhu the nay const socket=instance.getSocket(), va khi socket.emit('text..')
-      // no khong hoat dong vi Footer ko render lai, socket pid cua socket la cu so voi pid cua SocketProvider
-      instance.getSocket().emit("text_message", {
-        type: chatType,
-        newMsg: {
-          to: currentCvs?.userId,
-          from: userId,
-          isReply: !!replyMsg,
-          replyMsgId: replyMsg?.id,
-          text: textMsg,
+      const newMsg = {
+        to: currentCvs?.userId,
+        from: userId,
+        isReply: !!replyMsg,
+        replyMsgId: replyMsg?.id,
+        isStartMsg,
+        text: textMsg,
+        conversationId: currentCvs.id,
+        type: "text",
+      };
+
+      // optimictic update
+      const tempId = uuidv4();
+      const createdAt = new Date().toISOString();
+      const updatedAt = createdAt;
+      dispatch(
+        handleNewMessages({
+          chatType,
+          messages: [
+            {
+              ...newMsg,
+              id: tempId,
+              readUserIds: [],
+              createdAt,
+              updatedAt,
+              sentSuccess: "unset",
+            },
+          ],
           conversationId: currentCvs.id,
-          type: "text",
-        },
+        })
+      );
+
+      // real update
+      socket.emit("text_message", {
+        type: chatType,
+        newMsg,
+        tempId,
       });
+
       textRef.current.value = "";
     }
     if (!!replyMsg?.id) {
@@ -182,6 +213,7 @@ function Footer() {
         // 'cause formDate append convert value to string, so we must hanlde it in there
         // NOTE for BE
         replyMsgId: replyMsg?.id ? replyMsg?.id : "",
+        isStartMsg,
         from: userId,
         to: currentCvs?.userId,
         files,
@@ -194,6 +226,7 @@ function Footer() {
       );
       setVariant("indeterminate");
       await callAction(uploadFile(formData, onSuccess, onFailure));
+      // optimitic update
     }
 
     textRef.current.innerHTML = "";

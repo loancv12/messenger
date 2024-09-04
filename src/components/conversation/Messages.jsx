@@ -114,14 +114,14 @@ function getLastReadUserIds(
 
     const { readUserIds: currMsgReadUserIds } = currMsg;
     // if all user have their last read msg, break
-    if (haveLastReadMsgUser.length === numOfParticipants - 1) {
+    if (haveLastReadMsgUser.length === numOfParticipants) {
       break;
     }
     // get all the user that read msg, except the currUser ( i dont want to show current user)
-    // sorry for stupid name
-    const otherReadUserIds = [...currMsgReadUserIds, currMsg.from].filter(
-      (userId) => userId !== curUserId
-    );
+    const otherReadUserIds = [...currMsgReadUserIds, currMsg.from];
+    // .filter(
+    //   (userId) => userId !== curUserId
+    // );
 
     // the latest msg, attach all read user with msgId
     if (i === currentMsgs.length - 1) {
@@ -152,6 +152,13 @@ function getLastReadUserIds(
     if (lastReadUserIds[currMsg.id].length)
       haveLastReadMsgUser.push(...lastReadUserIds[currMsg.id]);
   }
+
+  console.log(
+    "run useMemo",
+    lastReadUserIds,
+    prevLastReadMsgIds,
+    JSON.parse(prevReadUserIdsString)
+  );
 
   return { lastReadUserIds, prevLastReadMsgIds };
 }
@@ -465,6 +472,12 @@ function Messages({ menu, chatType }) {
     return () => {};
   }, [currentMsgs]);
 
+  const isMsgAddedRet = useMemo(() => isMsgAdded(), [currentMsgs]);
+  const fromUserIds = useMemo(
+    () => getFromUserIds(currentMsgs, userId),
+    [isMsgAddedRet, userId]
+  );
+
   const relatedLstRead = useMemo(
     () =>
       getLastReadUserIds(
@@ -479,28 +492,31 @@ function Messages({ menu, chatType }) {
       numOfParticipants,
       userId,
       // prevReadUserIds=>PREVENT  updateSent run useMemo
-      // before updateSent and updateReadUser, addMessages run make this component rerender and this memo run
-      // getLastReadUserIds run=>
-      // the otherReadUserIds of latest msg of sender have no one
-      // while the otherReadUserIds of  latest msg of recipient have the sender
-      // the lastReadUserIds of latest msg of sender have no one=> the msg that have user seen is the second latest
-      // the lastReadUserIds of latest msg of recipient have sender=> the msg that have user seen is the latest
-      // prevReadUserIds updated
-      // when the updateReadUser event,
-      // getLastReadUserIds was run, lastReadUserIds of latest msg of recipient have sender is same as prevReadUserIds
-      // while lastReadUserIds of latest msg of sender was add recipient=> difference with prevReadUserIds=>SlideAvatar
     ]
   );
+  // when msg added=>
+  // getLastReadUserIds run
+  //   lastReadUserIds of latest msg is sender, other msg have their msg as normal(older msg)
+  //   prevLastReadMsgIds only have sender: latestMsg
+  //   prevReadUserIds is older msg: sender, other user...
+  // prevLastReadMsgIds  in ReadUserIdsSign exist, but its key is sender so not display, value is latestMsg ,
+  // cause of isMsgAddedRet is true, prevReadUserIds not updated
+  // when updateUsers=>
+  // getLastReadUserIds run
+  // lastReadUserIds of latest msg is sender and newReadUser, other as normal
+  // prevLastReadMsgIds have sender: latestMsg, newReadUser: older msg (remember that our prevReadUserIds not update yet)
+  // prevLastReadMsgIds in ReadUserIdsSign exist, newReadUser: olderMsg, not equal to latestMsg=> SLIDEIN
 
   useEffect(() => {
-    prevReadUserIds = JSON.stringify(relatedLstRead.lastReadUserIds);
-  }, [relatedLstRead]);
-
-  const isMsgAddedRet = useMemo(() => isMsgAdded(), [currentMsgs]);
-  const fromUserIds = useMemo(
-    () => getFromUserIds(currentMsgs, userId),
-    [isMsgAddedRet, userId]
-  );
+    if (!isMsgAddedRet) {
+      prevReadUserIds = JSON.stringify(relatedLstRead.lastReadUserIds);
+      console.log(
+        "run update prevReadUserIds",
+        prevReadUserIds,
+        relatedLstRead.lastReadUserIds
+      );
+    }
+  }, [relatedLstRead, isMsgAddedRet]);
 
   let repMsgs;
   let msgs;

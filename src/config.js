@@ -86,6 +86,7 @@ export const maxSize = 1024 * 1024 * 1; // 1e6 (1 MB-1024kB)
 export const maxNumberOfFiles = 6;
 
 export const msgsLimit = 20;
+export const msgInterval = 30;
 
 export const defaultLang = allLangs[0]; // English
 

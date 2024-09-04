@@ -60,7 +60,7 @@ function Header({ chatType }) {
         >
           <Stack direction={"row"} spacing={2} alignItems={"center"}>
             {chatType === chatTypes.GROUP_CHAT ? (
-              <AvatarGroup max={4}>
+              <AvatarGroup max={4} sx={{ display: { xs: "none", md: "flex" } }}>
                 {currentCvs?.userIds?.map((userId, index) => {
                   return (
                     <Avatar

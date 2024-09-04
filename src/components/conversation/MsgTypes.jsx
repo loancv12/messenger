@@ -40,6 +40,7 @@ import {
 import { faker } from "@faker-js/faker";
 import useAxiosPrivate from "../../hooks/useAxiosPrivate";
 import ShowImage from "./ShowImage";
+import useAuth from "../../hooks/useAuth";
 
 // msg types component
 export const DocMsg = memo(
@@ -582,8 +583,13 @@ export const Timeline = memo(({ time }) => {
   const theme = useTheme();
 
   return (
-    <Stack direction="row" alignItems={"center"} justifyContent="space-between">
-      <Divider width="46%" />
+    <Stack
+      direction="row"
+      alignItems={"center"}
+      justifyContent="space-between"
+      marginBottom={"16px"}
+    >
+      <Divider sx={{ flex: 1 }} />
       <Typography
         variant="caption"
         sx={{
@@ -592,7 +598,7 @@ export const Timeline = memo(({ time }) => {
       >
         {time}
       </Typography>
-      <Divider width="46%" />
+      <Divider sx={{ flex: 1 }} />
     </Stack>
   );
 });
@@ -841,31 +847,49 @@ export const SlideDiv = styled(Box, {
 }));
 
 export const SentSuccessSign = memo(({ sentSuccess }) => {
+  const compLookup = {
+    success: CheckCircle,
+    unset: CheckCircle,
+    error: WarningCircle,
+  };
+  const Comp = compLookup[sentSuccess];
+  console.log("SentSuccessSign", sentSuccess);
   return (
-    <CheckCircle
-      size={12}
-      color="#5e5e5e"
-      style={{ position: "absolute", bottom: "4px", right: "4px" }}
-      weight={sentSuccess ? "fill" : undefined}
-    />
+    <>
+      <Comp
+        size={12}
+        color="#5e5e5e"
+        style={{ position: "absolute", bottom: "4px", right: "4px" }}
+        weight={sentSuccess === "success" ? "fill" : "regular"}
+      />
+    </>
   );
 });
 
 // prevent update sentSuccess run this component
 export const ReadUserIdsSign = memo(
-  ({ lastReadUserIdsOfMsg, elId, prevLastReadMsgIds, getMap }) => {
+  ({
+    lastReadUserIdsOfMsg,
+    elId,
+    elFrom,
+    isLastMsg,
+    prevLastReadMsgIds,
+    getMap,
+  }) => {
     console.log(
       "run ReadUserIdsSign",
       lastReadUserIdsOfMsg,
       elId,
       prevLastReadMsgIds
     );
+
     return (
       <AvatarGroup max={4}>
         {lastReadUserIdsOfMsg.map((userId, i) => {
           if (
             prevLastReadMsgIds?.[userId] &&
-            prevLastReadMsgIds?.[userId] !== elId
+            prevLastReadMsgIds?.[userId] !== elId &&
+            userId !== elFrom
           ) {
             const map = getMap();
             const nodeOfPrevMsg = map.get(prevLastReadMsgIds?.[userId]);
@@ -875,29 +899,47 @@ export const ReadUserIdsSign = memo(
                 ? nodeOfPrevMsg
                 : ""
             );
-            const distance =
-              nodeOfPrevMsg?.offsetParent?.clientHeight -
-              (nodeOfPrevMsg?.offsetTop + nodeOfPrevMsg?.offsetHeight + 16); //16 for margin top
-            console.log(
-              nodeOfPrevMsg?.offsetParent?.clientHeight,
-              nodeOfPrevMsg?.offsetTop,
-              nodeOfPrevMsg?.offsetHeight
-            );
-            return (
-              <SlideAvatar
-                key={i}
-                alt={userId}
-                distance={distance}
-                src={faker.image.avatar()}
-                sx={{
-                  width: 14,
-                  height: 14,
-                  position: "absolute",
-                  right: `${0 + 20 * i}px`,
-                }}
-              />
-            );
-          } else {
+            if (nodeOfPrevMsg) {
+              const distance =
+                nodeOfPrevMsg?.offsetParent?.clientHeight -
+                (nodeOfPrevMsg?.offsetTop + nodeOfPrevMsg?.offsetHeight + 16); //16 for margin top
+              console.log(
+                nodeOfPrevMsg?.offsetParent?.clientHeight,
+                nodeOfPrevMsg?.offsetTop,
+                nodeOfPrevMsg?.offsetHeight
+              );
+              return (
+                <SlideAvatar
+                  key={i}
+                  alt={userId}
+                  distance={distance}
+                  src={faker.image.avatar()}
+                  sx={{
+                    width: 14,
+                    height: 14,
+                    position: "absolute",
+                    right: `${0 + 20 * i}px`,
+                  }}
+                />
+              );
+            }
+            {
+              return (
+                <Avatar
+                  key={i}
+                  alt={userId}
+                  src={faker.image.avatar()}
+                  sx={{
+                    width: 14,
+                    height: 14,
+                    position: "absolute",
+                    right: `${0 + 20 * i}px`,
+                    bottom: "-16px",
+                  }}
+                />
+              );
+            }
+          } else if (userId !== elFrom || !isLastMsg) {
             return (
               <Avatar
                 key={i}
@@ -926,16 +968,33 @@ export const BadgeSign = ({
   prevLastReadMsgIds,
   getMap,
 }) => {
+  const { userId: currUser } = useAuth();
   const content =
-    lastReadUserIdsOfMsg && lastReadUserIdsOfMsg.length ? (
+    // lastReadUserIdsOfMsg && lastReadUserIdsOfMsg.length ? (
+    //   <ReadUserIdsSign
+    //     lastReadUserIdsOfMsg={lastReadUserIdsOfMsg}
+    //     elId={el.id}
+    //     elFrom={el.from}
+    //     prevLastReadMsgIds={prevLastReadMsgIds}
+    //     getMap={getMap}
+    //     isLastMsg={isLastMsg}
+    //   />
+    // ) : isLastMsg && !el.incoming ? (
+    //   <SentSuccessSign sentSuccess={el.sentSuccess} />
+    // ) : null;
+
+    isLastMsg && lastReadUserIdsOfMsg?.length === 1 && !el.incoming ? ( // =>sender
+      <SentSuccessSign sentSuccess={el.sentSuccess} />
+    ) : lastReadUserIdsOfMsg?.length ? (
       <ReadUserIdsSign
         lastReadUserIdsOfMsg={lastReadUserIdsOfMsg}
         elId={el.id}
+        elFrom={el.from}
         prevLastReadMsgIds={prevLastReadMsgIds}
         getMap={getMap}
+        isLastMsg={isLastMsg}
       />
-    ) : isLastMsg && !el.incoming ? (
-      <SentSuccessSign sentSuccess={el.sentSuccess} />
     ) : null;
+
   return content;
 };
