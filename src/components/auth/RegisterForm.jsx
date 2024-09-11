@@ -15,12 +15,13 @@ import { RHFTextField } from "../../components/hook-form";
 import { Eye, EyeSlash } from "phosphor-react";
 import { useDispatch } from "react-redux";
 import { registerUser } from "../../redux/auth/authApi";
-import transform from "../../utils/transform";
 import { useNavigate } from "react-router-dom";
 import { showSnackbar } from "../../redux/app/appSlice";
 import { updateEmail } from "../../redux/auth/authSlice";
 import RegisterSchema from "../../hookForm/schema/RegisterSchema";
 import useAxiosPublic from "../../hooks/useAxiosPublic";
+import transformObj, { transformPwd } from "../../utils/transform";
+import LoadingScreen from "../common/LoadingScreen";
 
 const RegisterForm = () => {
   const [showPwd, setShowPwd] = useState(false);
@@ -46,27 +47,27 @@ const RegisterForm = () => {
     formState: { errors, isSubmitting, isSubmitSuccessful },
   } = methods;
 
-  const onSuccess = (res) => {
-    console.log(res);
-    dispatch(showSnackbar({ severity: "success", message: res.data.message }));
-    dispatch(updateEmail({ email: res.data.data.email }));
-
-    navigate("/auth/verify");
-  };
   const { callAction, isLoading, isError, error } = useAxiosPublic();
 
   const onSubmit = async (data) => {
-    const transformMap = {
-      pwd: {
-        newKey: "password",
-      },
+    const onSuccess = (res) => {
+      dispatch(
+        showSnackbar({ severity: "success", message: res.data.message })
+      );
+      dispatch(updateEmail({ email: res.data.data.email }));
+
+      navigate("/auth/verify");
     };
-    const transformData = transform(data, transformMap);
-    try {
-      await callAction(registerUser({ transformData, onSuccess }));
-    } catch (error) {
+    const onFailure = (error) => {
       console.log(error);
-    }
+      reset();
+      setError("afterSubmit", {
+        type: "custom",
+        message: error?.response?.data?.message ?? "Something wrong",
+      });
+    };
+    const solveData = transformObj(data, transformPwd);
+    await callAction(registerUser(solveData, onSuccess, onFailure));
   };
   return (
     <FormProvider methods={methods} onSubmit={handleSubmit(onSubmit)}>
@@ -74,8 +75,9 @@ const RegisterForm = () => {
         {!!errors.afterSubmit && (
           <Alert severity="error">{errors.afterSubmit}</Alert>
         )}
+        {isLoading && <LoadingScreen />}
         <Stack spacing={2} direction={{ sx: "column", sm: "row" }}>
-          <RHFTextField name="firstName" label="First Name" />
+          <RHFTextField name="firstName" label="First Name" autoFocus />
           <RHFTextField name="lastName" label="Last Name" />
         </Stack>
         <RHFTextField name="email" label="Email" />

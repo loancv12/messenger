@@ -18,7 +18,6 @@ import CacheProvider from "../contexts/CacheProvider";
 import CallRoom from "../components/call/CallRoom";
 import { FullScreen } from "../components/call/FullScreen";
 import WaitRoom from "../components/call/WaitRoom";
-import Test from "../components/call/Test";
 import PreventLoginAgain from "../components/auth/PreventLoginAgain";
 
 const Loadable = (Component) => (props) => {
@@ -51,12 +50,12 @@ export default function Router() {
               path: "verify",
             },
             {
-              element: <ResetPasswordPage />,
-              path: "reset-password",
+              element: <ForgotPasswordPage />,
+              path: "forgot-password",
             },
             {
-              element: <NewPasswordPage />,
-              path: "new-password",
+              element: <ResetPasswordPage />,
+              path: "reset-password",
             },
           ],
         },
@@ -163,10 +162,10 @@ const LoginPage = Loadable(lazy(() => import("../pages/auth/Login")));
 const RegisterPage = Loadable(lazy(() => import("../pages/auth/Register")));
 const VerifyPage = Loadable(lazy(() => import("../pages/auth/Verify")));
 
+const ForgotPasswordPage = Loadable(
+  lazy(() => import("../pages/auth/ForgotPassword"))
+);
 const ResetPasswordPage = Loadable(
   lazy(() => import("../pages/auth/ResetPassword"))
-);
-const NewPasswordPage = Loadable(
-  lazy(() => import("../pages/auth/NewPassword"))
 );
 const Page404 = Loadable(lazy(() => import("../pages/Page404")));

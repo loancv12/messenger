@@ -18,6 +18,10 @@ const slice = createSlice({
       console.log("setCurrUser", action.payload);
       state.currUser = action.payload.currUser;
     },
+    updateCurrUser(state, action) {
+      const { updateContent } = action.payload;
+      state.currUser = { ...state.currUser, ...updateContent };
+    },
     setUsers(state, action) {
       console.log("setUsers", action.payload);
       state.users = action.payload.users;
@@ -98,6 +102,7 @@ const { reducer, actions } = slice;
 
 export const {
   setCurrUser,
+  updateCurrUser,
   setUsers,
   setFriends,
   setFriendRequests,

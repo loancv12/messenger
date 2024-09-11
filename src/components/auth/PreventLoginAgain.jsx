@@ -3,14 +3,13 @@ import useAuth from "../../hooks/useAuth";
 import { DEFAULT_PATH } from "../../config";
 import { Navigate, Outlet, useLocation } from "react-router-dom";
 
-// this component prevent navigate to login, register,newPassword, resetpassword. verify when user already login
+// this component prevent navigate to login, register,resetPassword, ForgotPassword. verify when user already login
 // when user login again, the jwt cookie was override,
 const PreventLoginAgain = () => {
   const isAuthenticated = localStorage.getItem("isAuthenticated");
   const location = useLocation();
   const stateLocation = location.state;
 
-  console.log("isAuthenticated", isAuthenticated, stateLocation);
   useEffect(() => {
     if (stateLocation?.cannotPersistLogin && isAuthenticated) {
       localStorage.removeItem("isAuthenticated");

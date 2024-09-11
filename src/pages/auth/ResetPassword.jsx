@@ -7,14 +7,19 @@ import ResetPasswordForm from "../../components/auth/ResetPasswordForm";
 const ResetPassword = () => {
   return (
     <Stack spacing={2} sx={{ mb: 5, position: "relative" }}>
-      <Typography variant="h3" paragraphs="true">
-        Forgot Password
+      <Typography
+        variant="h2"
+        sx={{
+          fontSize: "2rem !important",
+        }}
+      >
+        Reset password
       </Typography>
       <Typography sx={{ color: "text.secondary", mb: 5 }}>
-        Please enter the email address associated with your account. We will
-        email you alink to reset your password
+        Please set your new password. Please note that this action make all
+        other logged devices log out.
       </Typography>
-      {/* Reset form */}
+      {/* // New password Form */}
       <ResetPasswordForm />
       <Link
         component={RouterLink}

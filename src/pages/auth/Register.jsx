@@ -7,7 +7,14 @@ import AuthSocial from "../../components/auth/AuthSocial";
 const Register = () => {
   return (
     <Stack spacing={2} sx={{ mb: 5, position: "relative" }}>
-      <Typography variant="h4">Get started with Takw</Typography>
+      <Typography
+        variant="h2"
+        sx={{
+          fontSize: "2rem !important",
+        }}
+      >
+        Get started with Messenger
+      </Typography>
       <Stack direction={"row"} spacing={0.5}>
         <Typography variant="body2">Already have an account?</Typography>
         <Link component={LinkRouter} to="/auth/login">

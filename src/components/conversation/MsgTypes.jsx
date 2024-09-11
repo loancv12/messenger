@@ -57,12 +57,6 @@ export const DocMsg = memo(
     const theme = useTheme();
     function download({ files }) {
       const { link: url, alt: name } = files[0];
-      console.log("downlod, el");
-      // let link = document.createElement("a");
-      // link.download = name;
-      // link.href = url;
-      // link.style.display = "none";
-      // link.click();
     }
 
     return (
@@ -817,35 +811,6 @@ const SlideAvatar = styled(Avatar, {
   animation: "3s linear 0s forwards slideIn ",
 }));
 
-const slideInMixin = (theme, distance) => ({
-  transition: theme.transitions.create(["bottom", "opacity"], {
-    easing: theme.transitions.easing.easeInOut,
-    duration: theme.transitions.duration.enteringScreen,
-  }),
-  bottom: `${distance}px`,
-  opacity: 1,
-});
-
-const slideOutMixin = (theme) => ({
-  transition: theme.transitions.create(["bottom", "opacity"], {
-    easing: theme.transitions.easing.easeInOut,
-    duration: theme.transitions.duration.enteringScreen,
-  }),
-  bottom: "-16px",
-  opacity: 0,
-});
-
-export const SlideDiv = styled(Box, {
-  shouldForwardProp: (prop) => prop !== "distance",
-})(({ theme, distance }) => ({
-  ...(distance && {
-    "&": slideInMixin(theme, distance),
-  }),
-  ...(!distance && {
-    "&": slideOutMixin(theme),
-  }),
-}));
-
 export const SentSuccessSign = memo(({ sentSuccess }) => {
   const compLookup = {
     success: CheckCircle,
@@ -853,7 +818,6 @@ export const SentSuccessSign = memo(({ sentSuccess }) => {
     error: WarningCircle,
   };
   const Comp = compLookup[sentSuccess];
-  console.log("SentSuccessSign", sentSuccess);
   return (
     <>
       <Comp
@@ -876,13 +840,6 @@ export const ReadUserIdsSign = memo(
     prevLastReadMsgIds,
     getMap,
   }) => {
-    console.log(
-      "run ReadUserIdsSign",
-      lastReadUserIdsOfMsg,
-      elId,
-      prevLastReadMsgIds
-    );
-
     return (
       <AvatarGroup max={4}>
         {lastReadUserIdsOfMsg.map((userId, i) => {
@@ -893,21 +850,11 @@ export const ReadUserIdsSign = memo(
           ) {
             const map = getMap();
             const nodeOfPrevMsg = map.get(prevLastReadMsgIds?.[userId]);
-            console.log(
-              prevLastReadMsgIds?.[userId] &&
-                prevLastReadMsgIds?.[userId] !== elId
-                ? nodeOfPrevMsg
-                : ""
-            );
             if (nodeOfPrevMsg) {
               const distance =
                 nodeOfPrevMsg?.offsetParent?.clientHeight -
                 (nodeOfPrevMsg?.offsetTop + nodeOfPrevMsg?.offsetHeight + 16); //16 for margin top
-              console.log(
-                nodeOfPrevMsg?.offsetParent?.clientHeight,
-                nodeOfPrevMsg?.offsetTop,
-                nodeOfPrevMsg?.offsetHeight
-              );
+
               return (
                 <SlideAvatar
                   key={i}
@@ -968,21 +915,7 @@ export const BadgeSign = ({
   prevLastReadMsgIds,
   getMap,
 }) => {
-  const { userId: currUser } = useAuth();
   const content =
-    // lastReadUserIdsOfMsg && lastReadUserIdsOfMsg.length ? (
-    //   <ReadUserIdsSign
-    //     lastReadUserIdsOfMsg={lastReadUserIdsOfMsg}
-    //     elId={el.id}
-    //     elFrom={el.from}
-    //     prevLastReadMsgIds={prevLastReadMsgIds}
-    //     getMap={getMap}
-    //     isLastMsg={isLastMsg}
-    //   />
-    // ) : isLastMsg && !el.incoming ? (
-    //   <SentSuccessSign sentSuccess={el.sentSuccess} />
-    // ) : null;
-
     isLastMsg && lastReadUserIdsOfMsg?.length === 1 && !el.incoming ? ( // =>sender
       <SentSuccessSign sentSuccess={el.sentSuccess} />
     ) : lastReadUserIdsOfMsg?.length ? (

@@ -23,7 +23,6 @@ const ChatElement = memo(
     const handleClick = async () => {
       dispatch(updateShowCvsComp({ open: true }));
 
-      dispatch(setCurrentCvsId({ type: chatType, conversationId: id }));
       dispatch(
         updateConversation({
           type: chatType,

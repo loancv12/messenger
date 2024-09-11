@@ -4,10 +4,11 @@ import { Controller, useFormContext } from "react-hook-form";
 
 const RHFCodes = ({ keyName = "", otpLength = 1, ...other }) => {
   const codesRef = useRef(null);
-  const { control } = useFormContext();
+  const { control, setValue } = useFormContext();
 
   const handleChangeWithNextField = (e, handleChange) => {
     // debugger;
+    console.log(e.target.value);
     const { maxLength, value, name } = e.target;
     const fieldIndex = name.replace(keyName, "");
 
@@ -47,7 +48,6 @@ const RHFCodes = ({ keyName = "", otpLength = 1, ...other }) => {
                   onChange={(e) => {
                     handleChangeWithNextField(e, field.onChange);
                   }}
-                  // onFocus={(e) => e.currentTarget.select()}
                   autoFocus={i === 0}
                   placeholder="-"
                   error={!!error}

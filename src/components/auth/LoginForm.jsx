@@ -15,11 +15,13 @@ import {
 import { RHFTextField } from "../../components/hook-form";
 import { Eye, EyeSlash } from "phosphor-react";
 import { Link as RouterLink, useLocation, useNavigate } from "react-router-dom";
+import LoadingScreen from "../common/LoadingScreen";
 import { logInUser } from "../../redux/auth/authApi";
 import { useDispatch } from "react-redux";
-import transform from "../../utils/transform";
+import transform, { transformPwd } from "../../utils/transform";
 import usePersist from "../../hooks/usePersist";
 import useAxiosPublic from "../../hooks/useAxiosPublic";
+import transformObj from "../../utils/transform";
 
 const LoginForm = () => {
   const [showPwd, setShowPwd] = useState(false);
@@ -58,31 +60,33 @@ const LoginForm = () => {
   } = methods;
 
   const onSubmit = async (data) => {
-    try {
-      const tranformerMap = {
-        pwd: {
-          newKey: "password",
-        },
-      };
-      const transformData = transform(data, tranformerMap);
-      await callAction(logInUser(transformData));
-    } catch (error) {
+    const onFailure = (error) => {
       console.log(error);
       reset();
       setError("afterSubmit", {
-        ...error,
-        message: error.message,
+        type: "custom",
+        message: error?.response?.data?.message ?? "Something wrong",
       });
-    }
+    };
+
+    const solveData = transformObj(data, transformPwd);
+
+    await callAction(logInUser(solveData, onFailure));
   };
 
   return (
     <FormProvider methods={methods} onSubmit={handleSubmit(onSubmit)}>
       <Stack spacing={3}>
         {!!errors.afterSubmit && (
-          <Alert severity="error">{errors.afterSubmit}</Alert>
+          <Alert severity="error">{errors.afterSubmit.message}</Alert>
         )}
-        <RHFTextField name="email" label="Email address" autoComplete="email" />
+        {isLoading && <LoadingScreen />}
+        <RHFTextField
+          name="email"
+          label="Email address"
+          autoComplete="email"
+          autoFocus
+        />
         <RHFTextField
           name="pwd"
           label="Password"
@@ -117,10 +121,11 @@ const LoginForm = () => {
         </label>
         <Link
           variant="body2"
-          to="/auth/reset-password"
+          to="/auth/forgot-password"
           component={RouterLink}
           color="inherit"
           underline="always"
+          sx={{ cursor: "Pointer" }}
         >
           Forgot password
         </Link>

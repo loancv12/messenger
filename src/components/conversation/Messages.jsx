@@ -1,13 +1,4 @@
-import {
-  Box,
-  Button,
-  CircularProgress,
-  IconButton,
-  Slide,
-  Stack,
-  Typography,
-  useTheme,
-} from "@mui/material";
+import { Box, CircularProgress, Stack, Typography } from "@mui/material";
 import LoadingScreen from "../common/LoadingScreen";
 import {
   DeletedMsg,
@@ -36,11 +27,8 @@ import {
   concatMessages,
 } from "../../redux/message/messageSlice";
 import { fetchMessages } from "../../redux/message/messageApi";
-
 import {
-  selectCurrCvsId,
   selectNumOfParticipants,
-  setCurrentCvsId,
   updateConversation,
 } from "../../redux/conversation/conversationSlice";
 import useAuth from "../../hooks/useAuth";
@@ -48,7 +36,6 @@ import { fDateFromNow } from "../../utils/formatTime";
 import useAxiosPrivate from "../../hooks/useAxiosPrivate";
 import { useLocation, useMatch, useParams } from "react-router-dom";
 import instance from "../../socket";
-import { debounce } from "../../utils/debounce";
 import ScrollToBottomBtn from "./ScrollToBottomBtn";
 
 function transformMessages(rawMsg, userId) {
@@ -89,25 +76,19 @@ export const scrollToBottom = (el) => {
   }
 };
 
-// sorry for stupid name, lastReadUserIds is obj, its key is msgId, value is array of userId Whose last read msg is msdId
 //  haveLastReadMsgUser is a arr of userId Which already have in lastReadUserIds
 // prevReadUserIdsString is an string, Which is a JSOn stringify obj, is a prev version of lastReadUserIds
 // const relatedLstRead={}
 // relatedLstRead.pros.lastReadUserIds={};
 
-let lastReadUserIds = {};
-let haveLastReadMsgUser = [];
-let prevLastReadMsgIds = {};
-
 function getLastReadUserIds(
   currentMsgs,
   numOfParticipants,
-  curUserId,
   prevReadUserIdsString
 ) {
-  lastReadUserIds = {};
-  haveLastReadMsgUser = [];
-  prevLastReadMsgIds = {};
+  let lastReadUserIds = {};
+  let haveLastReadMsgUser = [];
+  let prevLastReadMsgIds = {};
 
   for (let i = currentMsgs.length - 1; i >= 0; i--) {
     const currMsg = currentMsgs[i];
@@ -117,11 +98,8 @@ function getLastReadUserIds(
     if (haveLastReadMsgUser.length === numOfParticipants) {
       break;
     }
-    // get all the user that read msg, except the currUser ( i dont want to show current user)
+    // get all the user that read msg, include msg from
     const otherReadUserIds = [...currMsgReadUserIds, currMsg.from];
-    // .filter(
-    //   (userId) => userId !== curUserId
-    // );
 
     // the latest msg, attach all read user with msgId
     if (i === currentMsgs.length - 1) {
@@ -130,6 +108,7 @@ function getLastReadUserIds(
       const prevReadUserIds = JSON.parse(prevReadUserIdsString);
       if (prevReadUserIdsString) {
         otherReadUserIds.forEach((userId) => {
+          // get prev last read msgId of user
           const prevLastReadMsgId = Object.keys(prevReadUserIds).find((msgId) =>
             prevReadUserIds[msgId].includes(userId)
           );
@@ -153,13 +132,6 @@ function getLastReadUserIds(
       haveLastReadMsgUser.push(...lastReadUserIds[currMsg.id]);
   }
 
-  console.log(
-    "run useMemo",
-    lastReadUserIds,
-    prevLastReadMsgIds,
-    JSON.parse(prevReadUserIdsString)
-  );
-
   return { lastReadUserIds, prevLastReadMsgIds };
 }
 
@@ -167,7 +139,6 @@ const getFromUserIds = (currentMsgs, userId) => {
   let currUser;
   let list = {};
 
-  // 1fo, 2o6, 3fo, 4fo 5de
   for (let i = currentMsgs.length - 1; i >= 0; i--) {
     const currMsg = currentMsgs[i];
 
@@ -210,8 +181,6 @@ function Messages({ menu, chatType }) {
 
   const currentMsgs = useSelector(selectCurrentMsgs);
   const numOfParticipants = useSelector(selectNumOfParticipants);
-  // so, make a ref, which a refence variable, not a primitive, unchange, same as every render is a suitable option, no need to add useEffect,
-  // this comp have enough useEffect and logic, i dont want any more  :<<
 
   const outerScrollBox = useRef();
   const topTargetRef = useRef();
@@ -226,7 +195,7 @@ function Messages({ menu, chatType }) {
     oldestMsgId: "",
     lastMsgId: "",
     runGetNext: false,
-    // cause of currentCvsId is defined at mounted in useEffect with no dep, rerender not update it, so currentCvsId in handleGetNextMsgs is defined there
+    // cause of handleGetNext is defined at mounted in useEffect with no dep, rerender not update currentCvsId inside it,
     currentCvsId: cvsId,
   });
 
@@ -277,14 +246,14 @@ function Messages({ menu, chatType }) {
     };
 
     await callGetNext(
-      fetchMessages({
-        data: {
+      fetchMessages(
+        {
           type: chatType,
           conversationId: relatedRef.current.currentCvsId,
           endCursor: cursorRef.current.lastMsgCreated,
         },
-        onSuccess,
-      })
+        onSuccess
+      )
     );
   };
 
@@ -305,15 +274,15 @@ function Messages({ menu, chatType }) {
 
     if (cursorRef.current.isHaveMoreMsg) {
       await callGetRep(
-        fetchMessages({
-          data: {
+        fetchMessages(
+          {
             type: chatType,
             conversationId: relatedRef.current.currentCvsId,
             endCursor: cursorRef.current.lastMsgCreated,
             startCursor: cursor,
           },
-          onSuccess,
-        })
+          onSuccess
+        )
       );
     }
   }, []);
@@ -403,14 +372,14 @@ function Messages({ menu, chatType }) {
 
     const fetchMsgs = async () => {
       await callMsgs(
-        fetchMessages({
-          data: {
+        fetchMessages(
+          {
             type: chatType,
             conversationId: cvsId,
             endCursor: new Date(),
           },
-          onSuccess,
-        })
+          onSuccess
+        )
       );
     };
 
@@ -422,38 +391,7 @@ function Messages({ menu, chatType }) {
   }, [cvsId]);
 
   useEffect(() => {
-    console.log("run useEffect ò ");
-    const isMsgAddedRet = isMsgAdded();
     const latestMsg = currentMsgs[currentMsgs.length - 1];
-
-    // we can confirm that to user seen msg by emit a event
-    // when isMsgAdded (to user of msg added is this user), this event will emit to from user to update unseen
-    const isMeReadThisMsg = latestMsg?.readUserIds?.includes(userId);
-    if (
-      isMsgAddedRet &&
-      latestMsg &&
-      !isMeReadThisMsg &&
-      latestMsg.from !== userId // =>curren user is to user (direct chat) or other user (group chat)
-    ) {
-      socket.emit("read_msg", {
-        conversationId: relatedRef.current.currentCvsId,
-        chatType,
-        to: userId,
-        from: latestMsg.from,
-      });
-
-      dispatch(
-        updateConversation({
-          type: chatType,
-          conversationId: cvsId,
-          updatedContent: { unread: 0 },
-        })
-      );
-    }
-
-    if (relatedRef.current.isVeryBottom && isMsgAddedRet) {
-      scrollToBottom(outerScrollBox.current);
-    }
 
     // scroll to old pos after run get next msg
     if (relatedRef.current.runGetNext) {
@@ -468,7 +406,6 @@ function Messages({ menu, chatType }) {
       relatedRef.current.lastMsgId = latestMsg?.id;
       relatedRef.current.oldestMsgId = currentMsgs[0]?.id;
     }
-
     return () => {};
   }, [currentMsgs]);
 
@@ -479,18 +416,11 @@ function Messages({ menu, chatType }) {
   );
 
   const relatedLstRead = useMemo(
-    () =>
-      getLastReadUserIds(
-        currentMsgs,
-        numOfParticipants,
-        userId,
-        prevReadUserIds
-      ),
+    () => getLastReadUserIds(currentMsgs, numOfParticipants, prevReadUserIds),
     [
       currentMsgs[currentMsgs.length - 1]?.readUserIds?.length,
       currentMsgs[currentMsgs.length - 1]?.id,
       numOfParticipants,
-      userId,
       // prevReadUserIds=>PREVENT  updateSent run useMemo
     ]
   );
@@ -508,15 +438,44 @@ function Messages({ menu, chatType }) {
   // prevLastReadMsgIds in ReadUserIdsSign exist, newReadUser: olderMsg, not equal to latestMsg=> SLIDEIN
 
   useEffect(() => {
+    // prevent update prevReadUserIds not necessary, when new msg added
     if (!isMsgAddedRet) {
       prevReadUserIds = JSON.stringify(relatedLstRead.lastReadUserIds);
-      console.log(
-        "run update prevReadUserIds",
-        prevReadUserIds,
-        relatedLstRead.lastReadUserIds
-      );
     }
   }, [relatedLstRead, isMsgAddedRet]);
+
+  useEffect(() => {
+    if (isMsgAddedRet) {
+      if (relatedRef.current.isVeryBottom) {
+        scrollToBottom(outerScrollBox.current);
+      }
+      const latestMsg = currentMsgs[currentMsgs.length - 1];
+
+      // we can confirm that to user seen msg by emit a event
+      // when isMsgAdded (to user of msg added is this user), this event will emit to from user to update unseen
+      const isMeReadThisMsg = latestMsg?.readUserIds?.includes(userId);
+      if (
+        isMsgAddedRet &&
+        latestMsg &&
+        !isMeReadThisMsg &&
+        latestMsg.from !== userId // =>curren user is to user (direct chat) or other user (group chat)
+      ) {
+        socket.emit("read_msg", {
+          conversationId: relatedRef.current.currentCvsId,
+          chatType,
+          to: userId,
+          from: latestMsg.from,
+        });
+        dispatch(
+          updateConversation({
+            type: chatType,
+            conversationId: relatedRef.current.currentCvsId,
+            updatedContent: { unread: 0 },
+          })
+        );
+      }
+    }
+  }, [userId, chatType, isMsgAddedRet]);
 
   let repMsgs;
   let msgs;

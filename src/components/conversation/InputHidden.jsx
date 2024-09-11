@@ -12,60 +12,19 @@ import { useDispatch } from "react-redux";
 import { showSnackbar } from "../../redux/app/appSlice";
 import { getFileFormat } from "../../utils/getFileFormat";
 import { allowFileTypes, maxNumberOfFiles, maxSize } from "../../config";
-
-const VisuallyHiddenInput = styled("input")(({ theme }) => ({
-  "& .MuiInputBase-input, fieldset": {
-    clip: "rect(0 0 0 0)",
-    clipPath: "inset(50%)",
-    height: 1,
-    overflow: "hidden",
-    position: "absolute",
-    bottom: 0,
-    left: 0,
-    whiteSpace: "nowrap",
-    width: 1,
-  },
-  "&": {
-    clip: "rect(0 0 0 0)",
-    clipPath: "inset(50%)",
-    height: 1,
-    overflow: "hidden",
-    position: "absolute",
-    bottom: 0,
-    left: 0,
-    whiteSpace: "nowrap",
-    width: 1,
-  },
-}));
-
-function classifyFile(files) {
-  return Array.from(files).filter((file, i) => {
-    const extension = file.name.substring(file.name.lastIndexOf("."));
-    const mimeType = file.type;
-    console.log(file);
-
-    const validExt = allowFileTypes.find(
-      (allowType) => allowType.extension === extension
-    );
-
-    const isValidType =
-      validExt && (validExt.mimeType === mimeType || validExt?.notWideSp);
-
-    console.log(isValidType);
-
-    const isValidSize = file.size <= maxSize;
-    // Forgive for this stupid naming, couldn't find a better name
-    const isSingleFileAllowed = i <= maxNumberOfFiles;
-
-    return isValidSize && isValidType && isSingleFileAllowed;
-  });
-}
+import { VisuallyHiddenInput } from "../common/VisuallyHiddenInput";
+import { filterValidFiles } from "../../utils/checkValidFile";
 
 function InputHidden({ setFiles, name }) {
   const dispatch = useDispatch();
   const handleChange = (e) => {
     const { files } = e.target;
-    const filteredFiles = classifyFile(files);
+    const filteredFiles = filterValidFiles(
+      files,
+      allowFileTypes,
+      maxNumberOfFiles,
+      maxSize
+    );
 
     if (filteredFiles.length !== files.length) {
       dispatch(

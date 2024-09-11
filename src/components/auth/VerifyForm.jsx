@@ -3,14 +3,16 @@ import React from "react";
 import { useForm } from "react-hook-form";
 import * as Yup from "yup";
 import FormProvider from "../hook-form/FormProvider";
-import { Button, IconButton, Stack } from "@mui/material";
+import { Alert, Button, IconButton, Stack } from "@mui/material";
 import RHFCodes from "../hook-form/RHFCodes";
 import { useDispatch, useSelector } from "react-redux";
-import transform from "../../utils/transform";
 import { verifyEmail } from "../../redux/auth/authApi";
 import useAuth from "../../hooks/useAuth";
-import { selectEmail } from "../../redux/auth/authSlice";
-import useAxiosPrivate from "../../hooks/useAxiosPrivate";
+import { selectEmail, updateEmail } from "../../redux/auth/authSlice";
+import useAxiosPublic from "../../hooks/useAxiosPublic";
+import { useNavigate } from "react-router-dom";
+import LoadingScreen from "../common/LoadingScreen";
+import { showSnackbar } from "../../redux/app/appSlice";
 
 // {code1: value, code2: value...}
 const makeCodeObj = (valueOfKey, otpLength, keyName) => {
@@ -24,6 +26,7 @@ const makeCodeObj = (valueOfKey, otpLength, keyName) => {
 const VerifyForm = () => {
   const dispatch = useDispatch();
   const email = useSelector(selectEmail);
+  const navigate = useNavigate();
 
   const otpLength = 6;
 
@@ -42,23 +45,44 @@ const VerifyForm = () => {
     defaultValues,
   });
 
-  const { handleSubmit, formState } = methods;
+  const {
+    handleSubmit,
+    reset,
+    setError,
+    formState: { errors },
+  } = methods;
 
-  const { callAction, isLoading, isError, error } = useAxiosPrivate();
+  const { callAction, isLoading, isError, error } = useAxiosPublic();
 
   const onSubmit = async (data) => {
     const otp = Object.values(data).join("");
-    try {
-      await callAction(verifyEmail({ otp, email }));
-    } catch (error) {
+    const onSuccess = (res) => {
+      dispatch(updateEmail({ email: "" }));
+      dispatch(
+        showSnackbar({ severity: "success", message: res.data.message })
+      );
+      navigate("/auth/login");
+    };
+
+    const onFailure = (error) => {
       console.log(error);
-    }
+      reset();
+      setError("afterSubmit", {
+        type: "custom",
+        message: error?.response?.data?.message ?? "Something wrong",
+      });
+    };
+
+    await callAction(verifyEmail({ otp, email }, onSuccess, onFailure));
   };
   return (
     <>
       <FormProvider methods={methods} onSubmit={handleSubmit(onSubmit)}>
         <Stack spacing={3}>
-          {/* custom otp Input */}
+          {!!errors.afterSubmit && (
+            <Alert severity="error">{errors.afterSubmit.message}</Alert>
+          )}
+          {isLoading && <LoadingScreen />}
           <RHFCodes
             {...{
               keyName: "code",

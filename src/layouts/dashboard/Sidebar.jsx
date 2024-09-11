@@ -44,6 +44,9 @@ import toCamelCase from "../../utils/toCamelCase";
 import useAuth from "../../hooks/useAuth";
 import useAxiosPrivate from "../../hooks/useAxiosPrivate";
 import { generalPath } from "../../routes/paths";
+import StyleAvatar from "../../components/common/StyleAvatar";
+import { selectCurrUser } from "../../redux/relationShip/relationShipSlice";
+import { getFullName } from "../../utils/getFullName";
 
 export const Profile_Menu = [
   {
@@ -82,7 +85,7 @@ export const Nav_Buttons = [
 
 const Sidebar = () => {
   const theme = useTheme();
-  const { userId } = useAuth();
+  const currUser = useSelector(selectCurrUser);
   const location = useLocation();
   const isActive = (path) => location.pathname.startsWith(path);
   const { translate } = useLocales();
@@ -173,7 +176,10 @@ const Sidebar = () => {
             justifyContent={"space-between"}
             spacing={2}
           >
-            <Avatar src={faker.image.avatar()} />
+            <StyleAvatar
+              avatar={currUser.avatar}
+              fullName={getFullName(currUser.firstName, currUser.lastName)}
+            />
             <AntSwitch
               defaultChecked
               onChange={() => {
@@ -336,13 +342,14 @@ const Sidebar = () => {
                 onToggleMode();
               }}
             />
-            <Avatar
+            <StyleAvatar
+              avatar={currUser.avatar}
+              fullName={getFullName(currUser.firstName, currUser.lastName)}
               onClick={handleClick}
               id="basic-button"
               aria-controls={open ? "profile-menu" : undefined}
               aria-haspopup="true"
               aria-expanded={open ? "true" : undefined}
-              src={faker.image.avatar()}
             />
             <Menu
               id="profile-menu"

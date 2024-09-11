@@ -5,8 +5,11 @@ import useAxiosPublic from "../../hooks/useAxiosPublic";
 import { logInWithGg } from "../../redux/auth/authApi";
 import { jwtDecode } from "jwt-decode";
 import { useGoogleLogin } from "@react-oauth/google";
+import { useDispatch } from "react-redux";
+import { showSnackbar } from "../../redux/app/appSlice";
 
 const AuthSocial = () => {
+  const dispatch = useDispatch();
   const { callAction, isLoading, isSuccessful, isError } =
     useAxiosPublic("login with gg");
 
@@ -16,6 +19,7 @@ const AuthSocial = () => {
     },
     onError: (err) => {
       console.log(err);
+      dispatch(showSnackbar({ severity: "error", message: "Something wrong" }));
     },
     flow: "auth-code",
   });

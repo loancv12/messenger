@@ -23,11 +23,13 @@ import {
   X,
 } from "phosphor-react";
 import { faker } from "@faker-js/faker";
+import { showSnackbar } from "../../redux/app/appSlice";
 
 const initialSocket = (userId, roomId) => {
   return callInstance.initAndConnect(userId, roomId);
 };
 function CallRoom() {
+  const dispatch = useDispatch();
   const defaultSettings = {
     video: true,
     audio: true,
@@ -42,10 +44,6 @@ function CallRoom() {
   const { roomId } = useParams();
   // const callSocket = callInstance.initAndConnect(userId, roomId);
   const [callSocket, _] = useState(initialSocket);
-  console.log(
-    "check ref of socket 1",
-    Object.is(callSocket, callInstance.getSocket())
-  );
 
   const otherUserIdsInCvs = useSelector(selectPeopleInCvs);
   const streamRef = useRef();
@@ -76,7 +74,6 @@ function CallRoom() {
   const currentUserVideoRef = useRef(null);
 
   const handleInviteOtherUser = (otherUserIdsInCvs) => {
-    console.log("instance.getSocket()", instance.getSocket(), socket);
     instance.getSocket().emit("make_invite_call", {
       roomId,
       senderId: userId,
@@ -91,7 +88,6 @@ function CallRoom() {
 
   // handle refresh page
   const stopTracksAndDeletePeers = () => {
-    console.log("stopTracksAndDeletePeers");
     if (currentUserVideoRef.current?.srcObject) {
       stopStreamedVideo(currentUserVideoRef.current);
     }
@@ -99,7 +95,6 @@ function CallRoom() {
     peerObjsRef.current = [];
     if (peerObjs.length) {
       peerObjs.forEach((peerObj) => {
-        console.log("peerObj in handleUpCall", peerObj);
         peerObj.peer.destroy();
       });
     }
@@ -124,7 +119,6 @@ function CallRoom() {
   };
 
   const handleUserLeave = (userIdOfOtherSide) => {
-    console.log("run handleUserLeave", userIdOfOtherSide);
     const stillSomeOneInRoom =
       otherUserIdsInCvs.length !== numOfUserJoinRef.current &&
       numOfUserJoinRef.current !== 0;
@@ -158,7 +152,6 @@ function CallRoom() {
     peer.on("error", (err) => console.log("error", err));
     // isUserJoinLater will send signal first
     peer.on("signal", (signal) => {
-      console.log("SIGNAL", JSON.stringify(signal));
       callSocket.emit("send_signal_to_join_before", {
         signal,
         userIdJoinBefore,
@@ -186,20 +179,11 @@ function CallRoom() {
 
     peer.on("error", (err) => console.log("error", err));
     peer.on("signal", (signal) => {
-      console.log("SIGNAL", JSON.stringify(signal));
       callSocket.emit("send_signal_to_join_later", {
         signal,
         userIdJoinBefore,
         userIdJoinLater,
       });
-    });
-
-    peer.on("close", () => {
-      console.log("peer close at add peer");
-    });
-    peer.on("connect", () => {
-      console.log("CONNECT");
-      peer.send("whatever" + Math.random()); // Or Files
     });
 
     return peer;
@@ -267,6 +251,12 @@ function CallRoom() {
           checkAccess(startVideo);
         })
         .catch((err) => {
+          dispatch(
+            showSnackbar({
+              severity: "error",
+              message: "No micro or camera found",
+            })
+          );
           console.error(`${err.name}: ${err.message}`);
         });
     }
@@ -339,7 +329,6 @@ function CallRoom() {
     });
 
     callSocket.on("a_user_leave_room", (data) => {
-      console.log("a_user_leave_room", data);
       handleUserLeave(data.userId);
     });
   };
@@ -348,31 +337,9 @@ function CallRoom() {
     if (!callSocket.connected) {
       callInstance.connect(userId, roomId);
     }
-    console.log(
-      "check ref of socket",
-      Object.is(callSocket, callInstance.getSocket())
-    );
+
     callSocket.on("connect", () => {
       console.log("callSocket connect");
-    });
-    callSocket.on("disconnect", (reason, details) => {
-      console.log("onDisconnect", reason, callSocket);
-      if (!callSocket.active) {
-        //
-      }
-    });
-
-    callSocket.on("connect_error", (err) => {
-      console.log("connect error", err);
-      if (!callSocket.active) {
-        // callSocket.connect();
-      }
-      // dispatch(
-      //   showSnackbar({
-      //     severity: "error",
-      //     message: err.message,
-      //   })
-      // );
     });
 
     socket.on("decline_invite", (data) => {
@@ -400,7 +367,6 @@ function CallRoom() {
   }, []);
 
   useEffect(() => {
-    console.log("numOfUserJoin", numOfUserJoin);
     if (numOfUserJoin >= 1) {
       setBtnsStatus({ video: "on", audio: "on" });
       setCallStatus("calling");

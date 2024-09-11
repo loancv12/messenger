@@ -21,7 +21,6 @@ const JoinGroupReqs = ({ open, handleClose }) => {
   const { callAction, isLoading, isError, error } = useAxiosPrivate();
 
   useEffect(() => {
-    console.log("use effect at chat");
     const fetchJoinGroup = async () => {
       try {
         await callAction(fetchJoinGroupReqs());
@@ -40,7 +39,6 @@ const JoinGroupReqs = ({ open, handleClose }) => {
   }, []);
 
   const handleAccept = (id) => {
-    console.log("emit accept_join_group", id);
     socket.emit("accept_join_group", { groupId: id });
     handleClose();
   };

@@ -3,20 +3,20 @@ import { dispatch, persistor } from "../store";
 import { apiAction } from "../../utils/apiAction";
 import { showSnackbar } from "../app/appSlice";
 
-export const logInUser = (formValues) =>
+export const logInUser = (formValues, onFailure) =>
   apiAction({
     url: "/auth/login",
     method: "POST",
     data: { ...formValues },
     onSuccess: (res) => {
       const { data: token, message } = res.data;
-      console.log("set token", token);
       dispatch(
         setCredentials({
           token,
         })
       );
     },
+    onFailure,
   });
 
 export const logInWithGg = (formValues) =>
@@ -25,7 +25,6 @@ export const logInWithGg = (formValues) =>
     method: "POST",
     data: { ...formValues },
     onSuccess: (res) => {
-      console.log("set token", res);
       const { data: token, message } = res.data;
       dispatch(
         setCredentials({
@@ -63,65 +62,46 @@ export const logOutUser = (clientId) =>
     },
   });
 
-export const forgotPwd = (formValues) =>
+export const forgotPwd = (formValues, onSuccess, onFailure) =>
   apiAction({
     url: "/auth/forgot-password",
     method: "POST",
     data: { ...formValues },
-    onSuccess: (res) => {
-      console.log(res);
-    },
+    onSuccess,
+    onFailure,
   });
 
-export const resetPwd = (formValues) =>
+export const resetPwd = (formValues, onSuccess, onFailure) =>
   apiAction({
     url: "/auth/reset-password",
     method: "POST",
     data: { ...formValues },
-    onSuccess: (res) => {
-      console.log("res in forgor pwd", res);
-      const { data: token } = res.data;
-      dispatch(
-        setCredentials({
-          token,
-        })
-      );
-    },
+    onSuccess,
+    onFailure,
   });
 
-export const registerUser = (formValues, onSuccess) =>
+export const registerUser = (formValues, onSuccess, onFailure) =>
   apiAction({
     url: "/auth/register",
     method: "POST",
     data: { ...formValues },
     onSuccess,
+    onFailure,
   });
 
-export const verifyEmail = (formValues) =>
+export const verifyEmail = (formValues, onSuccess, onFailure) =>
   apiAction({
     url: "/auth/verify-otp",
     method: "POST",
     data: { ...formValues },
-    onSuccess: (res) => {
-      console.log("verifyEmail", res);
-      const { data: token, message } = res.data;
-      dispatch(
-        setCredentials({
-          token,
-        })
-      );
-      dispatch(updateEmail({ email: "" }));
-      dispatch(showSnackbar({ severity: "success", message: message }));
-    },
+    onSuccess,
+    onFailure,
   });
 
-export const resendOtp = (formValues) =>
+export const resendOtp = (formValues, onSuccess) =>
   apiAction({
     url: "/auth/resend-otp",
     method: "POST",
     data: { ...formValues },
-    onSuccess: (res) => {
-      const { message } = res.data;
-      dispatch(showSnackbar({ severity: "success", message }));
-    },
+    onSuccess,
   });

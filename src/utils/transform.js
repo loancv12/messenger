@@ -1,44 +1,71 @@
-// const tranformerMap = {
-//   old_key: {
-//     newKey: "newKey",
-//     // if you want to transform the value
-//     handle: (val) => {
-//       return val + "new";
+// const transformMap2 = {
+//   _id: {
+//     newKey: "id",
+//   },
+//   _date: {
+//     newKey: "date",
+//   },
+//   address: {
+//     newKey: "zcode",
+//     nestedKey: {
+//       city: {
+//         newKey: "province",
+//         handle: (val) => "Province " + val,
+//       },
+//       anniverDate: {
+//         newKey: "anniver",
+//       },
 //     },
 //   },
 // };
 
-function transform(rawObj, transformMap) {
-  function transformValue(value, handle) {
-    return handle ? handle(value) : value;
-  }
+function transformObj(rawObj, transformMap) {
+  // Function to apply transformations directly on the rawObj
+  function applyTransform(obj, map) {
+    Object.keys(map).forEach((key) => {
+      const mapEntry = map[key];
+      const { newKey, handle, ...nestedKeys } = mapEntry;
 
-  function applyTransform(obj, map, path = []) {
-    const transformedObj = Array.isArray(obj) ? [] : {};
+      // Check if the key exists in the object to be transformed
+      if (obj.hasOwnProperty(key)) {
+        const oldValue = obj[key];
 
-    for (const key in obj) {
-      const newPath = path.concat(key);
-      const stringPath = newPath.join(".");
-      if (map.hasOwnProperty(stringPath)) {
-        const { newKey, handle } = map[stringPath];
-        const newKeys = newKey.split(".");
-        const lastNewKey = newKeys.pop();
-        let targetObj = transformedObj;
-        newKeys.forEach((k) => {
-          if (!targetObj[k]) targetObj[k] = {};
-          targetObj = targetObj[k];
-        });
-        targetObj[lastNewKey] = transformValue(obj[key], handle);
-      } else if (obj[key] && typeof obj[key] === "object") {
-        transformedObj[key] = applyTransform(obj[key], map, newPath);
-      } else {
-        transformedObj[key] = obj[key];
+        // If there's a newKey, update the key name
+        if (newKey) {
+          obj[newKey] = oldValue;
+          delete obj[key];
+        }
+
+        // If there's a handle function, apply it to the value
+        if (handle && obj.hasOwnProperty(newKey)) {
+          obj[newKey] = handle(oldValue);
+        }
+
+        // If there are nested keys, recursively apply transformations
+        if (nestedKeys && typeof oldValue === "object" && oldValue !== null) {
+          Object.keys(nestedKeys).forEach((nestedKey) => {
+            // Ensure nestedKey is an actual object before recursion
+            if (
+              typeof nestedKeys[nestedKey] === "object" &&
+              nestedKeys[nestedKey] !== null
+            ) {
+              applyTransform(obj[newKey], nestedKeys[nestedKey]);
+            }
+          });
+        }
       }
-    }
-    return transformedObj;
+    });
   }
 
-  return applyTransform(rawObj, transformMap);
-}
+  // Apply transformations directly to the rawObj
+  applyTransform(rawObj, transformMap);
 
-export default transform;
+  return rawObj;
+}
+export default transformObj;
+
+export const transformPwd = {
+  pwd: {
+    newKey: "password",
+  },
+};

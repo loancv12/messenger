@@ -66,7 +66,6 @@ const Group = () => {
   );
 
   const handleClose = () => {
-    console.log("close");
     setOpen(false);
   };
   const handleOpenDialog = () => {

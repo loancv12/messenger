@@ -35,8 +35,8 @@ import {
 } from "phosphor-react";
 import data from "@emoji-mart/data";
 import Picker from "@emoji-mart/react";
-import InputHidden from "../common/InputHidden";
-import PreviewFiles from "./PreviewFiles";
+import InputHidden from "./InputHidden";
+import PreviewFiles, { checkCanShowToScreen } from "./PreviewFiles";
 // import { socket } from "../../socket";
 import { useDispatch, useSelector } from "react-redux";
 import {
@@ -58,6 +58,7 @@ import instance from "../../socket";
 import { add } from "date-fns";
 import { v4 as uuidv4 } from "uuid";
 import { msgInterval } from "../../config";
+import Pako from "pako";
 
 const Actions = [
   {
@@ -124,7 +125,6 @@ function Footer() {
   const dispatch = useDispatch();
 
   const socket = instance.getSocket();
-  // console.log("socket at footer", socket);
 
   const handleSelectEmojis = (emojis) => {
     textRef.current.innerHTML += emojis.native;

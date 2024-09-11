@@ -10,6 +10,8 @@ export function createPublicAxios() {
 
   const resInterceptor = axiosPublic.interceptors.response.use(
     (response) => {
+      console.log(response);
+
       if (
         response.headers.hasContentType("application/json") &&
         typeof response.data === "string"
@@ -18,7 +20,15 @@ export function createPublicAxios() {
       }
       return response;
     },
-    (error) => Promise.reject(error)
+    (error) => {
+      if (
+        error?.response?.headers?.hasContentType("application/json") &&
+        typeof error?.response?.data === "string"
+      ) {
+        error.response.data = JSON.parse(error?.response?.data);
+      }
+      return Promise.reject(error);
+    }
   );
 
   return axiosPublic;

@@ -1,9 +1,5 @@
 import {
   Badge,
-  Box,
-  Button,
-  ImageList,
-  ImageListItem,
   LinearProgress,
   Paper,
   Stack,
@@ -11,9 +7,25 @@ import {
   useTheme,
 } from "@mui/material";
 import React, { useEffect, useState } from "react";
-import { getFileFormat } from "../../utils/getFileFormat";
 import { imageFileTypesWithMIME } from "../../config";
 import { File } from "phosphor-react";
+
+export const checkCanShowToScreen = (file) => {
+  const { name, type } = file;
+
+  const extension = name.substring(name.lastIndexOf("."));
+  // i dont have iphone so i dont know exact user-agent show img or not,so i dont show it in all browser
+  const canShowToScreen =
+    type === "image/tiff"
+      ? false
+      : imageFileTypesWithMIME.find(
+          (allowedFormat) =>
+            allowedFormat.extension === extension &&
+            allowedFormat.mimeType === type
+        );
+
+  return canShowToScreen;
+};
 
 const PreviewFiles = ({ variant, files, handleDelete }) => {
   const theme = useTheme();
@@ -22,34 +34,24 @@ const PreviewFiles = ({ variant, files, handleDelete }) => {
   useEffect(() => {
     let isCancel = false;
     let imgUrls = [];
+
     if (files?.length) {
-      const formatFiles = Array.from(files).reduce((formatFiles, file) => {
-        const extension = file.name.substring(file.name.lastIndexOf("."));
-        let isValidImgType = imageFileTypesWithMIME.find(
-          (type) => type.extension === extension && type.mimeType === file.type
-        );
-        if (file.type === "image/tiff") {
-          isValidImgType = false;
-        }
-        if (isValidImgType) {
-          const imgUrl = URL.createObjectURL(file);
+      const formatFiles = files.map((file) => {
+        const canShowToScreen = checkCanShowToScreen(file);
+
+        let imgUrl;
+        if (canShowToScreen) {
+          imgUrl = URL.createObjectURL(file);
           imgUrls.push(imgUrl);
-          formatFiles.push({
-            type: "img",
-            url: imgUrl,
-            file,
-            title: file.name,
-          });
-        } else {
-          formatFiles.push({
-            type: "doc",
-            file,
-            title: file.name,
-          });
         }
 
-        return formatFiles;
-      }, []);
+        return {
+          type: canShowToScreen ? "img" : "doc",
+          ...(imgUrl && { url: imgUrl }),
+          file,
+          title: file.name,
+        };
+      });
       setFormattedFile(formatFiles);
     }
 

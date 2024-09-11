@@ -25,14 +25,19 @@ function useAxiosPrivate(customConfig = {}) {
         ...config
       } = apiAction;
       const dataOrParams = ["GET"].includes(method) ? "params" : "data";
-      setApiCallState({ ...defaultState, isLoading: true });
-      const callWithWrapper = async () => {
+
+      const promise = axiosPrivate.request({
+        ...config,
+        method,
+        [dataOrParams]: data,
+      });
+
+      if (axiosConfig.plainPromise) {
+        return promise;
+      } else {
         try {
-          const res = await axiosPrivate.request({
-            ...config,
-            method,
-            [dataOrParams]: data,
-          });
+          setApiCallState({ ...defaultState, isLoading: true });
+          const res = await promise;
           onSuccess(res);
           setApiCallState({ ...defaultState, isSuccessful: true });
         } catch (error) {
@@ -46,19 +51,7 @@ function useAxiosPrivate(customConfig = {}) {
             isUninitialized: false,
           }));
         }
-      };
-      const callNoWrapper = async () => {
-        const res = await axiosPrivate.request({
-          ...config,
-          method,
-          [dataOrParams]: data,
-        });
-        onSuccess(res);
-      };
-      const callApi = axiosConfig.plainPromise
-        ? callNoWrapper
-        : callWithWrapper;
-      return callApi();
+      }
     },
     [axiosPrivate]
   );

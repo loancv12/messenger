@@ -92,13 +92,8 @@ const SocketWrapper = ({ children }) => {
     // upon connection or reconnection
     socket.on("connect", () => {
       if (socket.recovered) {
-        console.log("connect to server", socket.recovered);
-        // any event missed during the disconnection period will be received now
       } else {
-        console.log(" new or unrecoverable session", socket.recovered);
-
         const callback = (groupMsgs) => {
-          console.log("callback", groupMsgs);
           groupMsgs?.map((groupMsg) => dispatch(handleNewMessages(groupMsg)));
         };
         socket.emit(
@@ -107,11 +102,6 @@ const SocketWrapper = ({ children }) => {
           callback
         );
       }
-
-      // setTimeout(() => {
-      //   // close the low-level connection and trigger a reconnection
-      //   socket.io.engine.close();
-      // }, 5000);
     });
 
     // temporary disconnection, the socket will automatically try to reconnect
@@ -144,15 +134,13 @@ const SocketWrapper = ({ children }) => {
     });
 
     socket.on("error", (reason) => {
-      console.log("error event", reason);
+      console.log("error event", socket.active, reason);
       dispatch(
         showSnackbar({
           severity: "error",
           message: "Some thing wrong",
         })
       );
-      console.log("active run scoone", socket.active);
-      // socket.connect();
     });
 
     socket.on("user connected", (data) => {
@@ -162,8 +150,6 @@ const SocketWrapper = ({ children }) => {
     // user online
     socket.on("online", (userId) => {
       console.log(userId, "Is Online!"); // update online status
-      console.log("connected");
-      console.log("socket.recovered");
     });
 
     // user offline
@@ -173,7 +159,6 @@ const SocketWrapper = ({ children }) => {
 
     // make friend
     socket.on("send_req_ret", (data) => {
-      console.log("send_req_ret", data);
       dispatch(handleSendReqRet(data));
     });
 
@@ -220,7 +205,6 @@ const SocketWrapper = ({ children }) => {
 
     // message
     socket.on("new_messages", (data) => {
-      console.log("new_messages", data);
       if (data.tempId && data.chatType === chatTypes.DIRECT_CHAT) {
         dispatch(updateTempMessage(data));
       } else {

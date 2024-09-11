@@ -17,7 +17,8 @@ const Profile = () => {
         <Box
           sx={{
             height: "100vh",
-            width: 320,
+            width: "100%",
+            p: { xs: 2, md: 4 },
             backgroundColor:
               theme.palette.mode === "light"
                 ? "#F8F8F8"

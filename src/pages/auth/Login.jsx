@@ -7,9 +7,16 @@ import LoginForm from "../../components/auth/LoginForm";
 const Login = () => {
   return (
     <Stack spacing={2} sx={{ mb: 5, position: "relative" }}>
-      <Typography variant="h4">Login To Takw</Typography>
+      <Typography
+        variant="h2"
+        sx={{
+          fontSize: "2rem !important",
+        }}
+      >
+        Login To Messenger
+      </Typography>
       <Stack direction="row" spacing={0.5}>
-        <Typography variant="body2">New account?</Typography>
+        <Typography variant="body1">New account?</Typography>
         <Link to="/auth/register" component={RouterLink} variant="subtitle">
           Create an account
         </Link>

@@ -54,18 +54,15 @@ const slice = createSlice({
       state.sidebar.open = !state.sidebar.open;
     },
     updateSidebar(state, action) {
-      console.log("updateSidebar", action.payload);
       state.sidebar.type = action.payload.type;
     },
 
     updateCallConfirm(state, action) {
-      console.log("updateCallConfirm", action.payload);
       const { open, roomId, senderId } = action.payload;
       state.callConfirm = { open, roomId, senderId };
     },
 
     updateShowCvsComp(state, action) {
-      console.log("updateShowCvsComp", action.payload);
       state.showConversationComp = action.payload.open;
     },
 
@@ -89,13 +86,10 @@ const slice = createSlice({
     },
 
     setChatType(state, action) {
-      console.log("setChatType", action);
       state.chatType = action.payload.chatType;
     },
 
     updateNotice(state, action) {
-      console.log("updateNotice", action.payload);
-
       const { type, show } = action.payload;
 
       const noticeIndex = state.notices.findIndex(

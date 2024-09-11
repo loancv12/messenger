@@ -1,6 +1,6 @@
 import { apiAction } from "../../utils/apiAction";
 
-export const fetchMessages = ({ data, onSuccess }) =>
+export const fetchMessages = (data, onSuccess) =>
   apiAction({
     url: `/message/get-messages/${data.type}`,
     data,
