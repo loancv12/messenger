@@ -1,8 +1,8 @@
+import { faker } from "@faker-js/faker";
 import {
   Avatar,
   AvatarGroup,
   Box,
-  Button,
   Divider,
   IconButton,
   ImageList,
@@ -11,7 +11,6 @@ import {
   Menu,
   MenuItem,
   Skeleton,
-  Slide,
   Stack,
   styled,
   Typography,
@@ -25,22 +24,17 @@ import {
   Image,
   WarningCircle,
 } from "phosphor-react";
-import React, { useState, useRef, memo, useContext } from "react";
-import { useDispatch, useSelector } from "react-redux";
+import React, { memo, useState } from "react";
+import { useDispatch } from "react-redux";
 import {
-  setReplyMessage,
-  reactMessage,
-  forwardMessage,
-  starMessage,
-  reportMessage,
   deleteMessage,
-  selectSentSuccess,
-  selectReadUserIds,
+  forwardMessage,
+  reactMessage,
+  reportMessage,
+  setReplyMessage,
+  starMessage,
 } from "../../redux/message/messageSlice";
-import { faker } from "@faker-js/faker";
-import useAxiosPrivate from "../../hooks/useAxiosPrivate";
 import ShowImage from "./ShowImage";
-import useAuth from "../../hooks/useAuth";
 
 // msg types component
 export const DocMsg = memo(
@@ -508,7 +502,6 @@ export const TextMsg = memo(
               <Avatar
                 alt={fromUserIdsOfMsg}
                 src={faker.image.avatar()}
-                // src={faker.image.avatar()}
                 sx={{
                   width: 28,
                   height: 28,

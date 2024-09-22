@@ -1,40 +1,20 @@
-import { useDispatch, useSelector } from "react-redux";
-import Conversation from "../../../components/conversation";
+import { useSelector } from "react-redux";
 import LeftAsideLayout from "../../../layouts/leftAside";
-import Chats from "./Chats";
-import {
-  selectSidebar,
-  setChatType,
-  updateShowCvsComp,
-} from "../../../redux/app/appSlice";
+import Direct from "../../../components/direct/Direct";
+import { selectSidebar } from "../../../redux/app/appSlice";
 import Contact from "../../../components/sidebar/Contact";
 import SharedMessages from "../../../components/sidebar/SharedMessages";
 import StarredMessages from "../../../components/sidebar/StarredMessages";
-import { useCallback, useEffect, useRef, useState } from "react";
-import { chatTypes } from "../../../redux/config";
-import { Outlet, useNavigate, useParams } from "react-router-dom";
-import { selectCurrCvsIdDefinedChatType } from "../../../redux/conversation/conversationSlice";
+import { Outlet } from "react-router-dom";
 
 const DirectChat = () => {
-  const dispatch = useDispatch();
   const sidebar = useSelector(selectSidebar);
-  const currentCvsId = useSelector((state) =>
-    selectCurrCvsIdDefinedChatType(state, chatTypes.DIRECT_CHAT)
-  );
-
-  const navigate = useNavigate();
-
-  useEffect(() => {
-    if (currentCvsId) {
-      navigate(currentCvsId);
-    }
-  }, []);
 
   return (
     <LeftAsideLayout isShowRightAside={sidebar.open}>
-      <Chats />
+      <Direct />
       {/* <DirectMsgs /> */}
-      <Outlet context={{ chatType: chatTypes.DIRECT_CHAT }} />
+      <Outlet />
       {(() => {
         switch (sidebar.type) {
           case "CONTACT":

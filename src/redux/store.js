@@ -1,19 +1,15 @@
 import { configureStore } from "@reduxjs/toolkit";
 import {
-  useDispatch as useAppDispatch,
-  useSelector as useAppSelector,
-} from "react-redux";
-import { rootPersistConfig, rootReducer } from "./rootReducer";
-import {
-  persistStore,
-  persistReducer,
   FLUSH,
-  REHYDRATE,
   PAUSE,
   PERSIST,
+  persistReducer,
+  persistStore,
   PURGE,
   REGISTER,
+  REHYDRATE,
 } from "redux-persist";
+import { rootPersistConfig, rootReducer } from "./rootReducer";
 // allow us to persit the data => if we close the tab or refresh the page, state wont be lost
 
 const persistedReducer = persistReducer(rootPersistConfig, rootReducer);
@@ -40,4 +36,4 @@ const dispatch = store.dispatch;
 
 const persistor = persistStore(store);
 
-export { store, persistor, dispatch };
+export { dispatch, persistor, store };

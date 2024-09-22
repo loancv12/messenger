@@ -1,16 +1,15 @@
+import { Box, IconButton, Stack } from "@mui/material";
+import { PhoneCall, X } from "phosphor-react";
 import React, { useEffect, useRef, useState } from "react";
+import { useNavigate, useParams } from "react-router-dom";
+import AudioBtn from "./AudioBtn";
+import CamBtn from "./CamBtn";
 import {
   showCallContent,
   stopStreamedVideo,
   toggleAudio,
   toggleCam,
 } from "./utils";
-import { useNavigate, useParams } from "react-router-dom";
-import CamBtn from "./CamBtn";
-import AudioBtn from "./AudioBtn";
-import { Box, IconButton, Stack } from "@mui/material";
-import { PhoneCall, X } from "phosphor-react";
-import { generalPath, path, specificPath } from "../../routes/paths";
 
 const WaitRoom = () => {
   const navigate = useNavigate();
@@ -33,7 +32,7 @@ const WaitRoom = () => {
     stopStreamedVideo(currentUserVideoRef.current);
 
     setTimeout(function () {
-      navigate(path(generalPath.call, roomId, "/", specificPath.callRoom), {
+      navigate(`/call/${roomId}/call-room`, {
         state: {
           settings,
         },

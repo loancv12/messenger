@@ -1,11 +1,10 @@
 import { createSelector, createSlice } from "@reduxjs/toolkit";
 
 import { faker } from "@faker-js/faker";
-import { selectChatType, showSnackbar, updateNotice } from "../app/appSlice";
-import { chatTypes, noticeTypes } from "../config";
-import { selectCurrUserId } from "../auth/authSlice";
 import { history } from "../../utils/history";
-import { generalPath, path } from "../../routes/paths";
+import { selectChatType, showSnackbar, updateNotice } from "../app/appSlice";
+import { selectCurrUserId } from "../auth/authSlice";
+import { chatTypes, noticeTypes } from "../config";
 
 const initialState = {
   [chatTypes.DIRECT_CHAT]: {
@@ -189,9 +188,7 @@ export const startChat = (data) => {
     const currUser = selectCurrUserId(getState());
 
     if (currUser !== conversation.userId) {
-      history.navigate(
-        path(generalPath[chatTypes.DIRECT_CHAT], conversation.id)
-      );
+      history.navigate(`/direct-chat/${conversation.id}`);
     }
   };
 };

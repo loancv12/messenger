@@ -1,25 +1,9 @@
-// @mui
-import { alpha, styled, useTheme } from "@mui/material/styles";
-import { Grid, RadioGroup, CardActionArea } from "@mui/material";
-// hooks
-import useSettings from "../../../hooks/useSettings";
-//
-import BoxMask from "./BoxMask";
+import { Grid, RadioGroup } from "@mui/material";
+import { alpha, useTheme } from "@mui/material/styles";
 import { AlignLeft, AlignRight } from "phosphor-react";
-
-// ----------------------------------------------------------------------
-
-const BoxStyle = styled(CardActionArea)(({ theme }) => ({
-  height: 72,
-  display: "flex",
-  alignItems: "center",
-  justifyContent: "center",
-  color: theme.palette.text.disabled,
-  border: `solid 1px ${theme.palette.grey[500_12]}`,
-  borderRadius: Number(theme.shape.borderRadius) * 1.25,
-}));
-
-// ----------------------------------------------------------------------
+import useSettings from "../../../hooks/useSettings";
+import BoxMask from "./BoxMask";
+import BoxStyle from "./BoxStyle";
 
 export default function SettingDirection() {
   const { themeDirection, onChangeDirection } = useSettings();
@@ -38,6 +22,7 @@ export default function SettingDirection() {
           return (
             <Grid key={direction} item xs={6}>
               <BoxStyle
+                height={72}
                 sx={{
                   ...(isSelected && {
                     color: "primary.main",

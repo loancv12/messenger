@@ -1,14 +1,12 @@
 import { Alert, Button, Stack } from "@mui/material";
 import React, { useContext } from "react";
 import FormProvider from "../../components/hook-form/FormProvider";
-import * as Yup from "yup";
 import { useForm } from "react-hook-form";
 import { yupResolver } from "@hookform/resolvers/yup";
 import { RHFTextField } from "../../components/hook-form";
 import RHFAutoComplete from "../../components/hook-form/RHFAutoComplete";
 // import { socket } from "../../socket";
 import { useSelector } from "react-redux";
-import useLocales from "../../hooks/useLocales";
 import { selectFriends } from "../../redux/relationShip/relationShipSlice";
 import NewGroupSchema from "../../hookForm/schema/NewGroupSchema";
 import useAuth from "../../hooks/useAuth";
@@ -31,8 +29,6 @@ const CreateGroupForm = ({ handleClose }) => {
 
   const {
     reset,
-    setError,
-    watch,
     handleSubmit,
     formState: { errors, isSubmitting, isSubmitSuccessful, isValid },
   } = methods;

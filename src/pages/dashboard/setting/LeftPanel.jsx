@@ -1,15 +1,6 @@
-import {
-  Avatar,
-  Box,
-  Divider,
-  IconButton,
-  Stack,
-  Typography,
-  useTheme,
-} from "@mui/material";
+import { Box, Divider, Stack, Typography, useTheme } from "@mui/material";
 import {
   Bell,
-  CaretRight,
   Image,
   Info,
   Key,
@@ -18,10 +9,9 @@ import {
   Note,
   PencilCircle,
 } from "phosphor-react";
-import React, { useState } from "react";
+import React from "react";
 import useLocales from "../../../hooks/useLocales";
 import toCamelCase from "../../../utils/toCamelCase";
-import { specificPath } from "../../../routes/paths";
 
 const Setting_Opts = [
   {
@@ -46,7 +36,7 @@ const Setting_Opts = [
     key: 3,
     icon: <PencilCircle size={20} />,
     title: "Theme",
-    path: specificPath.adjustTheme,
+    path: "adjust-theme",
   },
   {
     key: 4,
@@ -64,7 +54,7 @@ const Setting_Opts = [
     key: 6,
     icon: <Keyboard size={20} />,
     title: "Keyboard Shortcuts",
-    path: specificPath.shortcuts,
+    path: "shortcuts",
   },
   {
     key: 7,

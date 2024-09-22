@@ -1,8 +1,7 @@
 // @mui
-import { enUS, frFR, zhCN, viVN, arSD } from "@mui/material/locale";
+import { enUS, viVN } from "@mui/material/locale";
 
 // routes
-import { generalPath } from "./routes/paths";
 
 export const BASE_URL =
   process.env.NODE_ENV === "development"
@@ -48,21 +47,20 @@ export const allLangs = [
 
 // https://toolsfairy.com/tools/image-test/sample-xbm-files#
 export const imageFileTypesWithMIME = [
-  { extension: ".heic", mimeType: "image/heic", notWideSp: true }, // =>not show not type
-  { extension: ".heif", mimeType: "image/heif", notWideSp: true }, // 5m not show not type
-  { extension: ".jp2", mimeType: "image/jp2", notWideSp: true }, // not show not type
+  { extension: ".heic", mimeType: "image/heic", notWideSp: true },
+  { extension: ".heif", mimeType: "image/heif", notWideSp: true },
+  { extension: ".jp2", mimeType: "image/jp2", notWideSp: true },
   {
     extension: ".psd",
     mimeType: "image/vnd.adobe.photoshop",
     notWideSp: true,
-  }, // not show not type
-  { extension: ".tiff", mimeType: "image/tiff", notWideSp: true }, // not show, have type
-  //
-  { extension: ".webp", mimeType: "image/webp", notWideSp: true }, //
-  { extension: ".jfif", mimeType: "image/jpeg" }, //
-  { extension: ".jpeg", mimeType: "image/jpeg" }, //
+  },
+  { extension: ".tiff", mimeType: "image/tiff", notWideSp: true },
+  { extension: ".webp", mimeType: "image/webp", notWideSp: true },
+  { extension: ".jfif", mimeType: "image/jpeg" },
+  { extension: ".jpeg", mimeType: "image/jpeg" },
   { extension: ".jpg", mimeType: "image/jpeg" },
-  { extension: ".png", mimeType: "image/png" }, //
+  { extension: ".png", mimeType: "image/png" },
 ];
 
 export const wordFileTypesWithMIME = [
@@ -79,9 +77,6 @@ export const allowFileTypes = [
   ...wordFileTypesWithMIME,
 ];
 
-// export const allowFileExts = [, ".doc", ".docx"];
-// const imageMimeType = ["image/jpg", "image/jpeg", "image/png", "image/bmp"];
-
 export const maxSize = 1024 * 1024 * 1; // 1e6 (1 MB-1024kB)
 export const maxNumberOfFiles = 6;
 
@@ -91,4 +86,4 @@ export const msgInterval = 30;
 export const defaultLang = allLangs[0]; // English
 
 // DEFAULT ROOT PATH
-export const DEFAULT_PATH = generalPath.app; // as '/app'
+export const DEFAULT_PATH = "direct-chat";

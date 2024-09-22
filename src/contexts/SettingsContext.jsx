@@ -1,10 +1,10 @@
 // provider === component
-import { createContext, useEffect } from "react";
+import { createContext } from "react";
 import { defaultSettings } from "../config";
 import useLocalStorage from "../hooks/useLocalStorage";
 import getColorPresets, {
-  defaultPreset,
   colorPresets,
+  defaultPreset,
 } from "../utils/getColorPresets";
 
 const initialState = {
@@ -37,17 +37,7 @@ const SettingsProvider = ({ children }) => {
     themeColorPresets: initialState.themeColorPresets,
   });
 
-  const isArabic = localStorage.getItem("i18nextLng") === "ar";
-
-  useEffect(() => {
-    if (isArabic) {
-      onChangeDirectionByLang("ar");
-    }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [isArabic]);
-
   // Mode
-
   const onToggleMode = () => {
     setSettings({
       ...settings,
@@ -85,16 +75,12 @@ const SettingsProvider = ({ children }) => {
     });
   };
 
-  // Color
-
   const onChangeColor = (event) => {
     setSettings({
       ...settings,
       themeColorPresets: event.target.value,
     });
   };
-
-  // Reset
 
   const onResetSetting = () => {
     setSettings({

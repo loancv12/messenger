@@ -1,27 +1,9 @@
+import { Grid, RadioGroup, alpha, useTheme } from "@mui/material";
 import React from "react";
-import useLocales from "../../../hooks/useLocales";
-import useSettings from "../../../hooks/useSettings";
-import {
-  Box,
-  CardActionArea,
-  Grid,
-  RadioGroup,
-  alpha,
-  styled,
-  useTheme,
-} from "@mui/material";
 import { FlagIcon } from "../../../assets/icons";
+import useLocales from "../../../hooks/useLocales";
 import BoxMask from "./BoxMask";
-
-const BoxStyle = styled(CardActionArea)(({ theme }) => ({
-  height: 48,
-  display: "flex",
-  alignItems: "center",
-  justifyContent: "center",
-  color: theme.palette.text.disabled,
-  border: `solid 1px ${theme.palette.grey[500_12]}`,
-  borderRadius: Number(theme.shape.borderRadius) * 1.25,
-}));
+import BoxStyle from "./BoxStyle";
 
 const SettingLanguage = () => {
   const theme = useTheme();

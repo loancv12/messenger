@@ -1,33 +1,26 @@
-import React, { useCallback, useEffect, useState } from "react";
-import FormProvider from "../hook-form/FormProvider";
-import * as Yup from "yup";
-import { object, string, number, date } from "yup";
-import { useForm } from "react-hook-form";
 import { yupResolver } from "@hookform/resolvers/yup";
 import {
   Alert,
   Avatar,
   Box,
   Button,
-  FormHelperText,
   IconButton,
-  InputAdornment,
-  Link,
   Stack,
   Tooltip,
-  Typography,
 } from "@mui/material";
-import { RHFTextField } from "../hook-form";
-import { Camera, Eye, EyeSlash, UploadSimple } from "phosphor-react";
-import { Link as RouterLink } from "react-router-dom";
+import { Camera } from "phosphor-react";
+import React, { useEffect, useState } from "react";
+import { useForm } from "react-hook-form";
 import { useSelector } from "react-redux";
-import { selectCurrUser } from "../../redux/relationShip/relationShipSlice";
-import { VisuallyHiddenInput } from "../common/VisuallyHiddenInput";
-import { filterValidFiles } from "../../utils/checkValidFile";
+import * as Yup from "yup";
 import { imageFileTypesWithMIME, maxSize } from "../../config";
-import RHFFileUpload from "../hook-form/RHFFileUpload";
 import useAxiosPrivate from "../../hooks/useAxiosPrivate";
 import { updateProfile } from "../../redux/relationShip/relationShipApi";
+import { selectCurrUser } from "../../redux/relationShip/relationShipSlice";
+import { filterValidFiles } from "../../utils/checkValidFile";
+import { RHFTextField } from "../hook-form";
+import FormProvider from "../hook-form/FormProvider";
+import RHFFileUpload from "../hook-form/RHFFileUpload";
 
 const ProfileForm = () => {
   const currUser = useSelector(selectCurrUser);

@@ -68,13 +68,13 @@
     "phone": "Điện thoại",
     "video": "Video",
     "about": "Thông tin thêm",
-    "imaginationIsOnlyLimit": "Imagination is only limit",
-    "mediaLinkDocs": "Media, Link & Docs",
-    "starredMessages": "Starred Messages",
-    "muteNotification": "Mute notification",
-    "groupInCommon": "group in common",
-    "block": "Block",
-    "delete": "Delete"
+    "imaginationIsOnlyLimit": "Thứ duy nhất giới hạn là trí tưởng tượng của bạn",
+    "mediaLinkDocs": "File phương tiện",
+    "starredMessages": "Tin nhắn được ghim",
+    "muteNotification": "Tắt thông báo",
+    "groupInCommon": "Bạn chung nhóm",
+    "block": "Chặn",
+    "delete": "Xóa"
   },
 
   "conversation": {
@@ -87,7 +87,11 @@
     "search": "Tìm kiếm",
     "explore": "Khám phá",
     "friends": "Bạn bè",
-    "requests": "Yêu cầu"
+    "requests": "Yêu cầu kết bạn",
+    "sendRequest": "Mời kết bạn",
+    "withdrawRequest": "Rút yêu cầu",
+    "decline": "Từ chối",
+    "accept": "Chấp nhận"
   },
 
   "groupCvs": {

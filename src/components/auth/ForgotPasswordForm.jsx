@@ -1,21 +1,17 @@
-import React, { useState } from "react";
-import FormProvider from "../hook-form/FormProvider";
-import * as Yup from "yup";
-import { useForm } from "react-hook-form";
 import { yupResolver } from "@hookform/resolvers/yup";
-import { Alert, Button, Link, Stack } from "@mui/material";
-import { RHFTextField } from "../hook-form";
-import { dispatch } from "../../redux/store";
-import { forgotPwd } from "../../redux/auth/authApi";
+import { Alert, Button, Stack } from "@mui/material";
+import React from "react";
+import { useForm } from "react-hook-form";
 import ResetPwdSchema from "../../hookForm/schema/ResetPwdSchema";
-import { showSnackbar } from "../../redux/app/appSlice";
-import { useNavigate } from "react-router-dom";
-import LoadingScreen from "../common/LoadingScreen";
 import useAxiosPublic from "../../hooks/useAxiosPublic";
+import { showSnackbar } from "../../redux/app/appSlice";
+import { forgotPwd } from "../../redux/auth/authApi";
+import { dispatch } from "../../redux/store";
+import LoadingScreen from "../common/LoadingScreen";
+import { RHFTextField } from "../hook-form";
+import FormProvider from "../hook-form/FormProvider";
 
 const ForgotPasswordForm = () => {
-  const navigate = useNavigate();
-
   const defaultValues = {
     email: "demo@gmail.com",
   };

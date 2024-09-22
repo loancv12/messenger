@@ -1,12 +1,11 @@
 import { combineReducers } from "@reduxjs/toolkit";
+import autoMergeLevel2 from "redux-persist/lib/stateReconciler/autoMergeLevel2";
 import storage from "redux-persist/lib/storage";
 import appReducer from "./app/appSlice";
+import authReducer from "./auth/authSlice";
 import conversationReducer from "./conversation/conversationSlice";
 import messageReducer from "./message/messageSlice";
-import authReducer from "./auth/authSlice";
 import relationShipReducer from "./relationShip/relationShipSlice";
-import { persistReducer } from "redux-persist";
-import autoMergeLevel2 from "redux-persist/lib/stateReconciler/autoMergeLevel2";
 
 // slices
 

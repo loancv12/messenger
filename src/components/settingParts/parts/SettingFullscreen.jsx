@@ -1,12 +1,9 @@
-import { useState } from "react";
-// @mui
-import { alpha } from "@mui/material/styles";
 import { Button } from "@mui/material";
-import toCamelCase from "../../../utils/toCamelCase";
-import useLocales from "../../../hooks/useLocales";
+import { alpha } from "@mui/material/styles";
 import { ArrowsIn, CornersOut } from "phosphor-react";
-
-// ----------------------------------------------------------------------
+import { useState } from "react";
+import useLocales from "../../../hooks/useLocales";
+import toCamelCase from "../../../utils/toCamelCase";
 
 export default function SettingFullscreen() {
   const [fullscreen, setFullscreen] = useState(false);

@@ -1,16 +1,15 @@
-import { Avatar, Badge, Box, Stack, Typography, useTheme } from "@mui/material";
-import StyledBadge from "../common/StyledBadge";
 import { faker } from "@faker-js/faker";
+import { Avatar, Badge, Box, Stack, Typography, useTheme } from "@mui/material";
+import { memo } from "react";
 import { useDispatch, useSelector } from "react-redux";
+import { useNavigate } from "react-router-dom";
 import { selectChatType, updateShowCvsComp } from "../../redux/app/appSlice";
 import {
   selectCurrCvsId,
-  setCurrentCvsId,
   updateConversation,
 } from "../../redux/conversation/conversationSlice";
-import { memo } from "react";
 import { fRelativeDate } from "../../utils/formatTime";
-import { useNavigate } from "react-router-dom";
+import StyledBadge from "../common/StyledBadge";
 
 const ChatElement = memo(
   ({ id, name, img, msg, updatedAt, online, unread }) => {
@@ -64,6 +63,7 @@ const ChatElement = memo(
                 anchorOrigin={{ vertical: "bottom", horizontal: "right" }}
                 variant="dot"
               >
+                {/* <StyleAvatar {...{fullName:name}}/> */}
                 <Avatar alt="Remy Sharp" src={faker.image.avatar()} />
               </StyledBadge>
             ) : (

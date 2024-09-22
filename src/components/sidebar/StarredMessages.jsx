@@ -12,9 +12,6 @@ import { CaretLeft } from "phosphor-react";
 import React, { useState } from "react";
 import { useDispatch } from "react-redux";
 import { updateSidebar } from "../../redux/app/appSlice";
-import { fa, faker } from "@faker-js/faker";
-import { SHARED_DOCS, SHARED_LINKS } from "../../data";
-import { DocMsg, LinkMsg } from "../conversation/MsgTypes";
 import Messages from "../conversation/Messages";
 
 const StarredMessages = () => {

@@ -1,23 +1,14 @@
-import {
-  Divider,
-  IconButton,
-  Stack,
-  Typography,
-  alpha,
-  styled,
-} from "@mui/material";
+import { Divider, IconButton, Stack, Typography } from "@mui/material";
+import { ArrowClockwise } from "phosphor-react";
 import React from "react";
-import cssStyles from "../../utils/cssStyles";
-import { NAVBAR } from "../../config";
+import useLocales from "../../hooks/useLocales";
 import useSettings from "../../hooks/useSettings";
-import SettingDirection from "./parts/SettingDirection";
+import toCamelCase from "../../utils/toCamelCase";
 import SettingColorPresets from "./parts/SettingColorPresets";
+import SettingDirection from "./parts/SettingDirection";
 import SettingFullscreen from "./parts/SettingFullscreen";
 import SettingLanguage from "./parts/SettingLanguage";
-import toCamelCase from "../../utils/toCamelCase";
-import useLocales from "../../hooks/useLocales";
 import SettingMode from "./parts/SettingMode";
-import { ArrowClockwise } from "phosphor-react";
 
 const AdjustTheme = () => {
   const { onResetSetting } = useSettings();

@@ -1,41 +1,23 @@
 import { Box, CircularProgress, Stack, Typography } from "@mui/material";
-import LoadingScreen from "../common/LoadingScreen";
-import {
-  DeletedMsg,
-  DocMsg,
-  LinkMsg,
-  MediaMsg,
-  MsgSkeleton,
-  ReplyMsg,
-  TextMsg,
-  Timeline,
-} from "./MsgTypes";
+import { memo, useCallback, useEffect, useMemo, useRef } from "react";
 import { useDispatch, useSelector } from "react-redux";
-import {
-  useCallback,
-  useDeferredValue,
-  useEffect,
-  useLayoutEffect,
-  useMemo,
-  useRef,
-  useState,
-  useTransition,
-} from "react";
-import {
-  selectCurrentMsgs,
-  setMessages,
-  concatMessages,
-} from "../../redux/message/messageSlice";
-import { fetchMessages } from "../../redux/message/messageApi";
+import { useParams } from "react-router-dom";
+import useAuth from "../../hooks/useAuth";
+import useAxiosPrivate from "../../hooks/useAxiosPrivate";
 import {
   selectNumOfParticipants,
   updateConversation,
 } from "../../redux/conversation/conversationSlice";
-import useAuth from "../../hooks/useAuth";
-import { fDateFromNow } from "../../utils/formatTime";
-import useAxiosPrivate from "../../hooks/useAxiosPrivate";
-import { useLocation, useMatch, useParams } from "react-router-dom";
+import { fetchMessages } from "../../redux/message/messageApi";
+import {
+  concatMessages,
+  selectCurrentMsgs,
+  setMessages,
+} from "../../redux/message/messageSlice";
 import instance from "../../socket";
+import { fDateFromNow } from "../../utils/formatTime";
+import LoadingScreen from "../common/LoadingScreen";
+import { DocMsg, LinkMsg, MediaMsg, MsgSkeleton, TextMsg } from "./MsgTypes";
 import ScrollToBottomBtn from "./ScrollToBottomBtn";
 
 function transformMessages(rawMsg, userId) {
@@ -154,7 +136,7 @@ const getFromUserIds = (currentMsgs, userId) => {
 };
 
 let prevReadUserIds = null;
-function Messages({ menu, chatType }) {
+const Messages = memo(({ menu, chatType }) => {
   const socket = instance.getSocket();
 
   const { cvsId } = useParams();
@@ -301,11 +283,16 @@ function Messages({ menu, chatType }) {
         isIntersecting &&
         currentRatio >= previousRatio
       ) {
-        console.log("Scrolling very up enter", relatedRef, cursorRef);
+        console.log(
+          "Scrolling very up enter",
+          relatedRef,
+          JSON.stringify(relatedRef),
+          cursorRef
+        );
         if (cursorRef.current.isHaveMoreMsg) {
           handleGetNextMsgs();
+          relatedRef.current.runGetNext = true;
         }
-        relatedRef.current.runGetNext = true;
       }
 
       relatedRef.current.previousY = currentY;
@@ -421,7 +408,6 @@ function Messages({ menu, chatType }) {
       currentMsgs[currentMsgs.length - 1]?.readUserIds?.length,
       currentMsgs[currentMsgs.length - 1]?.id,
       numOfParticipants,
-      // prevReadUserIds=>PREVENT  updateSent run useMemo
     ]
   );
   // when msg added=>
@@ -602,6 +588,6 @@ function Messages({ menu, chatType }) {
       </Box>
     </>
   );
-}
+});
 
 export default Messages;

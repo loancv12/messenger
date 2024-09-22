@@ -226,6 +226,8 @@ const Contact = () => {
           </Stack>
           <IconButton
             onClick={() => {
+              console.log("update side bar");
+
               dispatch(updateSidebar({ type: "STARRED" }));
             }}
           >

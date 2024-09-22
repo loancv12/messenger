@@ -5,20 +5,18 @@ import { Navigate, useRoutes } from "react-router-dom";
 import DashboardLayout from "../layouts/dashboard";
 
 // config
-import { DEFAULT_PATH } from "../config";
-import LoadingScreen from "../components/common/LoadingScreen";
-import CenterScreenLayout from "../layouts/main";
-import RequiredAuth from "../components/auth/RequiredAuth";
-import SocketProvider from "../contexts/SocketProvider";
 import PersistLogin from "../components/auth/PersistLogin";
-import NoCvs from "../components/conversation/NoCvs";
-import { dynamics, generalPath, path, specificPath } from "./paths";
-import { chatTypes } from "../redux/config";
-import CacheProvider from "../contexts/CacheProvider";
+import PreventLoginAgain from "../components/auth/PreventLoginAgain";
+import RequiredAuth from "../components/auth/RequiredAuth";
 import CallRoom from "../components/call/CallRoom";
 import { FullScreen } from "../components/call/FullScreen";
 import WaitRoom from "../components/call/WaitRoom";
-import PreventLoginAgain from "../components/auth/PreventLoginAgain";
+import LoadingScreen from "../components/common/LoadingScreen";
+import NoCvs from "../components/conversation/NoCvs";
+import { DEFAULT_PATH } from "../config";
+import SocketProvider from "../contexts/SocketProvider";
+import CenterScreenLayout from "../layouts/main";
+import { chatTypes } from "../redux/config";
 
 const Loadable = (Component) => (props) => {
   return (
@@ -70,11 +68,9 @@ export default function Router() {
           children: [
             {
               element: (
-                <CacheProvider>
-                  <SocketProvider>
-                    <DashboardLayout />
-                  </SocketProvider>
-                </CacheProvider>
+                <SocketProvider>
+                  <DashboardLayout />
+                </SocketProvider>
               ),
               children: [
                 {
@@ -82,56 +78,63 @@ export default function Router() {
                   index: true,
                 },
                 {
-                  path: generalPath[chatTypes.DIRECT_CHAT],
+                  path: "direct-chat",
                   element: <DirectChatPage />,
                   children: [
                     { index: true, element: <NoCvs /> },
 
-                    { path: dynamics.cvs, element: <Conversation /> },
+                    {
+                      path: ":cvsId",
+                      element: (
+                        <Conversation chatType={chatTypes.DIRECT_CHAT} />
+                      ),
+                    },
                   ],
                 },
                 {
-                  path: generalPath[chatTypes.GROUP_CHAT],
+                  path: "group-chat",
                   element: <GroupPage />,
                   children: [
                     { index: true, element: <NoCvs /> },
 
-                    { path: dynamics.cvs, element: <Conversation /> },
+                    {
+                      path: ":cvsId",
+                      element: <Conversation chatType={chatTypes.GROUP_CHAT} />,
+                    },
                   ],
                 },
                 {
-                  path: generalPath.call,
+                  path: "call",
                   element: <FullScreen />,
                   children: [
                     {
-                      path: path(dynamics.call, specificPath.waitRoom),
+                      path: ":roomId/wait-room",
                       element: <WaitRoom />,
                     },
                     {
-                      path: path(dynamics.call, specificPath.callRoom),
+                      path: ":roomId/call-room",
                       element: <CallRoom />,
                     },
                   ],
                 },
                 {
-                  path: generalPath.setting,
+                  path: "settings",
                   element: <Settings />,
                   children: [
                     {
-                      path: specificPath.adjustTheme,
+                      path: "adjust-theme",
                       element: <AdjustTheme />,
                     },
                     {
-                      path: specificPath.shortcuts,
+                      path: "shortcuts",
                       element: <Shortcuts />,
                     },
                   ],
                 },
                 {
-                  path: generalPath.profile,
+                  path: "profile",
                   element: <ProfilePage />,
                 },
-                // { path: "*", element: <Navigate to="/404" replace /> },
               ],
             },
           ],

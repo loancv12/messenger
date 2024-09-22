@@ -1,62 +1,54 @@
-import React, { useEffect } from "react";
 import {
-  Box,
-  Divider,
-  Stack,
-  IconButton,
-  CardMedia,
-  useTheme,
-  Avatar,
-  Card,
-  Menu,
-  Drawer,
-  Button,
-  MenuItem,
-  Typography,
-  styled,
-  Link,
   Badge,
+  Box,
+  Card,
+  CardMedia,
+  Divider,
+  Drawer,
+  IconButton,
+  Menu,
+  MenuItem,
+  Stack,
+  Typography,
+  useTheme,
 } from "@mui/material";
 import {
   ChatCircleDots,
   DotsThreeCircle,
-  SignOut,
   Gear,
+  SignOut,
   User,
   Users,
 } from "phosphor-react";
-import { useState } from "react";
-import Logo from "../../assets/Images/logo.ico";
-import { faker } from "@faker-js/faker";
-import useSettings from "../../hooks/useSettings";
-import AntSwitch from "../../components/common/AntSwitch";
-import { NavLink, useLocation, useNavigate } from "react-router-dom";
-import { logOutUser } from "../../redux/auth/authApi";
+import React, { useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
+import { NavLink, useLocation, useNavigate } from "react-router-dom";
+import Logo from "../../assets/Images/logo.ico";
+import AntSwitch from "../../components/common/AntSwitch";
+import StyleAvatar from "../../components/common/StyleAvatar";
+import useAxiosPrivate from "../../hooks/useAxiosPrivate";
+import useLocales from "../../hooks/useLocales";
+import useSettings from "../../hooks/useSettings";
 import {
   selectClientId,
   selectNotice,
   updateNotice,
 } from "../../redux/app/appSlice";
+import { logOutUser } from "../../redux/auth/authApi";
 import { chatTypes, noticeTypes } from "../../redux/config";
-import useLocales from "../../hooks/useLocales";
-import toCamelCase from "../../utils/toCamelCase";
-import useAuth from "../../hooks/useAuth";
-import useAxiosPrivate from "../../hooks/useAxiosPrivate";
-import { generalPath } from "../../routes/paths";
-import StyleAvatar from "../../components/common/StyleAvatar";
 import { selectCurrUser } from "../../redux/relationShip/relationShipSlice";
 import { getFullName } from "../../utils/getFullName";
+import toCamelCase from "../../utils/toCamelCase";
 
 export const Profile_Menu = [
   {
     title: "Profile",
-    path: generalPath.profile,
+    path: "/profile",
     icon: <User />,
   },
   {
     title: "Settings",
-    path: generalPath.setting,
+    path: "/settings",
     icon: <Gear />,
   },
   {
@@ -70,14 +62,14 @@ export const Nav_Buttons = [
   {
     index: 0,
     title: "Direct chats",
-    path: generalPath[chatTypes.DIRECT_CHAT],
+    path: "direct-chat",
     icon: <ChatCircleDots />,
     noticeType: noticeTypes[chatTypes.DIRECT_CHAT],
   },
   {
     index: 1,
     title: "Groups",
-    path: generalPath[chatTypes.GROUP_CHAT],
+    path: "group-chat",
     icon: <Users />,
     noticeType: noticeTypes[chatTypes.GROUP_CHAT],
   },

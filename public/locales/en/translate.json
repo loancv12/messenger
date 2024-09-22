@@ -87,7 +87,11 @@
     "search": "Search",
     "explore": "Explore",
     "friends": "Friends",
-    "requests": "Requests"
+    "requests": "Requests",
+    "sendRequest": "Send Request",
+    "withdrawRequest": "Withdraw request",
+    "decline": "Decline",
+    "accept": "Accept"
   },
 
   "conversation": {

@@ -1,23 +1,16 @@
 // routes
-import Router from "./routes";
-import ThemeSettings from "./components/settings";
-import ThemeProvider from "./theme";
-import {
-  Alert,
-  Dialog,
-  DialogContent,
-  DialogContentText,
-  DialogTitle,
-  Snackbar,
-} from "@mui/material";
-import { useDispatch, useSelector } from "react-redux";
-import { closeSnackbar, selectCallConfirm } from "./redux/app/appSlice";
-import { Suspense, useEffect } from "react";
-import LoadingScreen from "./components/common/LoadingScreen";
-import askNotificationPermission from "./services/notification";
-import CallConfirm from "./components/call/CallConfirm";
+import { Alert, Snackbar } from "@mui/material";
 import { GoogleOAuthProvider } from "@react-oauth/google";
+import { Suspense, useEffect } from "react";
+import { useDispatch, useSelector } from "react-redux";
 import { useLocation, useNavigate } from "react-router-dom";
+import CallConfirm from "./components/call/CallConfirm";
+import LoadingScreen from "./components/common/LoadingScreen";
+import { closeSnackbar, selectCallConfirm } from "./redux/app/appSlice";
+import Router from "./routes";
+import askNotificationPermission from "./services/notification";
+import ThemeProvider from "./theme";
+import ThemeSettings from "./theme/settings";
 import { history } from "./utils/history";
 
 const vertical = "bottom";

@@ -6,9 +6,9 @@ import {
   Typography,
   useTheme,
 } from "@mui/material";
+import { File } from "phosphor-react";
 import React, { useEffect, useState } from "react";
 import { imageFileTypesWithMIME } from "../../config";
-import { File } from "phosphor-react";
 
 export const checkCanShowToScreen = (file) => {
   const { name, type } = file;

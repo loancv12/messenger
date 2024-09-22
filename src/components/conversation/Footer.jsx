@@ -1,64 +1,40 @@
-import {
-  Stack,
-  Box,
-  TextField,
-  styled,
-  InputAdornment,
-  useTheme,
-  IconButton,
-  Fab,
-  Tooltip,
-  typographyClasses,
-  Button,
-  Input,
-  Typography,
-  Badge,
-} from "@mui/material";
-import React, {
-  useContext,
-  useEffect,
-  useLayoutEffect,
-  useRef,
-  useState,
-} from "react";
-import {
-  LinkSimple,
-  PaperPlaneTilt,
-  Smiley,
-  Image,
-  Sticker,
-  Camera,
-  File,
-  User,
-  ClockClockwise,
-  ClosedCaptioning,
-} from "phosphor-react";
 import data from "@emoji-mart/data";
 import Picker from "@emoji-mart/react";
+import {
+  Badge,
+  Box,
+  Fab,
+  IconButton,
+  Stack,
+  Tooltip,
+  Typography,
+  useTheme,
+} from "@mui/material";
+import { LinkSimple, PaperPlaneTilt } from "phosphor-react";
+import React, { useEffect, useRef, useState } from "react";
 import InputHidden from "./InputHidden";
-import PreviewFiles, { checkCanShowToScreen } from "./PreviewFiles";
+import PreviewFiles from "./PreviewFiles";
 // import { socket } from "../../socket";
+import { add } from "date-fns";
 import { useDispatch, useSelector } from "react-redux";
+import { v4 as uuidv4 } from "uuid";
+import { msgInterval } from "../../config";
+import useAuth from "../../hooks/useAuth";
+import useAxiosPrivate from "../../hooks/useAxiosPrivate";
+import { selectChatType, showSnackbar } from "../../redux/app/appSlice";
+import { chatTypes } from "../../redux/config";
+import { selectCurrCvs } from "../../redux/conversation/conversationSlice";
+import { uploadFile } from "../../redux/message/messageApi";
 import {
   clearReplyMessage,
   handleNewMessages,
   selectLastMsgCreatedTime,
   selectReplyMsg,
 } from "../../redux/message/messageSlice";
-import { uploadFile } from "../../redux/message/messageApi";
-import { chatTypes } from "../../redux/config";
-import ChatInput from "./ChatInput";
-import { selectChatType, showSnackbar } from "../../redux/app/appSlice";
-import { selectCurrCvs } from "../../redux/conversation/conversationSlice";
-import useAuth from "../../hooks/useAuth";
-import useAxiosPrivate from "../../hooks/useAxiosPrivate";
-import AddSticker from "./AddSticker";
-import HandleCamera from "./HandleCamera";
 import instance from "../../socket";
-import { add } from "date-fns";
-import { v4 as uuidv4 } from "uuid";
-import { msgInterval } from "../../config";
-import Pako from "pako";
+import AddSticker from "./AddSticker";
+import ChatInput from "./ChatInput";
+import HandleCamera from "./HandleCamera";
 
 const Actions = [
   {
@@ -128,7 +104,6 @@ function Footer() {
 
   const handleSelectEmojis = (emojis) => {
     textRef.current.innerHTML += emojis.native;
-    // textRef.current.value += emojis.native;
   };
 
   const handleDelete = (item) => {
@@ -155,9 +130,11 @@ function Footer() {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
+
     const textMsg = textRef.current.textContent.trim();
     const isStartMsg =
       add(lastMsgCreatedTime, { minutes: msgInterval }) < new Date();
+
     if (textMsg) {
       const newMsg = {
         to: currentCvs?.userId,
@@ -197,8 +174,6 @@ function Footer() {
         newMsg,
         tempId,
       });
-
-      textRef.current.value = "";
     }
     if (!!replyMsg?.id) {
       dispatch(clearReplyMessage());
@@ -210,8 +185,6 @@ function Footer() {
         conversationId: currentCvs?.id,
         chatType,
         isReply: !!replyMsg,
-        // 'cause formDate append convert value to string, so we must hanlde it in there
-        // NOTE for BE
         replyMsgId: replyMsg?.id ? replyMsg?.id : "",
         isStartMsg,
         from: userId,

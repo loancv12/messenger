@@ -1,24 +1,17 @@
-import React, { useState } from "react";
-import { FullScreen } from "./FullScreen";
 import {
-  Avatar,
   Button,
   Dialog,
   DialogActions,
   DialogContent,
   DialogContentText,
   DialogTitle,
-  IconButton,
-  Stack,
 } from "@mui/material";
-import { faker } from "@faker-js/faker";
-import { PhoneDisconnect, VideoCamera } from "phosphor-react";
-import { useLocation, useNavigate } from "react-router-dom";
-import { generalPath, path, specificPath } from "../../routes/paths";
-import { updateCallConfirm } from "../../redux/app/appSlice";
+import React, { useState } from "react";
 import { useDispatch } from "react-redux";
-import instance from "../../socket";
+import { useNavigate } from "react-router-dom";
 import useAuth from "../../hooks/useAuth";
+import { updateCallConfirm } from "../../redux/app/appSlice";
+import instance from "../../socket";
 
 const CallConfirm = ({ callConfirmOpen, roomId, senderId }) => {
   const { userId } = useAuth();
@@ -34,7 +27,7 @@ const CallConfirm = ({ callConfirmOpen, roomId, senderId }) => {
   const acceptCall = () => {
     dispatch(updateCallConfirm({ open: false, roomId: "", senderId: null }));
     setTimeout(function () {
-      navigate(path(generalPath.call, roomId, "/", specificPath.callRoom));
+      navigate(`/call/${roomId}/call-room`);
     }, 200);
   };
 

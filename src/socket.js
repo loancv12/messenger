@@ -6,7 +6,6 @@ class SocketIOService {
   static #instance;
 
   constructor() {
-    // Private constructor ensures singleton instance
     if (!SocketIOService.#instance) {
       SocketIOService.#instance = this;
     }
@@ -45,7 +44,6 @@ class CallSocket {
   static #instance;
 
   constructor() {
-    // Private constructor ensures singleton instance
     if (!CallSocket.#instance) {
       CallSocket.#instance = this;
     }

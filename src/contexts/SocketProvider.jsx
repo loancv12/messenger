@@ -1,17 +1,20 @@
-import { useEffect, useRef, useState } from "react";
-import { useDispatch, useSelector } from "react-redux";
+import { useEffect, useRef } from "react";
+import { useDispatch } from "react-redux";
+import { useNavigate } from "react-router-dom";
+import { v4 as uuidv4 } from "uuid";
+import useAuth from "../hooks/useAuth";
 import {
-  selectClientId,
   setClientId,
   showSnackbar,
   updateCallConfirm,
 } from "../redux/app/appSlice";
+import { chatTypes } from "../redux/config";
 import {
+  handleAcceptJoinGroup,
   handleCreateGroupRet,
   handleJoinGroupReq,
-  handleAcceptJoinGroup,
-  startChat,
   handleNewMember,
+  startChat,
 } from "../redux/conversation/conversationSlice";
 import {
   handleDeleteMsgRet,
@@ -27,13 +30,8 @@ import {
   handleSendReqRet,
   handleWithdrawFriendReqRet,
 } from "../redux/relationShip/relationShipSlice";
-import useAuth from "../hooks/useAuth";
-import instance from "../socket";
 import { axiosPrivate } from "../services/axios/axiosClient";
-import { v4 as uuidv4 } from "uuid";
-import { Navigate, useNavigate } from "react-router-dom";
-import { generalPath, path, specificPath } from "../routes/paths";
-import { chatTypes } from "../redux/config";
+import instance from "../socket";
 
 const socket = instance.initSocket();
 

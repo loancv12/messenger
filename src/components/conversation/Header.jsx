@@ -1,15 +1,14 @@
+import { faker } from "@faker-js/faker";
 import {
-  Box,
-  Stack,
-  IconButton,
   Avatar,
+  AvatarGroup,
+  Box,
   Divider,
+  IconButton,
+  Stack,
   Typography,
   useTheme,
-  AvatarGroup,
 } from "@mui/material";
-import StyledBadge from "../common/StyledBadge";
-import { faker } from "@faker-js/faker";
 import {
   CaretDown,
   CaretLeft,
@@ -17,18 +16,13 @@ import {
   PhoneCall,
   VideoCamera,
 } from "phosphor-react";
-import {
-  toggleSidebar,
-  selectChatType,
-  updateShowCvsComp,
-} from "../../redux/app/appSlice";
 import { useDispatch, useSelector } from "react-redux";
-import { selectCurrCvs } from "../../redux/conversation/conversationSlice";
-import { chatTypes } from "../../redux/config";
 import { useLocation, useNavigate } from "react-router-dom";
-import { useState } from "react";
 import { v4 as uuidv4 } from "uuid";
-import { generalPath, path, specificPath } from "../../routes/paths";
+import { toggleSidebar, updateShowCvsComp } from "../../redux/app/appSlice";
+import { chatTypes } from "../../redux/config";
+import { selectCurrCvs } from "../../redux/conversation/conversationSlice";
+import StyledBadge from "../common/StyledBadge";
 
 function Header({ chatType }) {
   const theme = useTheme();
@@ -40,7 +34,8 @@ function Header({ chatType }) {
 
   const handleCallVideo = () => {
     const roomId = uuidv4();
-    navigate(path(generalPath.call, roomId, "/", specificPath.callRoom), {
+
+    navigate(`/call/${roomId}/call-room`, {
       state: {
         prevPath: location.pathname,
       },
@@ -49,7 +44,11 @@ function Header({ chatType }) {
 
   const handleBack = () => {
     dispatch(updateShowCvsComp({ open: false }));
-    navigate(generalPath[chatType]);
+    if (chatType === chatTypes.DIRECT_CHAT) {
+      navigate("/direct-chat");
+    } else {
+      navigate("/group-chat");
+    }
   };
 
   return (

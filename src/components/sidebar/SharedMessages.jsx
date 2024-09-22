@@ -1,20 +1,16 @@
 import {
   Box,
-  Stack,
-  useTheme,
-  Typography,
   IconButton,
-  Tabs,
+  Stack,
   Tab,
-  Grid,
+  Tabs,
+  Typography,
+  useTheme,
 } from "@mui/material";
 import { CaretLeft } from "phosphor-react";
 import React, { useState } from "react";
 import { useDispatch } from "react-redux";
 import { updateSidebar } from "../../redux/app/appSlice";
-import { fa, faker } from "@faker-js/faker";
-import { SHARED_DOCS, SHARED_LINKS } from "../../data";
-import { DocMsg, LinkMsg } from "../conversation/MsgTypes";
 
 const SharedMessages = () => {
   const theme = useTheme();
@@ -22,6 +18,7 @@ const SharedMessages = () => {
   const [value, setValue] = useState(0);
 
   const handleChange = (event, newValue) => {
+    console.log("SharedMessages", newValue);
     setValue(newValue);
   };
   return (
@@ -80,33 +77,13 @@ const SharedMessages = () => {
             switch (value) {
               case 0:
                 // Imgeas
-                return (
-                  <Grid container spacing={2}>
-                    {[0, 1, 2, 3, 4, 5, 6].map((el) => {
-                      return (
-                        <Grid key={el} item xs={4}>
-                          <img
-                            src={faker.image.avatar()}
-                            alt={faker.person.firstName()}
-                          />
-                        </Grid>
-                      );
-                    })}
-                  </Grid>
-                );
-                break;
+                return <div>TODO Imgeas</div>;
               case 1:
                 // Links
-                return SHARED_LINKS.map((el, i) => {
-                  return <LinkMsg el={el} key={i} />;
-                });
-                break;
+                return <div>TODO Links</div>;
               case 2:
                 // Docs
-                return SHARED_DOCS.map((el, i) => {
-                  return <DocMsg el={el} key={i} />;
-                });
-                break;
+                return <div>TODO Docs</div>;
 
               default:
                 break;
