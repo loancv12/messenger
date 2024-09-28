@@ -62,14 +62,14 @@ export const Nav_Buttons = [
   {
     index: 0,
     title: "Direct chats",
-    path: "direct-chat",
+    path: "/direct-chat",
     icon: <ChatCircleDots />,
     noticeType: noticeTypes[chatTypes.DIRECT_CHAT],
   },
   {
     index: 1,
     title: "Groups",
-    path: "group-chat",
+    path: "/group-chat",
     icon: <Users />,
     noticeType: noticeTypes[chatTypes.GROUP_CHAT],
   },

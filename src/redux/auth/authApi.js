@@ -1,21 +1,13 @@
-import { logout, setCredentials, updateEmail } from "../auth/authSlice";
-import { dispatch, persistor } from "../store";
 import { apiAction } from "../../utils/apiAction";
-import { showSnackbar } from "../app/appSlice";
+import { logout, setCredentials } from "../auth/authSlice";
+import { dispatch, persistor } from "../store";
 
-export const logInUser = (formValues, onFailure) =>
+export const logInUser = (formValues, onSuccess, onFailure) =>
   apiAction({
     url: "/auth/login",
     method: "POST",
     data: { ...formValues },
-    onSuccess: (res) => {
-      const { data: token, message } = res.data;
-      dispatch(
-        setCredentials({
-          token,
-        })
-      );
-    },
+    onSuccess,
     onFailure,
   });
 

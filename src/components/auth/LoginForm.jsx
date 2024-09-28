@@ -1,8 +1,3 @@
-import React, { useState } from "react";
-import FormProvider from "../../components/hook-form/FormProvider";
-import * as Yup from "yup";
-import { object, string, number, date } from "yup";
-import { useForm } from "react-hook-form";
 import { yupResolver } from "@hookform/resolvers/yup";
 import {
   Alert,
@@ -12,16 +7,21 @@ import {
   Link,
   Stack,
 } from "@mui/material";
-import { RHFTextField } from "../../components/hook-form";
 import { Eye, EyeSlash } from "phosphor-react";
-import { Link as RouterLink, useLocation, useNavigate } from "react-router-dom";
-import LoadingScreen from "../common/LoadingScreen";
-import { logInUser } from "../../redux/auth/authApi";
+import React, { useState } from "react";
+import { useForm } from "react-hook-form";
 import { useDispatch } from "react-redux";
-import transform, { transformPwd } from "../../utils/transform";
-import usePersist from "../../hooks/usePersist";
+import { Link as RouterLink, useLocation, useNavigate } from "react-router-dom";
+import * as Yup from "yup";
+import { string } from "yup";
+import { RHFTextField } from "../../components/hook-form";
+import FormProvider from "../../components/hook-form/FormProvider";
 import useAxiosPublic from "../../hooks/useAxiosPublic";
-import transformObj from "../../utils/transform";
+import usePersist from "../../hooks/usePersist";
+import { logInUser } from "../../redux/auth/authApi";
+import { setCredentials } from "../../redux/auth/authSlice";
+import transformObj, { transformPwd } from "../../utils/transform";
+import LoadingScreen from "../common/LoadingScreen";
 
 const LoginForm = () => {
   const [showPwd, setShowPwd] = useState(false);
@@ -69,9 +69,21 @@ const LoginForm = () => {
       });
     };
 
+    const onSuccess = (res) => {
+      const { data: token, message } = res.data;
+      dispatch(
+        setCredentials({
+          token,
+        })
+      );
+      const prevPath = location.state.from;
+      console.log("run navifate", prevPath);
+      navigate(prevPath || "/direct-chat");
+    };
+
     const solveData = transformObj(data, transformPwd);
 
-    await callAction(logInUser(solveData, onFailure));
+    await callAction(logInUser(solveData, onSuccess, onFailure));
   };
 
   return (

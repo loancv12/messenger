@@ -104,7 +104,7 @@ export const DocMsg = memo(
               <Box
                 sx={{
                   backgroundColor: el.incoming
-                    ? theme.palette.background.default
+                    ? theme.palette.action.focus
                     : theme.palette.primary.main,
                   borderRadius: 1.5,
                   width: "max-content",
@@ -212,7 +212,7 @@ export const LinkMsg = memo(
               <Box
                 sx={{
                   backgroundColor: el.incoming
-                    ? theme.palette.background.default
+                    ? theme.palette.action.focus
                     : theme.palette.primary.main,
                   borderRadius: 1.5,
                   width: "max-content",
@@ -424,7 +424,7 @@ export const MediaMsg = memo(
               <Box
                 sx={{
                   backgroundColor: el.incoming
-                    ? theme.palette.background.default
+                    ? theme.palette.action.focus
                     : theme.palette.primary.main,
                   borderRadius: 1.5,
                   width: "max-content",
@@ -529,7 +529,7 @@ export const TextMsg = memo(
               <Box
                 sx={{
                   backgroundColor: el.incoming
-                    ? theme.palette.background.default
+                    ? theme.palette.action.focus
                     : theme.palette.primary.main,
                   borderRadius: 1.5,
                   width: "max-content",
